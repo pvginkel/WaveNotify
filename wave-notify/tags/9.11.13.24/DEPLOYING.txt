@@ -1,0 +1,42 @@
+Deploying
+=========
+
+The following steps are required when deploying Google Wave Notifier.
+
+Version
+-------
+
+Update the version in the Version information in the resource file. This
+version number is also noted down in the wave-notify.nsi file located
+in the Install folder. This must also be updated.
+
+Compile
+-------
+
+Build a new compilation of the executable.
+
+Build installer
+---------------
+
+Copy the following binaries to the Install\dist folder:
+
+ * wave-notify.exe
+ * libcurl.dll
+ * libeay32.dll
+ * ssleay32.dll
+ * zlib1.dll
+
+Execute the nsi installation script. Make sure the version number in the
+compiled installation exe file is the correct version as set in the
+resource file.
+
+Changelog
+---------
+
+Update the CHANGELOG.txt.
+
+Uploading
+---------
+
+Upload the new files to sourceforge.net Make sure the CHANGELOG.txt is
+uploaded before uploading the exe file.
