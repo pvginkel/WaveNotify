@@ -68,4 +68,9 @@ void CMigration::InitialiseNewSettings()
 	{
 		vSettings.SetUseGenericUnicodeFont(TRUE);
 	}
+
+	if (!vSettings.GetPlaySoundOnNewWave(fValue))
+	{
+		vSettings.SetPlaySoundOnNewWave(TRUE);
+	}
 }

@@ -108,9 +108,9 @@ BOOL COptionsGeneralPage::OnFocus()
 		SetDlgItemChecked(IDC_OPTIONS_STARTWITHWINDOWS, fValue);
 	}
 
-	if (vSettings.GetCollectStatistics(fValue))
+	if (vSettings.GetPlaySoundOnNewWave(fValue))
 	{
-		SetDlgItemChecked(IDC_OPTIONS_STATISTICS, fValue);
+		SetDlgItemChecked(IDC_OPTIONS_PLAYSOUNDONNEWWAVE, fValue);
 	}
 
 	return FALSE;
@@ -129,9 +129,11 @@ BOOL COptionsGeneralPage::OnApply()
 		CNotifierApp::Instance()->SetStartWithWindows(fValue);
 	}
 
-	fValue = GetDlgItemChecked(IDC_OPTIONS_STATISTICS);
+	fValue = GetDlgItemChecked(IDC_OPTIONS_PLAYSOUNDONNEWWAVE);
 
-	vSettings.SetCollectStatistics(fValue);
+	vSettings.SetPlaySoundOnNewWave(fValue);
+
+	CNotifierApp::Instance()->SetPlaySoundOnNewWave(fValue);
 
 	SetStateValid();
 
@@ -291,6 +293,11 @@ BOOL COptionsAdvancedPage::OnFocus()
 	}
 
 	SetDlgItemChecked(IDC_OPTIONS_USEGENERICUNICODEFONT, fValue);
+
+	if (vSettings.GetCollectStatistics(fValue))
+	{
+		SetDlgItemChecked(IDC_OPTIONS_STATISTICS, fValue);
+	}
 
 	return FALSE;
 }

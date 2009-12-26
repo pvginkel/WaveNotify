@@ -15,7 +15,7 @@
 # along with Google Wave Notifier.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-LINK_LIBS=deps\curl-7.15.1\libcurl_imp.lib deps\zlib-1.2.3\zlibwapi.lib version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib
+LINK_LIBS=deps\curl-7.15.1\libcurl_imp.lib deps\zlib-1.2.3\zlibwapi.lib version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib
 CPP_FLAGS=/I.\deps\curl-7.15.1\include /I.\deps\zlib-1.2.3\include
 OUTDIR=Deploy
 TARGET=$(OUTDIR)\wave-notify.exe

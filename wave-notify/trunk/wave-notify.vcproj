@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib"
+				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -135,7 +135,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib"
+				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -680,6 +680,10 @@
 			</File>
 			<File
 				RelativePath=".\Manifest.vs6"
+				>
+			</File>
+			<File
+				RelativePath=".\newwave.wav"
 				>
 			</File>
 			<File
