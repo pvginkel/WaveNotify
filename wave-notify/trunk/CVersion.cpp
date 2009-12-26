@@ -115,6 +115,10 @@ wstring CVersion::GetRequestUrl()
 			{
 				szClientVersion = L"Wine";
 			}
+			else
+			{
+				szClientVersion = L"Wine " + szClientVersion;
+			}
 		}
 		else
 		{
