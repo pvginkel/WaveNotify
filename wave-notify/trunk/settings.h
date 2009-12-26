@@ -59,6 +59,7 @@ private:
 	static const wstring RegInstalledVersion;
 	static const wstring RegAttemptedVersion;
 	static const wstring RegUseGenericUnicodeFont;
+	static const wstring RegPlaySoundOnNewWave;
 
 	CRegKey * m_lpKey;
 
@@ -89,6 +90,7 @@ public:
 	SETTINGS_VALUE(wstring, InstalledVersion);
 	SETTINGS_VALUE(wstring, AttemptedVersion);
 	SETTINGS_VALUE(BOOL, UseGenericUnicodeFont);
+	SETTINGS_VALUE(BOOL, PlaySoundOnNewWave);
 
 	BOOL GetValue(wstring szName, wstring & szValue) const {
 		if (m_lpKey == NULL) return FALSE;

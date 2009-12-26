@@ -42,6 +42,11 @@ CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
 	m_lpCurlCache = new CCurlCache();
 
 	SyncProxySettings();
+
+	if (!CSettings(FALSE).GetPlaySoundOnNewWave(m_fPlaySoundOnNewWave))
+	{
+		m_fPlaySoundOnNewWave = TRUE;
+	}
 }
 
 CNotifierApp::~CNotifierApp()

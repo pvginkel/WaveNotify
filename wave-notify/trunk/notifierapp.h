@@ -103,6 +103,7 @@ private:
 	CWaveSession * m_lpSession;
 	CCurlCache * m_lpCurlCache;
 	wstring m_szShortcutTargetPath;
+	BOOL m_fPlaySoundOnNewWave;
 
 public:
 	CNotifierApp(HINSTANCE hInstance, wstring szCmdLine);
@@ -135,6 +136,8 @@ public:
 	CCurlCache * GetCurlCache() const { return m_lpCurlCache; }
 	CWaveContact * GetWaveContact(wstring szEmailAddress) const { return m_lpWindow->GetWaveContact(szEmailAddress); }
 	void SetStartWithWindows(BOOL fValue);
+	void SetPlaySoundOnNewWave(BOOL fValue) { m_fPlaySoundOnNewWave = fValue; }
+	BOOL GetPlaySoundOnNewWave() { return m_fPlaySoundOnNewWave; }
 	void SyncProxySettings();
 	void DetectStartWithWindowsSetting();
 

@@ -457,6 +457,7 @@ void CAppWindow::TruncateLastReported()
 
 void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
 {
+	BOOL fQueuedNewWaves = FALSE;
 	TPopupVector vMustCancel;
 	TStringVector vSeen;
 
@@ -536,6 +537,10 @@ void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
 				{
 					m_vReportedTimes.erase(pos);
 				}
+
+				// We've queued a new popup, so make a noise.
+
+				fQueuedNewWaves = TRUE;
 			}
 			else
 			{
@@ -556,8 +561,8 @@ void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
 
 	lpUnreads->DetachAll();
 
-	// And last, re-index the popups to correctly display the
-	// index and count number shown of the popups.
+	// Re-index the popups to correctly display the index and count number
+	// shown of the popups.
 
 	if (CPopupWindow::Instance() != NULL)
 	{
@@ -586,6 +591,16 @@ void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
 				uIndex++;
 			}
 		}
+	}
+
+	// Make a sound (when applicable).
+
+	if (fQueuedNewWaves && CNotifierApp::Instance()->GetPlaySoundOnNewWave())
+	{
+		PlaySound(
+			MAKEINTRESOURCE(IDR_NEWWAVE),
+			CNotifierApp::Instance()->GetInstance(),
+			SND_ASYNC | SND_NOSTOP | SND_NOWAIT | SND_RESOURCE);
 	}
 }
 
