@@ -58,6 +58,7 @@ void CMigration::InitialiseNewSettings()
 	CSettings vSettings(TRUE);
 
 	BOOL fValue;
+	wstring szValue;
 
 	if (!vSettings.GetCollectStatistics(fValue))
 	{
@@ -72,5 +73,10 @@ void CMigration::InitialiseNewSettings()
 	if (!vSettings.GetPlaySoundOnNewWave(fValue))
 	{
 		vSettings.SetPlaySoundOnNewWave(TRUE);
+	}
+
+	if (!vSettings.GetBrowser(szValue))
+	{
+		vSettings.SetBrowser(CBrowser::BrowserDefault);
 	}
 }

@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CBrowser.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CCurl.cpp"
 				>
 			</File>
@@ -407,10 +411,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\OpenUrl.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\StdAfx.cpp"
 				>
 				<FileConfiguration
@@ -470,6 +470,10 @@
 			</File>
 			<File
 				RelativePath=".\app.h"
+				>
+			</File>
+			<File
+				RelativePath=".\browser.h"
 				>
 			</File>
 			<File

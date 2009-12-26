@@ -71,7 +71,6 @@ wstring ExpandEnvironmentStrings(wstring szPath);
 
 wstring UrlEncode(wstring szSource);
 wstring Format(wstring szFormat, ...);
-void OpenUrl(wstring szUrl);
 
 HFONT GetMessageBoxFont(BOOL fReload = FALSE);
 HFONT CreateFontIndirectEx(HFONT hFont, LONG lWeight, BOOL fItalic, BOOL fUnderline);

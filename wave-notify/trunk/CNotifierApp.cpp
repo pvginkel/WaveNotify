@@ -43,9 +43,16 @@ CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
 
 	SyncProxySettings();
 
-	if (!CSettings(FALSE).GetPlaySoundOnNewWave(m_fPlaySoundOnNewWave))
+	CSettings vSettings(FALSE);
+
+	if (!vSettings.GetPlaySoundOnNewWave(m_fPlaySoundOnNewWave))
 	{
 		m_fPlaySoundOnNewWave = TRUE;
+	}
+
+	if (!vSettings.GetBrowser(m_szBrowser))
+	{
+		m_szBrowser = CBrowser::BrowserDefault;
 	}
 }
 
@@ -415,4 +422,9 @@ __end:
 	{
 		lpShellLink->Release();
 	}
+}
+
+void CNotifierApp::OpenUrl(wstring szUrl)
+{
+	CBrowser::OpenUrl(m_szBrowser, szUrl);
 }

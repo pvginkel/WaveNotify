@@ -20,7 +20,7 @@ CPP_FLAGS=/I.\deps\curl-7.15.1\include /I.\deps\zlib-1.2.3\include
 OUTDIR=Deploy
 TARGET=$(OUTDIR)\wave-notify.exe
 
-LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CCurl.obj CCurlAnsiStringReader.obj \
+LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CBrowser.obj CCurl.obj CCurlAnsiStringReader.obj \
 	CCurlMulti.obj CDialog.obj CFlyout.obj CLoginDialog.obj CLoginThread.obj CMessagePopup.obj \
 	CMigration.obj CModelessDialogs.obj CModelessPropertySheets.obj CNotifierApp.obj \
 	CNotifyIcon.obj ConvetString.obj COptionsSheet.obj CPopup.obj CPopupBase.obj CPopupWindow.obj \
@@ -31,7 +31,7 @@ LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CCurl.obj CCurlAns
 	CWaveRequestGetContactDetails.obj CWaveRequestStartListening.obj CWaveRequestStopListening.obj \
 	CWaveResponse.obj CWaveSession.obj CWaveView.obj CWindow.obj CWindowHandle.obj Encryption.obj \
 	Format.obj GetFont.obj GetWindowsVersion.obj Json_Reader.obj Json_Value.obj Json_Writer.obj \
-	Log.obj Main.obj OpenUrl.obj StdAfx.obj SubclassStaticForLink.obj Support.obj TaskbarLocation.obj \
+	Log.obj Main.obj StdAfx.obj SubclassStaticForLink.obj Support.obj TaskbarLocation.obj \
 	Trim.obj Unzip.obj UrlEncode.obj Wine.obj wave-notify.res
 
 TARGET_EXTRA=deps\curl-7.15.1\libcurl.dll deps\curl-7.15.1\libeay32.dll \

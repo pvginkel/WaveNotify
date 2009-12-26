@@ -110,6 +110,7 @@ typedef enum
 // Application includes
 
 #include "settings.h"
+#include "browser.h"
 #include "wave.h"
 #include "waverequest.h"
 #include "waveresponse.h"

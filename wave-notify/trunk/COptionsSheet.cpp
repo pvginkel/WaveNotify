@@ -23,12 +23,18 @@
 
 class COptionsGeneralPage : public CPropertySheetPage
 {
+private:
+	TStringVector m_vBrowsers;
+
 public:
 	COptionsGeneralPage();
 
 protected:
 	BOOL OnFocus();
 	BOOL OnApply();
+
+private:
+	void LoadBrowserList(wstring szBrowser);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,6 +96,8 @@ COptionsGeneralPage::COptionsGeneralPage()
 {
 	SetTitle(L"General");
 	SetResource(IDD_OPTIONS_GENERAL);
+
+	CBrowser::GetAvailableBrowsers(m_vBrowsers);
 }
 
 BOOL COptionsGeneralPage::OnFocus()
@@ -113,7 +121,39 @@ BOOL COptionsGeneralPage::OnFocus()
 		SetDlgItemChecked(IDC_OPTIONS_PLAYSOUNDONNEWWAVE, fValue);
 	}
 
+	wstring szBrowser;
+
+	if (!vSettings.GetBrowser(szBrowser))
+	{
+		szBrowser = CBrowser::BrowserDefault;
+	}
+
+	LoadBrowserList(szBrowser);
+
 	return FALSE;
+}
+
+void COptionsGeneralPage::LoadBrowserList(wstring szBrowser)
+{
+	CWindowHandle vBrowser(GetDlgItem(IDC_OPTIONS_BROWSER));
+
+	vBrowser.SendMessage(CB_RESETCONTENT);
+
+	INT nNewSel = 0;
+
+	for (TStringVectorIter iter = m_vBrowsers.begin(); iter != m_vBrowsers.end(); iter++)
+	{
+		wstring szBrowserTitle(CBrowser::GetBrowserDescription(*iter));
+
+		INT nIndex = vBrowser.SendMessage(CB_ADDSTRING, 0, (LPARAM)szBrowserTitle.c_str());
+
+		if (*iter == szBrowser)
+		{
+			nNewSel = nIndex;
+		}
+	}
+
+	vBrowser.SendMessage(CB_SETCURSEL, nNewSel);
 }
 
 BOOL COptionsGeneralPage::OnApply()
@@ -134,6 +174,17 @@ BOOL COptionsGeneralPage::OnApply()
 	vSettings.SetPlaySoundOnNewWave(fValue);
 
 	CNotifierApp::Instance()->SetPlaySoundOnNewWave(fValue);
+
+	INT nSelectedBrowser = SendDlgItemMessage(IDC_OPTIONS_BROWSER, CB_GETCURSEL);
+
+	if (nSelectedBrowser >= 0 && nSelectedBrowser < m_vBrowsers.size())
+	{
+		wstring szBrowser(m_vBrowsers[nSelectedBrowser]);
+
+		vSettings.SetBrowser(szBrowser);
+
+		CNotifierApp::Instance()->SetBrowser(szBrowser);
+	}
 
 	SetStateValid();
 
