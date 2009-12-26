@@ -109,7 +109,8 @@ LRESULT CUnreadWavePopup::OnLeftButtonUp(LPARAM lParam)
 	}
 	else
 	{
-		OpenUrl(CNotifierApp::Instance()->GetSession()->GetWaveUrl(m_lpWave->GetID()));
+		CNotifierApp::Instance()->OpenUrl(
+			CNotifierApp::Instance()->GetSession()->GetWaveUrl(m_lpWave->GetID()));
 	}
 
 	return 0;

@@ -95,6 +95,14 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		m_lpNotifyIcon->Destroy();
 		return 0;
+
+	default:
+		if (uMessage == CNotifierApp::Instance()->GetWmTaskbarCreated())
+		{
+			m_lpNotifyIcon->Recreate();
+			return 0;
+		}
+		break;
 	}
 
 	return CWindow::WndProc(uMessage, wParam, lParam);
@@ -261,7 +269,7 @@ void CAppWindow::CheckForUpdates(BOOL fManual)
 
 void CAppWindow::OpenInbox()
 {
-	OpenUrl(CNotifierApp::Instance()->GetSession()->GetInboxUrl());
+	CNotifierApp::Instance()->OpenUrl(CNotifierApp::Instance()->GetSession()->GetInboxUrl());
 }
 
 void CAppWindow::Login()

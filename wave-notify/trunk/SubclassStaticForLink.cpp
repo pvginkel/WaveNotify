@@ -83,7 +83,7 @@ static LRESULT CALLBACK SubclassStaticForLink_WndProc(HWND hWnd, UINT message, W
 		return 0;
 
 	case WM_LBUTTONUP:
-		OpenUrl(lpData->GetUrl());
+		CNotifierApp::Instance()->OpenUrl(lpData->GetUrl());
 		PostMessage(GetParent(hWnd), WM_LINK_CLICKED, 0, (LPARAM)hWnd);
 		return 0;
 

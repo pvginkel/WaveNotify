@@ -122,7 +122,7 @@ LRESULT CMessagePopup::OnLeftButtonUp(LPARAM lParam)
 	}
 	else if (!m_szUrl.empty())
 	{
-		OpenUrl(m_szUrl);
+		CNotifierApp::Instance()->OpenUrl(m_szUrl);
 		CPopupWindow::Instance()->ShowNext();
 	}
 

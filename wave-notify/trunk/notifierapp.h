@@ -104,6 +104,7 @@ private:
 	CCurlCache * m_lpCurlCache;
 	wstring m_szShortcutTargetPath;
 	BOOL m_fPlaySoundOnNewWave;
+	wstring m_szBrowser;
 
 public:
 	CNotifierApp(HINSTANCE hInstance, wstring szCmdLine);
@@ -138,8 +139,11 @@ public:
 	void SetStartWithWindows(BOOL fValue);
 	void SetPlaySoundOnNewWave(BOOL fValue) { m_fPlaySoundOnNewWave = fValue; }
 	BOOL GetPlaySoundOnNewWave() { return m_fPlaySoundOnNewWave; }
+	wstring GetBrowser() { return m_szBrowser; }
+	void SetBrowser(wstring szBrowser) { m_szBrowser = szBrowser; }
 	void SyncProxySettings();
 	void DetectStartWithWindowsSetting();
+	void OpenUrl(wstring szUrl);
 
 	static CNotifierApp * Instance() { return (CNotifierApp *)CApp::Instance(); }
 	static void Restart();

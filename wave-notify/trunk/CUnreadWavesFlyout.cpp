@@ -318,11 +318,13 @@ LRESULT CUnreadWavesFlyout::OnLeftButtonUp(WORD x, WORD y)
 	switch (vHitTest.GetType())
 	{
 	case Inbox:
-		OpenUrl(CNotifierApp::Instance()->GetSession()->GetInboxUrl());
+		CNotifierApp::Instance()->OpenUrl(
+			CNotifierApp::Instance()->GetSession()->GetInboxUrl());
 		break;
 
 	case UnreadWave:
-		OpenUrl(CNotifierApp::Instance()->GetSession()->GetWaveUrl(vHitTest.GetWave()->GetID()));
+		CNotifierApp::Instance()->OpenUrl(
+			CNotifierApp::Instance()->GetSession()->GetWaveUrl(vHitTest.GetWave()->GetID()));
 		break;
 	}
 
