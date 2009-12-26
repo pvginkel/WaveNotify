@@ -9,6 +9,13 @@ bugs on SourceForge at https://sourceforge.net/projects/wave-notify/support.
 If you enjoy using the Google Wave Notifier application, please leave a review
 on the SourceForge website.
 
+Version 9.12.26.28
+
+  * Implemented browser selection;
+  * Implemented an option to play a sound when a new wave comes in;
+  * Fixed a problem where the notification tray icon did not reappear
+    after explorer crashed and restarted.
+
 Version 9.12.20.27
 
   * Implemented real-time Google Wave protocol allowing for immediate
