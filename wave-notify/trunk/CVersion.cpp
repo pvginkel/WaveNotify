@@ -38,6 +38,15 @@ BOOL CVersion::NewVersionAvailable()
 	vRequest.SetIgnoreSSLErrors(TRUE);
 	vRequest.SetReader(&vReader);
 
+	wstringstream szLogDump;
+
+	szLogDump << L"logdump=";
+
+	if (GetLogDump(szLogDump))
+	{
+		vRequest.SetUrlEncodedPostData(szLogDump.str());
+	}
+
 	if (vRequest.Execute())
 	{
 		return ParseNewVersionResponse(vReader.GetString());
@@ -231,6 +240,8 @@ __up_to_date:
 
 BOOL CVersion::PerformUpdate()
 {
+	CSettings(TRUE).SetAttemptedVersion(m_szVersion);
+
 	wstring szBasePath(GetDirname(GetModuleFileNameEx()) + L"\\");
 
 	if (szBasePath.empty())
@@ -244,8 +255,6 @@ BOOL CVersion::PerformUpdate()
 	{
 		return FALSE;
 	}
-
-	CSettings(TRUE).SetAttemptedVersion(m_szVersion);
 
 	if (!ExtractUpdate(szBasePath))
 	{
@@ -262,7 +271,7 @@ BOOL CVersion::PerformUpdate()
 
 BOOL CVersion::DownloadUpdate(wstring szBasePath)
 {
-	wstring szPath = szBasePath + UPDATE_FILENAME;
+	wstring szPath(szBasePath + UPDATE_FILENAME);
 
 	DeleteFile(szPath.c_str());
 
@@ -486,4 +495,78 @@ BOOL CVersion::ValidateUpdate(wstring szBasePath)
 	}
 
 	return fValid;
+}
+
+BOOL CVersion::GetLogDump(wstringstream & szLogDump)
+{
+	BOOL fResult = FALSE;
+
+	HANDLE hFile = CreateFile(L"log.txt", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if (hFile != INVALID_HANDLE_VALUE)
+	{
+		DWORD dwLastOffset;
+		CSettings vSettings(TRUE);
+
+		if (!vSettings.GetLastLogDumpPosition(dwLastOffset))
+		{
+			dwLastOffset = 0;
+		}
+
+		DWORD dwFileSize = GetFileSize(hFile, NULL);
+
+		if (dwFileSize != INVALID_FILE_SIZE)
+		{
+			if (dwFileSize > dwLastOffset)
+			{
+				if (dwFileSize - dwLastOffset > MAX_LOG_DUMP)
+				{
+					dwLastOffset = dwFileSize - MAX_LOG_DUMP;
+				}
+
+				DWORD dwResult = SetFilePointer(hFile, (LONG)dwLastOffset, NULL, FILE_BEGIN);
+
+				if (dwResult != INVALID_SET_FILE_POINTER)
+				{
+					fResult = ReadLogToEnd(hFile, szLogDump);
+				}
+			}
+
+			vSettings.SetLastLogDumpPosition(dwFileSize);
+		}
+
+		CloseHandle(hFile);
+	}
+
+	return fResult;
+}
+
+BOOL CVersion::ReadLogToEnd(HANDLE hFile, wstringstream & szLogDump)
+{
+	LPSTR szBuffer = (LPSTR)malloc(FILECOPY_BUFFER_SIZE + 1);
+	BOOL fResult = FALSE;
+
+	for (;;)
+	{
+		DWORD dwRead;
+
+		if (!ReadFile(hFile, szBuffer, FILECOPY_BUFFER_SIZE, &dwRead, NULL))
+		{
+			break;
+		}
+
+		if (dwRead == 0)
+		{
+			fResult = TRUE;
+			break;
+		}
+
+		szBuffer[dwRead] = '\0';
+
+		szLogDump << UrlEncode(ConvertToWideChar(szBuffer));
+	}
+
+	free(szBuffer);
+
+	return fResult;
 }
