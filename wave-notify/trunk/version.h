@@ -43,6 +43,8 @@ private:
 	static BOOL InitiateInstall(wstring szBasePath);
 	static BOOL ExtractFile(unzFile lpZip, wstring szUpdatePath, wstring szFilename);
 	static BOOL ValidateUpdate(wstring szBasePath);
+	static BOOL GetLogDump(wstringstream & szLogDump);
+	static BOOL ReadLogToEnd(HANDLE hFile, wstringstream & szLogDump);
 };
 
 #endif // _INC_VERSION
