@@ -10,7 +10,7 @@
 
   ;Name and file
   Name "Google Wave Notifier"
-  OutFile "wave-notify-9.12.26.28.exe"
+  OutFile "wave-notify-9.12.27.29.exe"
 
   ;Default installation folder
   InstallDir "$LOCALAPPDATA\WaveNotify"
@@ -94,7 +94,7 @@ install:
 
   SetOutPath "$INSTDIR"
   
-  File /r "dist\*.*"
+  File /r /x .svn "dist\*.*"
   
   ;Store installation folder
   WriteRegStr HKCU "Software\WaveNotify" "InstallDir" $INSTDIR

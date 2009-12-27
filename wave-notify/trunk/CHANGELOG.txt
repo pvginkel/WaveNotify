@@ -9,6 +9,10 @@ bugs on SourceForge at https://sourceforge.net/projects/wave-notify/support.
 If you enjoy using the Google Wave Notifier application, please leave a review
 on the SourceForge website.
 
+Version 9.12.27.29
+
+  * Fixed a problem with the automatic update process.
+
 Version 9.12.26.28
 
   * Implemented browser selection;
