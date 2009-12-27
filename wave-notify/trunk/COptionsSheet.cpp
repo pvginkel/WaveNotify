@@ -177,7 +177,7 @@ BOOL COptionsGeneralPage::OnApply()
 
 	INT nSelectedBrowser = SendDlgItemMessage(IDC_OPTIONS_BROWSER, CB_GETCURSEL);
 
-	if (nSelectedBrowser >= 0 && nSelectedBrowser < m_vBrowsers.size())
+	if (nSelectedBrowser >= 0 && nSelectedBrowser < (INT)m_vBrowsers.size())
 	{
 		wstring szBrowser(m_vBrowsers[nSelectedBrowser]);
 
