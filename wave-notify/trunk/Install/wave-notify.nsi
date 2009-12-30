@@ -10,7 +10,7 @@
 
   ;Name and file
   Name "Google Wave Notifier"
-  OutFile "wave-notify-9.12.27.29.exe"
+  OutFile "wave-notify-9.12.30.30.exe"
 
   ;Default installation folder
   InstallDir "$LOCALAPPDATA\WaveNotify"
