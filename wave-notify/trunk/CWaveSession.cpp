@@ -856,11 +856,11 @@ void CWaveSession::PostRequests(TWaveRequestVector & vRequests)
 
 	m_vOwnedRequests.push_back(lpRequest);
 
-	for (TWaveRequestVectorIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
+	for (TWaveRequestVectorIter iter1 = vRequests.begin(); iter1 != vRequests.end(); iter1++)
 	{
-		(*iter)->RequestCompleted();
+		(*iter1)->RequestCompleted();
 
-		delete *iter;
+		delete *iter1;
 	}
 
 	vRequests.clear();
