@@ -21,9 +21,18 @@
 CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
 {
 	m_hPopupMenus = NULL;
-	m_fReconnecting = FALSE;
-	m_nReconnectingCount = 0;
+	m_nWorkingCount = 0;
 	m_lpView = NULL;
+	m_fQuitting = FALSE;
+	m_fWorking = FALSE;
+	m_fManualUpdateCheck = FALSE;
+	
+	m_lpMonitor = new CCurlMonitor(this);
+
+	m_lpSession = new CWaveSession(this);
+	m_lpSession->AddProgressTarget(this);
+
+	CVersion::Instance()->SetTargetWindow(this);
 
 	// TODO: Deserialize the last reported here.
 
@@ -37,7 +46,11 @@ CAppWindow::~CAppWindow()
 		CPopupWindow::Instance()->CancelAll();
 	}
 
-	CNotifierApp::Instance()->SignOut();
+	m_lpSession->RemoveProgressTarget(this);
+
+	delete m_lpSession;
+
+	delete m_lpMonitor;
 
 	if (m_lpView != NULL)
 	{
@@ -49,6 +62,8 @@ CAppWindow::~CAppWindow()
 	delete m_lpReportedView;
 
 	delete m_lpNotifyIcon;
+
+	CVersion::Instance()->SetTargetWindow(NULL);
 
 	PostQuitMessage(0);
 }
@@ -86,8 +101,8 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 		return OnCommand(LOWORD(wParam));
 
-	case WM_LISTENER_STATUS:
-		return OnListenerStatus((LISTENER_THREAD_STATUS)wParam, (CWaveResponse *)lParam);
+	case WM_WAVE_CONNECTION_STATE:
+		return OnWaveConnectionState((WAVE_CONNECTION_STATE)wParam, lParam);
 
 	case WM_TIMER:
 		return OnTimer(wParam);
@@ -95,6 +110,35 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		m_lpNotifyIcon->Destroy();
 		return 0;
+
+	case WM_CURL_RESPONSE:
+		return OnCurlResponse((CURL_RESPONSE)wParam, (CCurl *)lParam);
+
+	case WM_VERSION_STATE:
+		return OnVersionState((VERSION_STATE)wParam);
+
+	case WM_CLOSE:
+		m_fQuitting = TRUE;
+
+		CVersion::Instance()->CancelRequests();
+
+		switch (m_lpSession->GetState())
+		{
+		case WSS_ONLINE:
+		case WSS_RECONNECTING:
+		case WSS_CONNECTING:
+			SignOut(FALSE);
+			return 0;
+
+		case WSS_DISCONNECTING:
+			// Already signing out, let it go and destroy from there.
+			return 0;
+
+		case WSS_OFFLINE:
+			// Already offline, let the DefWndProc destroy the window.
+			break;
+		}
+		break;
 
 	default:
 		if (uMessage == CNotifierApp::Instance()->GetWmTaskbarCreated())
@@ -116,9 +160,12 @@ LRESULT CAppWindow::OnCreate()
 		L"Google Wave Notifier",
 		CNotifierApp::Instance()->GetNotifyIconGray());
 
-	CNotifierApp::Instance()->Login();
+	if (!LoginFromRegistry())
+	{
+		PromptForCredentials();
+	}
 	
-	SetTimer(GetHandle(), TIMER_VERSION, TIMER_VERSION_INTERVAL, NULL);
+	SetTimer(GetHandle(), TIMER_VERSION, TIMER_VERSION_INTERVAL_INITIAL, NULL);
 
 	CheckApplicationUpdated();
 
@@ -132,7 +179,7 @@ LRESULT CAppWindow::OnNotifyIcon(UINT uMessage, UINT uID)
 	case WM_LBUTTONUP:
 		if (!ActivateOpenDialog())
 		{
-			if (CNotifierApp::Instance()->IsLoggedIn())
+			if (m_lpSession->GetState() == WSS_ONLINE)
 			{
 				ShowFlyout();
 			}
@@ -167,6 +214,16 @@ void CAppWindow::ShowFlyout()
 
 void CAppWindow::ShowContextMenu()
 {
+	if (!AllowContextMenu())
+	{
+		return;
+	}
+
+	if (CPopupWindow::Instance() != NULL)
+	{
+		CPopupWindow::Instance()->CancelAll();
+	}
+
 	if (m_hPopupMenus != NULL)
 	{
 		DestroyMenu(m_hPopupMenus);
@@ -176,7 +233,7 @@ void CAppWindow::ShowContextMenu()
 
 	HMENU hSubMenu = GetSubMenu(m_hPopupMenus, 0);
 
-	if (CNotifierApp::Instance()->IsLoggedIn())
+	if (m_lpSession->GetState() == WSS_ONLINE || m_lpSession->GetState() == WSS_RECONNECTING)
 	{
 		DeleteMenu(hSubMenu, ID_TRAYICON_LOGIN, MF_BYCOMMAND);
 	}
@@ -187,6 +244,11 @@ void CAppWindow::ShowContextMenu()
 		EnableMenuItem(hSubMenu, ID_TRAYICON_INBOX, MF_GRAYED | MF_BYCOMMAND);
 
 		EnableMenuItem(hSubMenu, ID_TRAYICON_CHECKWAVESNOW, MF_GRAYED | MF_BYCOMMAND);
+	}
+
+	if (CVersion::Instance()->GetState() != VS_NONE)
+	{
+		EnableMenuItem(hSubMenu, ID_TRAYICON_CHECKFORUPDATESNOW, MF_GRAYED | MF_BYCOMMAND);
 	}
 
 	POINT p;
@@ -215,7 +277,9 @@ LRESULT CAppWindow::OnCommand(WORD wID)
 		break;
 
 	case ID_TRAYICON_CHECKFORUPDATESNOW:
-		CheckForUpdates(TRUE);
+		m_fManualUpdateCheck = TRUE;
+
+		CheckForUpdates();
 		break;
 
 	case ID_TRAYICON_INBOX:
@@ -223,11 +287,11 @@ LRESULT CAppWindow::OnCommand(WORD wID)
 		break;
 
 	case ID_TRAYICON_LOGIN:
-		Login();
+		PromptForCredentials();
 		break;
 
 	case ID_TRAYICON_SIGNOUT:
-		SignOut();
+		SignOut(TRUE);
 		break;
 
 	case ID_TRAYICON_HELP:
@@ -250,50 +314,31 @@ LRESULT CAppWindow::OnCommand(WORD wID)
 	return 0;
 }
 
-void CAppWindow::CheckForUpdates(BOOL fManual)
+void CAppWindow::CheckForUpdates()
 {
-	if (CVersion::NewVersionAvailable())
-	{
-		KillTimer(GetHandle(), TIMER_VERSION);
+	KillTimer(GetHandle(), TIMER_VERSION);
 
-		SendMessage(WM_CLOSE);
-	}
-	else
-	{
-		if (fManual)
-		{
-			(new CMessagePopup(L"Your version of Google Wave Notifier is up to date."))->Show();
-		}
-	}
+	CVersion::Instance()->CheckVersion();
 }
 
 void CAppWindow::OpenInbox()
 {
-	CNotifierApp::Instance()->OpenUrl(CNotifierApp::Instance()->GetSession()->GetInboxUrl());
+	CNotifierApp::Instance()->OpenUrl(m_lpSession->GetInboxUrl());
 }
 
-void CAppWindow::Login()
-{
-	if (m_fReconnecting)
-	{
-		StopReconnecting();
-
-		CNotifierApp::Instance()->GetSession()->StopListener();
-	}
-
-	CNotifierApp::Instance()->Login();
-}
-
-void CAppWindow::SignOut()
+void CAppWindow::SignOut(BOOL fManual)
 {
 	if (CPopupWindow::Instance() != NULL)
 	{
 		CPopupWindow::Instance()->CancelAll();
 	}
 
-	CSettings(TRUE).DeleteGooglePassword();
+	m_lpSession->SignOut();
 
-	CNotifierApp::Instance()->SignOut();
+	if (fManual)
+	{
+		CSettings(TRUE).DeleteGooglePassword();
+	}
 }
 
 BOOL CAppWindow::ActivateOpenDialog()
@@ -325,24 +370,74 @@ BOOL CAppWindow::ActivateOpenDialog()
 	}
 }
 
-LRESULT CAppWindow::OnListenerStatus(LISTENER_THREAD_STATUS nStatus, CWaveResponse * lpResponse)
+LRESULT CAppWindow::OnWaveConnectionState(WAVE_CONNECTION_STATE nState, LPARAM lParam)
 {
+	switch (nState)
+	{
+	case WCS_RECEIVED:
+		ProcessResponse((CWaveResponse *)lParam);
+		return 0;
+
+	default:
+		return OnLoginStateChanged(nState, (WAVE_LOGIN_ERROR)lParam);
+	}
+}
+
+LRESULT CAppWindow::OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGIN_ERROR nError)
+{
+	if (!AllowContextMenu())
+	{
+		EndMenu();
+	}
+
 	switch (nStatus)
 	{
-	case LTS_RECONNECTING:
+	case WCS_BEGIN_LOGON:
+	case WCS_BEGIN_SIGNOUT:
+		StartWorking();
+		break;
+
+	case WCS_LOGGED_ON:
+		StopWorking();
+		ProcessLoggedOn();
+		break;
+
+	case WCS_RECONNECTING:
+		StartWorking();
 		ProcessReconnecting();
 		break;
 
-	case LTS_CONNECTED:
+	case WCS_CONNECTED:
+		StopWorking();
 		ProcessConnected();
 		break;
 
-	case LTS_RECEIVED:
-		ProcessResponse(lpResponse);
+	case WCS_FAILED:
+		StopWorking();
+		break;
+
+	case WCS_SIGNED_OUT:
+		StopWorking();
+		ProcessSignedOut();
 		break;
 	}
 
 	return 0;
+}
+
+void CAppWindow::ProcessLoggedOn()
+{
+	m_lpNotifyIcon->SetIcon(CNotifierApp::Instance()->GetNotifyIcon());
+}
+
+void CAppWindow::ProcessSignedOut()
+{
+	m_lpNotifyIcon->SetIcon(CNotifierApp::Instance()->GetNotifyIconGray());
+
+	if (m_fQuitting)
+	{
+		DestroyWindow(GetHandle());
+	}
 }
 
 void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
@@ -518,7 +613,7 @@ void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
 	// Waves can only be reported if has been reported within the
 	// timeout period.
 
-	CDateTime dtRereportLimit(CDateTime::Now() - CTimeSpan::FromMilliseconds((DOUBLE)REREPORT_TIMEOUT));
+	CDateTime dtRereportLimit(CDateTime::Now() - CTimeSpan::FromMilliseconds((DOUBLE)TIMER_REREPORT_TIMEOUT));
 
 	for (TUnreadWaveVectorIter iter1 = vUnreads.begin(); iter1 != vUnreads.end(); iter1++)
 	{
@@ -619,13 +714,6 @@ void CAppWindow::ProcessReconnecting()
 		CPopupWindow::Instance()->CancelAll();
 	}
 
-	m_fReconnecting = TRUE;
-	m_nReconnectingCount = 0;
-
-	UpdateReconnectingIcon();
-
-	SetTimer(GetHandle(), TIMER_RECONNECTING, TIMER_RECONNECTING_INTERVAL, NULL);
-
 	if (m_lpView != NULL)
 	{
 		delete m_lpView;
@@ -634,11 +722,11 @@ void CAppWindow::ProcessReconnecting()
 	}
 }
 
-void CAppWindow::UpdateReconnectingIcon()
+void CAppWindow::UpdateWorkingIcon()
 {
 	HICON hIcon;
 
-	switch (m_nReconnectingCount % 3)
+	switch (m_nWorkingCount % 3)
 	{
 	case 0:
 		hIcon = CNotifierApp::Instance()->GetNotifyIconGray1();
@@ -655,13 +743,11 @@ void CAppWindow::UpdateReconnectingIcon()
 
 	m_lpNotifyIcon->SetIcon(hIcon);
 
-	m_nReconnectingCount++;
+	m_nWorkingCount++;
 }
 
 void CAppWindow::ProcessConnected()
 {
-	StopReconnecting();
-
 	if (m_lpView != NULL)
 	{
 		delete m_lpView;
@@ -671,32 +757,17 @@ void CAppWindow::ProcessConnected()
 
 	TWaveRequestVector vRequests;
 
-	CWaveSession * lpSession = CNotifierApp::Instance()->GetSession();
-
 	vRequests.push_back(new CWaveRequestGetAllContacts());
 
 	CWaveRequestGetContactDetails * lpRequest = new CWaveRequestGetContactDetails();
 
-	lpRequest->AddEmailAddress(lpSession->GetEmailAddress());
+	lpRequest->AddEmailAddress(m_lpSession->GetEmailAddress());
 
 	vRequests.push_back(lpRequest);
 
 	vRequests.push_back(new CWaveRequestStartListening(L"in:inbox"));
 
-	lpSession->PostRequests(vRequests);
-}
-
-void CAppWindow::StopReconnecting()
-{
-	KillTimer(GetHandle(), TIMER_RECONNECTING);
-
-	m_lpNotifyIcon->SetIcon(
-		CNotifierApp::Instance()->IsLoggedIn() ?
-		CNotifierApp::Instance()->GetNotifyIcon() :
-		CNotifierApp::Instance()->GetNotifyIconGray()
-	);
-
-	m_fReconnecting = FALSE;
+	m_lpSession->PostRequests(vRequests);
 }
 
 void CAppWindow::HaveReportedWave(wstring szWaveID)
@@ -733,7 +804,7 @@ CWaveContact * CAppWindow::GetWaveContact(wstring szEmailAddress)
 
 		vRequests.push_back(lpRequest);
 
-		CNotifierApp::Instance()->GetSession()->PostRequests(vRequests);
+		m_lpSession->PostRequests(vRequests);
 
 		m_vRequestedContacts[szEmailAddress] = TRUE;
 	}
@@ -746,11 +817,11 @@ LRESULT CAppWindow::OnTimer(WPARAM nTimerID)
 	switch (nTimerID)
 	{
 	case TIMER_VERSION:
-		CheckForUpdates(FALSE);
+		CheckForUpdates();
 		break;
 
-	case TIMER_RECONNECTING:
-		UpdateReconnectingIcon();
+	case TIMER_WORKING:
+		UpdateWorkingIcon();
 		break;
 	}
 
@@ -805,4 +876,135 @@ void CAppWindow::DisplayHelp()
 	wstring szPath(GetDirname(GetModuleFileNameEx()) + L"\\" + CHM_FILENAME);
 
 	ShellExecute(NULL, L"open", szPath.c_str(), NULL, NULL, SW_SHOW);
+}
+
+void CAppWindow::Login(wstring szUsername, wstring szPassword)
+{
+	m_lpSession->Login(szUsername, szPassword);
+}
+
+BOOL CAppWindow::LoginFromRegistry()
+{
+	CSettings vSettings(FALSE);
+
+	wstring szUsername;
+	wstring szPassword;
+
+	if (
+		vSettings.GetGoogleUsername(szUsername) &&
+		vSettings.GetGooglePassword(szPassword)
+	) {
+		if (!szUsername.empty() && !szPassword.empty())
+		{
+			Login(szUsername, szPassword);
+
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+void CAppWindow::PromptForCredentials()
+{
+	(new CLoginDialog(this))->Create(DT_LOGIN, CNotifierApp::Instance()->GetAppWindow());
+}
+
+void CAppWindow::ProcessUnreadWavesNotifyIcon(INT nUnreadWaves)
+{
+	m_lpNotifyIcon->SetIcon(
+		nUnreadWaves > 0 ?
+		CNotifierApp::Instance()->GetNotifyIconUnread() :
+		CNotifierApp::Instance()->GetNotifyIcon()
+	);
+}
+
+void CAppWindow::QueueRequest(CCurl * lpRequest)
+{
+	m_lpMonitor->QueueRequest(lpRequest);
+}
+
+void CAppWindow::CancelRequest(CCurl * lpRequest)
+{
+	m_lpMonitor->CancelRequest(lpRequest);
+}
+
+LRESULT CAppWindow::OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
+{
+	if (
+		!m_lpSession->ProcessCurlResponse(nState, lpCurl) &&
+		!CVersion::Instance()->ProcessCurlResponse(nState, lpCurl)
+	) {
+		LOG("Could not process curl response");
+
+		CCurl::Destroy(lpCurl);
+	}
+
+	return 0;
+}
+
+void CAppWindow::StartWorking()
+{
+	if (!m_fWorking)
+	{
+		m_nWorkingCount = 0;
+		m_fWorking = TRUE;
+
+		UpdateWorkingIcon();
+
+		SetTimer(GetHandle(), TIMER_WORKING, TIMER_WORKING_INTERVAL, NULL);
+	}
+}
+
+void CAppWindow::StopWorking()
+{
+	if (m_fWorking)
+	{
+		m_fWorking = FALSE;
+
+		KillTimer(GetHandle(), TIMER_WORKING);
+
+		m_lpNotifyIcon->SetIcon(
+			m_lpSession->GetState() == WSS_ONLINE ?
+			CNotifierApp::Instance()->GetNotifyIcon() :
+			CNotifierApp::Instance()->GetNotifyIconGray()
+		);
+	}
+}
+
+BOOL CAppWindow::AllowContextMenu()
+{
+	return !(m_lpSession->GetState() == WSS_CONNECTING || m_lpSession->GetState() == WSS_DISCONNECTING);
+}
+
+LRESULT CAppWindow::OnVersionState(VERSION_STATE nState)
+{
+	switch (nState)
+	{
+	case VS_DOWNLOADING:
+		if (m_fManualUpdateCheck)
+		{
+			(new CMessagePopup(L"Downloading the latest version of Google Wave Notifier."))->Show();
+
+			m_fManualUpdateCheck = FALSE;
+		}
+		break;
+
+	case VS_NONE:
+		if (m_fManualUpdateCheck)
+		{
+			(new CMessagePopup(L"Your version of Google Wave Notifier is up to date."))->Show();
+
+			m_fManualUpdateCheck = FALSE;
+		}
+
+		SetTimer(GetHandle(), TIMER_VERSION, TIMER_VERSION_INTERVAL, NULL);
+		break;
+
+	case VS_AVAILABLE:
+		SendMessage(WM_CLOSE);
+		break;
+	}
+
+	return 0;
 }

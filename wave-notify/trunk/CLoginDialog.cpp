@@ -18,12 +18,10 @@
 #include "stdafx.h"
 #include "include.h"
 
-#define TIMER_LOGIN_SUCCESS	1
-
-static BOOL CALLBACK CLoginDialog_DisableWindowsEnum(HWND hWnd, LPARAM lParam);
-
-CLoginDialog::CLoginDialog() : CDialog(IDD_LOGIN)
+CLoginDialog::CLoginDialog(CAppWindow * lpAppWindow) : CDialog(IDD_LOGIN)
 {
+	m_lpAppWindow = lpAppWindow;
+
 	m_hStateOffline = (HICON)LoadImage(
 		CApp::Instance()->GetInstance(),
 		MAKEINTRESOURCE(IDI_STATE_OFFLINE),
@@ -39,19 +37,16 @@ CLoginDialog::CLoginDialog() : CDialog(IDD_LOGIN)
 		MAKEINTRESOURCE(IDI_STATE_ONLINE),
 		IMAGE_ICON, 16, 16, 0);
 
-	m_lpLoginThread = NULL;
+	m_fLoggingOn = FALSE;
 }
 
 CLoginDialog::~CLoginDialog()
 {
+	CNotifierApp::Instance()->GetSession()->RemoveProgressTarget(this);
+
 	DestroyIcon(m_hStateOffline);
 	DestroyIcon(m_hStateUnknown);
 	DestroyIcon(m_hStateOnline);
-
-	if (m_lpLoginThread != NULL)
-	{
-		delete m_lpLoginThread;
-	}
 }
 
 INT_PTR CLoginDialog::DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
@@ -64,8 +59,8 @@ INT_PTR CLoginDialog::DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 		return OnCommand(LOWORD(wParam), HIWORD(wParam));
 
-	case WM_LOGIN_STATUS:
-		return OnLoginStateChanged((LOGIN_STATUS)wParam, (WAVE_LOGIN_ERROR)lParam);
+	case WM_WAVE_CONNECTION_STATE:
+		return OnWaveConnectionState((WAVE_CONNECTION_STATE)wParam, lParam);
 
 	case WM_TIMER:
 		return OnTimer(wParam);
@@ -82,21 +77,21 @@ INT_PTR CLoginDialog::OnInitDialog()
 
 	SetStateIcon(m_hStateUnknown);
 
-	CSettings settings(FALSE);
+	CSettings vSettings(FALSE);
 
 	BOOL fHasUsername = FALSE;
 	BOOL fHasPassword = FALSE;
 
 	wstring szValue;
 
-	if (settings.GetGoogleUsername(szValue))
+	if (vSettings.GetGoogleUsername(szValue))
 	{
 		SetDlgItemText(IDC_LOGIN_USERNAME, szValue);
 
 		fHasUsername = !szValue.empty();
 	}
 
-	if (settings.GetGooglePassword(szValue))
+	if (vSettings.GetGooglePassword(szValue))
 	{
 		SetDlgItemText(IDC_LOGIN_PASSWORD, szValue);
 
@@ -105,7 +100,7 @@ INT_PTR CLoginDialog::OnInitDialog()
 
 	BOOL fValue;
 
-	if (settings.GetRememberPassword(fValue))
+	if (vSettings.GetRememberPassword(fValue))
 	{
 		SetDlgItemChecked(IDC_LOGIN_REMEMBERPASSWORD, fValue);
 	}
@@ -127,6 +122,8 @@ INT_PTR CLoginDialog::OnInitDialog()
 	}
 
 	UpdateEnabled();
+
+	CNotifierApp::Instance()->GetSession()->AddProgressTarget(this);
 
 	return FALSE;
 }
@@ -157,9 +154,9 @@ INT_PTR CLoginDialog::OnCommand(WORD wCommand, WORD wNotifyMessage)
 
 INT_PTR CLoginDialog::ProcessLogin()
 {
-	CNotifierApp::Instance()->SignOut();
+	m_fLoggingOn = TRUE;
 
-	CWaveSession * lpSession = new CWaveSession(
+	m_lpAppWindow->Login(
 		GetDlgItemText(IDC_LOGIN_USERNAME),
 		GetDlgItemText(IDC_LOGIN_PASSWORD)
 	);
@@ -168,8 +165,6 @@ INT_PTR CLoginDialog::ProcessLogin()
 	SetDlgItemText(IDC_LOGIN_STATE, L"Signing in");
 
 	EnableControls(FALSE);
-
-	m_lpLoginThread = new CLoginThread(lpSession, this);
 
 	return TRUE;
 }
@@ -187,34 +182,52 @@ void CLoginDialog::EnableControls(BOOL fEnabled)
 	}
 	else
 	{
-		EnumChildWindows(GetHandle(), CLoginDialog_DisableWindowsEnum, (LPARAM)&m_vDisabledWindows);
+		EnumChildWindows(GetHandle(), CLoginDialog::DisableWindowsEnumCallback, (LPARAM)&m_vDisabledWindows);
 
 	}
 
 	EnableWindow(GetHandle(), fEnabled);
 }
 
-INT_PTR CLoginDialog::OnLoginStateChanged(LOGIN_STATUS nState, WAVE_LOGIN_ERROR nLoginError)
+INT_PTR CLoginDialog::OnWaveConnectionState(WAVE_CONNECTION_STATE nState, LPARAM lParam)
+{
+	if (!m_fLoggingOn)
+	{
+		return 0;
+	}
+
+	switch (nState)
+	{
+	case WCS_RECEIVED:
+		// Ignore.
+		return 0;
+
+	default:
+		return OnLoginStateChanged(nState, (WAVE_LOGIN_ERROR)lParam);
+	}
+}
+
+INT_PTR CLoginDialog::OnLoginStateChanged(WAVE_CONNECTION_STATE nState, WAVE_LOGIN_ERROR nLoginError)
 {
 	switch (nState)
 	{
-	case LIS_GOT_KEY:
+	case WCS_GOT_KEY:
 		SetStateIcon(m_hStateUnknown);
 		SetDlgItemText(IDC_LOGIN_STATE, L"Signing in");
 		break;
 
-	case LIS_GOT_COOKIE:
+	case WCS_GOT_COOKIE:
 		SetStateIcon(m_hStateUnknown);
 		SetDlgItemText(IDC_LOGIN_STATE, L"Authenticating");
 		break;
 
-	case LIS_DONE:
+	case WCS_LOGGED_ON:
 		SetStateIcon(m_hStateOnline);
 		SetDlgItemText(IDC_LOGIN_STATE, L"Online");
 		SetTimer(GetHandle(), TIMER_LOGIN_SUCCESS, 320, NULL);
 		break;
 
-	case LIS_FAILED:
+	case WCS_FAILED:
 		SetStateIcon(m_hStateUnknown);
 		SetDlgItemText(IDC_LOGIN_STATE, L"Offline");
 		ProcessLoginFailure(nLoginError);
@@ -228,17 +241,13 @@ void CLoginDialog::ProcessLoginSuccess()
 {
 	UpdateRegistry();
 
-	CNotifierApp::Instance()->SetWaveSession(m_lpLoginThread->GetSession());
-
-	delete m_lpLoginThread;
-
-	m_lpLoginThread = NULL;
-
 	DestroyWindow(GetHandle());
 }
 
 void CLoginDialog::ProcessLoginFailure(WAVE_LOGIN_ERROR nLoginError)
 {
+	m_fLoggingOn = FALSE;
+
 	EnableControls(TRUE);
 
 	LPCWSTR szMessage;
@@ -263,12 +272,6 @@ void CLoginDialog::ProcessLoginFailure(WAVE_LOGIN_ERROR nLoginError)
 		szMessage,
 		L"Google Wave Notifier",
 		MB_ICONERROR | MB_OK);
-
-	delete m_lpLoginThread->GetSession();
-
-	delete m_lpLoginThread;
-
-	m_lpLoginThread = NULL;
 }
 
 INT_PTR CLoginDialog::UpdateEnabled()
@@ -321,7 +324,7 @@ INT_PTR CLoginDialog::OnTimer(WPARAM nTimerId)
 	return TRUE;
 }
 
-static BOOL CALLBACK CLoginDialog_DisableWindowsEnum(HWND hWnd, LPARAM lParam)
+BOOL CALLBACK CLoginDialog::DisableWindowsEnumCallback(HWND hWnd, LPARAM lParam)
 {
 	THwndVector * lpDisabledWindows = (THwndVector *)lParam;
 

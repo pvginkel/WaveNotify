@@ -377,7 +377,7 @@ wstring GetModuleFileNameEx()
 
 	if (::GetModuleFileName(NULL, szPath, _ARRAYSIZE(szPath)) == 0)
 	{
-		return L"";
+		FAIL("Could not get module filename");
 	}
 
 	szPath[_ARRAYSIZE(szPath) - 1] = L'\0';
@@ -403,7 +403,16 @@ wstring GetDirname(wstring szPath)
 
 	if (uPos == wstring::npos || uPos == 0)
 	{
-		return L".";
+		// Are we at the root?
+
+		if (szPath.length() == 2 && szPath[1] == L':')
+		{
+			return szPath;
+		}
+		else
+		{
+			return L".";
+		}
 	}
 	else
 	{

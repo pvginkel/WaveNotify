@@ -29,10 +29,11 @@ private:
 	HICON m_hStateOffline;
 	HICON m_hStateUnknown;
 	HICON m_hStateOnline;
-	CLoginThread * m_lpLoginThread;
+	CAppWindow * m_lpAppWindow;
+	BOOL m_fLoggingOn;
 
 public:
-	CLoginDialog();
+	CLoginDialog(CAppWindow * lpAppWindow);
 	virtual ~CLoginDialog();
 
 protected:
@@ -45,29 +46,14 @@ private:
 	INT_PTR UpdateEnabled();
 	void UpdateRegistry();
 	void SetStateIcon(HICON hIcon);
-	INT_PTR OnLoginStateChanged(LOGIN_STATUS nState, WAVE_LOGIN_ERROR nLoginError);
+	INT_PTR OnWaveConnectionState(WAVE_CONNECTION_STATE nState, LPARAM lParam);
+	INT_PTR OnLoginStateChanged(WAVE_CONNECTION_STATE nState, WAVE_LOGIN_ERROR nLoginError);
 	void ProcessLoginSuccess();
 	void ProcessLoginFailure(WAVE_LOGIN_ERROR nLoginError);
 	INT_PTR OnTimer(WPARAM nTimerId);
 	void EnableControls(BOOL fEnabled);
-};
 
-class CLoginThread : public CThread
-{
-private:
-	CWaveSession * m_lpSession;
-	CWindowHandle * m_lpTargetWindow;
-
-public:
-	CLoginThread(CWaveSession * lpSession, CWindowHandle * lpTargetWindow) {
-		m_lpSession = lpSession;
-		m_lpTargetWindow = lpTargetWindow;
-	}
-
-	CWaveSession * GetSession() const { return m_lpSession; }
-
-protected:
-	DWORD ThreadProc();
+	static BOOL CALLBACK DisableWindowsEnumCallback(HWND hWnd, LPARAM lParam);
 };
 
 #endif // _INC_LOGINDIALOG

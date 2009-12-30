@@ -20,6 +20,8 @@
 
 #pragma once
 
+#define RECONNECT_DELAY	5000
+
 #define WAVE_URL_CLIENTLOGIN 	L"https://www.google.com/accounts/ClientLogin"
 #define WAVE_URL_AUTH 		L"https://wave.google.com/wave/?nouacheck&auth=%s"
 #define WAVE_URL_LOGOUT 	L"https://wave.google.com/wave/logout"
@@ -38,7 +40,6 @@ class CWaveContact;
 class CWaveRequest;
 class CWaveResponse;
 class CWaveMessage;
-class CWaveChannel;
 class CWaveListener;
 class CWaveResponseStartListening;
 
@@ -69,6 +70,20 @@ typedef TWaveRequestVector::const_iterator TWaveRequestVectorConstIter;
 
 typedef enum
 {
+	WCS_BEGIN_LOGON,
+	WCS_GOT_KEY,
+	WCS_GOT_COOKIE,
+	WCS_LOGGED_ON,
+	WCS_CONNECTED,
+	WCS_RECONNECTING,
+	WCS_FAILED,
+	WCS_RECEIVED,
+	WCS_BEGIN_SIGNOUT,
+	WCS_SIGNED_OUT
+} WAVE_CONNECTION_STATE;
+
+typedef enum
+{
 	WMT_UNKNOWN = -1,
         WMT_GET_CONTACT_DETAILS = 2032,
         WMT_GET_ALL_CONTACTS = 2033,
@@ -83,6 +98,26 @@ typedef enum
 	WLE_NETWORK
 } WAVE_LOGIN_ERROR;
 
+typedef enum
+{
+	WSR_NONE,
+	WSR_AUTH_KEY,
+	WSR_COOKIE,
+	WSR_SESSION_DETAILS,
+	WSR_SID,
+	WSR_CHANNEL,
+	WSR_SIGN_OUT
+} WAVE_SESSION_REQUESTING;
+
+typedef enum
+{
+	WSS_OFFLINE,
+	WSS_CONNECTING,
+	WSS_ONLINE,
+	WSS_DISCONNECTING,
+	WSS_RECONNECTING
+} WAVE_SESSION_STATE;
+
 class CWaveSession
 {
 private:
@@ -93,38 +128,77 @@ private:
 	wstring m_szEmailAddress;
 	wstring m_szSessionID;
 	wstring m_szProfileID;
-	CWaveChannel * m_lpChannel;
-	CLock m_vLock;
 	WAVE_LOGIN_ERROR m_nLoginError;
+	CWindowHandle * m_lpTargetWindow;
+	TWindowHandleVector m_vSignalWindows;
+	WAVE_SESSION_REQUESTING m_nRequesting;
+	CCurl * m_lpRequest;
+	CCurl * m_lpChannelRequest;
+	TCurlVector m_vOwnedRequests;
+	wstring m_szSID;
+	INT m_nAID;
+	INT m_nRID;
+	INT m_nNextRequestID;
+	TWaveListenerMap m_vListeners;
+	INT m_nNextListenerID;
+	WAVE_SESSION_STATE m_nState;
+	UINT m_nNextReconnectInterval;
 
 public:
-	CWaveSession(wstring szUsername, wstring szPassword);
+	CWaveSession(CWindowHandle * lpTargetWindow);
 	virtual ~CWaveSession();
-	BOOL Login();
-	BOOL GetAuthKey();
-	BOOL GetAuthCookie();
-	BOOL GetSessionDetails();
+	BOOL Login(wstring szUsername, wstring szPassword);
+	BOOL Reconnect();
 	void SignOut();
-	BOOL IsLoggedIn() const;
 	wstring GetInboxUrl() const;
 	wstring GetWaveUrl(wstring szWaveId) const;
 	wstring GetEmailAddress() const { return m_szEmailAddress; }
 	wstring GetSessionID() const { return m_szSessionID; }
 	wstring GetProfileID() const { return m_szProfileID; }
-	void StartListener();
-	void StopListener();
 	CCurlCookies * GetCookies() const { return m_lpCookies; }
 	void SetCookies(CCurlCookies * lpCookies);
-	BOOL PostRequests(TWaveRequestVector & vRequests);
+	void PostRequests(TWaveRequestVector & vRequests);
 	void AddListener(CWaveListener * lpListener);
 	CWaveListener * CreateListener(wstring szSearchString);
 	BOOL RemoveListener(wstring szID);
 	WAVE_LOGIN_ERROR GetLoginError() { return m_nLoginError; }
+	void AddProgressTarget(CWindowHandle * lpSignalWindow);
+	void RemoveProgressTarget(CWindowHandle * lpSignalWindow);
+	BOOL ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
+	BOOL ParseChannelResponse(wstring szResponse);
+	WAVE_SESSION_STATE GetState() const { return m_nState; }
+	void StopReconnecting();
 
 private:
+	void ReportReceived(CWaveResponse * lpResponse) {
+		m_lpTargetWindow->PostMessage(WM_WAVE_CONNECTION_STATE, WCS_RECEIVED, (LPARAM)lpResponse);
+	}
+
+	void PostAuthCookieRequest();
+	void PostSessionDetailsRequest();
 	wstring GetAuthKeyFromRequest(wstring & szResponse) const;
 	wstring GetKeyFromSessionResponse(wstring szKey, wstring & szResponse) const;
 	wstring GetSessionData(wstring & szResponse) const;
+	void ProcessAuthKeyResponse();
+	void ProcessCookieResponse();
+	void ProcessSessionDetailsResponse();
+	void SignalProgress(WAVE_CONNECTION_STATE nStatus);
+	void InitiateReconnect();
+	void PostChannelRequest();
+	void ProcessChannelResponse();
+	void ResetChannelParameters();
+	void ProcessSIDResponse();
+	void PostSIDRequest();
+	wstring BuildHash();
+	CWaveResponse * ParseWfeResponse(wstring szResponse, BOOL & fSuccess);
+	wstring SerializeRequest(CWaveRequest * lpRequest);
+	void PostSignOutRequest();
+	void ProcessSignOutResponse();
+	void ReconnectTimer();
+	void NextReconnect();
+	wstring ExtractChannelResponse(wstring szResponse);
+
+	static VOID CALLBACK ReconnectTimerCallback(HWND hWnd, UINT uMsg, UINT_PTR nEventId, DWORD dwTime);
 };
 
 class CWaveContact
@@ -297,55 +371,6 @@ public:
 	wstring GetSearchString() const { return m_szSearchString; }
 };
 
-class CWaveChannel : public CThread
-{
-private:
-	// Unsynchronised variables, owned by the thread.
-
-	CWaveSession * m_lpSession;
-	CWindowHandle * m_lpTargetWindow;
-	wstring m_szSID;
-	INT m_nAID;
-	INT m_nRID;
-	INT m_nNextRequestID;
-	CManualResetEvent m_vCancelEvent;
-
-	// Synchronised variables.
-
-	CLock m_vLock;
-	TWaveListenerMap m_vListeners;
-	INT m_nNextListenerID;
-
-public:
-	CWaveChannel(CWaveSession * lpSession, CWindowHandle * lpTargetWindow);
-	~CWaveChannel();
-	BOOL ParseResponse(wstring szResponse);
-	void Cancel() {
-		m_vCancelEvent.Set();
-		Join();
-	}
-	BOOL PostRequests(const TWaveRequestVector & vRequests);
-	void AddListener(CWaveListener * lpListener);
-	CWaveListener * CreateListener(wstring szSearchString);
-	BOOL RemoveListener(wstring szID);
-
-protected:
-	DWORD ThreadProc();
-
-private:
-	void ReportStatus(LISTENER_THREAD_STATUS nStatus) {
-		m_lpTargetWindow->PostMessage(WM_LISTENER_STATUS, nStatus);
-	}
-	void ReportReceived(CWaveResponse * lpResponse) {
-		m_lpTargetWindow->PostMessage(WM_LISTENER_STATUS, LTS_RECEIVED, (LPARAM)lpResponse);
-	}
-	CWaveResponse * ParseWfeResponse(wstring szResponse, BOOL & fSuccess);
-	wstring BuildHash();
-	void ResetChannelParameters();
-	BOOL RetrieveSID();
-	wstring SerializeRequest(CWaveRequest * lpRequest);
-};
-
 class CWaveView
 {
 private:
@@ -364,6 +389,22 @@ public:
 private:
 	void ProcessContacts(CWaveContactCollection * lpContacts);
 	void ProcessWaves(CWaveResponseStartListening * lpResponse);
+};
+
+class CWaveReader : public CCurlReader
+{
+private:
+	wstringstream m_szBuffer;
+	CUTF8Converter m_vConverter;
+	CWaveSession * m_lpSession;
+
+public:
+	CWaveReader(CWaveSession * lpSession) { m_lpSession = lpSession; }
+	BOOL Read(LPBYTE lpData, DWORD cbData);
+	
+private:
+	BOOL PumpResponseBuffer();
+	BOOL PumpMessage(BOOL & fSuccess);
 };
 
 #endif // _INC_WAVE

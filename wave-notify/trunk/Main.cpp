@@ -18,10 +18,6 @@
 #include "stdafx.h"
 #include "include.h"
 
-HINSTANCE g_hInstance;
-
-static INT ExecuteApplication(HINSTANCE hInstance, LPWSTR lpCmdLine);
-
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 #ifdef _DEBUG
@@ -40,9 +36,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Get the global mutex to prevent multiple instances.
 	//
 
-	HANDLE hMutex = CreateMutex(NULL, FALSE, GLOBAL_MUTEX);
+	CMutex * lpMutex = CMutex::Create(FALSE, GLOBAL_MUTEX);
 
-	if (GetLastError() == ERROR_ALREADY_EXISTS)
+	// TODO: Check whether this still works with the class.
+
+	if (lpMutex == NULL || GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		return -1;
 	}
@@ -54,39 +52,50 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	CMigration::Migrate();
 
 	//
-	// Check for a new version.
+	// Initialize the automatic update module.
 	//
 
-	INT nResult;
+	CVersion * lpVersion = new CVersion();
 
-	if (CVersion::NewVersionAvailable())
-	{
-		nResult = 0;
-	}
-	else
-	{
-		//
-		// Start the application.
-		//
+	//
+	// Start the application.
+	//
 
-		nResult = ExecuteApplication(hInstance, lpCmdLine);
+	CNotifierApp * lpApp = new CNotifierApp(hInstance, lpCmdLine);
+
+	if (!lpApp->Initialise())
+	{
+		delete lpApp;
+
+		return -1;
 	}
+
+	int nResult = lpApp->Execute();
+
+	delete lpApp;
 
 	//
 	// Get the new version when one comes available.
 	//
 
-	if (CVersion::GetNewVersionAvailable())
+	if (lpVersion->GetState() == VS_AVAILABLE)
 	{
-		if (!CVersion::PerformUpdate())
+		if (!lpVersion->PerformUpdate())
 		{
-			CloseHandle(hMutex);
+			delete lpMutex;
+
+			lpMutex = NULL;
 
 			CNotifierApp::Restart();
 		}
 	}
 
-	CloseHandle(hMutex);
+	delete lpVersion;
+
+	if (lpMutex != NULL)
+	{
+		delete lpMutex;
+	}
 
 	CoUninitialize();
 
@@ -103,7 +112,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 		MessageBox(
 			NULL,
-			L"Memory leak detected",
+			L"Memory leaks detected",
 			L"Google Wave Notifier",
 			MB_OK | MB_ICONERROR);
 	}
@@ -114,22 +123,4 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
-}
-
-static INT ExecuteApplication(HINSTANCE hInstance, LPWSTR lpCmdLine)
-{
-	CNotifierApp * lpApp = new CNotifierApp(hInstance, lpCmdLine);
-
-	if (!lpApp->Initialise())
-	{
-		delete lpApp;
-
-		return -1;
-	}
-
-	int nResult = lpApp->Execute();
-
-	delete lpApp;
-
-	return nResult;
 }

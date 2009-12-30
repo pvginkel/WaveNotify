@@ -27,6 +27,7 @@ private:
 
 public:
 	CLock() { InitializeCriticalSection(&m_vLock); }
+	virtual ~CLock() { DeleteCriticalSection(&m_vLock); }
 	void Enter() { EnterCriticalSection(&m_vLock); }
 	void Leave() { LeaveCriticalSection(&m_vLock); }
 };

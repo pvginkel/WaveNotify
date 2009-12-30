@@ -18,11 +18,6 @@
 #include "stdafx.h"
 #include "include.h"
 
-#define TIMER_POPUP			1
-#define TIMER_MOUSEOVER			2
-#define TIMER_IDLE_COMPLETE		3
-#define TIMER_IDLE_COMPLETE_INTERVAL	4000
-
 #define ANIMATION_STEPS			20
 #define IDLE_TIME			2000
 

@@ -28,10 +28,12 @@ CWSAEvent * CCurlMulti::GetEvent()
 	FD_ZERO(&exec);
 
 	if (curl_multi_fdset(m_lpMulti, &rd, &wr, &exec, &max_fd) != CURLE_OK)
+	{
 		FAIL("Could not curl_multi_fdset");
+	}
 
 	// Finding out what sockets must be set with what network event is done through
-	// a map because we cannot to two subsequent calls to WSAEventSelect with
+	// a map because we cannot do two subsequent calls to WSAEventSelect with
 	// the two network events. This must be done in one call with the network
 	// events or'red. The sockets and network events are gathered here and
 	// added to the event lateron.
@@ -74,14 +76,9 @@ BOOL CCurlMulti::Perform()
 		;
 
 	if (nResult != CURLM_OK)
+	{
 		FAIL("Wrong result from curl_multi_perform");
+	}
 
 	return !Completed();
-}
-
-CURLcode CCurlMulti::GetLastResult()
-{
-	CURLMsg * lpMesg = curl_multi_info_read(m_lpMulti, &m_nRunning);
-
-	return lpMesg->data.result;
 }

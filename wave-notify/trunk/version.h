@@ -20,31 +20,71 @@
 
 #pragma once
 
+typedef enum
+{
+	VR_NONE,
+	VR_VERSION,
+	VR_DOWNLOAD
+} VERSION_REQUESTING;
+
+typedef enum
+{
+	VS_NONE,
+	VS_CHECKING,
+	VS_DOWNLOADING,
+	VS_AVAILABLE,
+} VERSION_STATE;
+
 class CVersion
 {
 private:
-	static wstring m_szLink;
-	static BOOL m_fNewVersionAvailable;
-	static wstring m_szVersion;
+	static CVersion * m_lpInstance;
+
+	CWindowHandle * m_lpTargetWindow;
+	wstring m_szLink;
+	wstring m_szVersion;
+	CCurl * m_lpRequest;
+	VERSION_REQUESTING m_nRequesting;
+	VERSION_STATE m_nState;
 
 public:
-	static BOOL NewVersionAvailable();
+	CVersion();
+	virtual ~CVersion();
 
-	static BOOL GetNewVersionAvailable() { return m_fNewVersionAvailable; }
-	static wstring GetNewVersionLink() { return m_szLink; }
+	BOOL CheckVersion();
+	BOOL PerformUpdate();
+	BOOL ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
+	void SetTargetWindow(CWindowHandle * lpTargetWindow) { m_lpTargetWindow = lpTargetWindow; }
+	CWindowHandle * GetTargetWindow() const { return m_lpTargetWindow; }
+	VERSION_STATE GetState() const { return m_nState; }
+	void CancelRequests();
+
+	static CVersion * Instance() { return m_lpInstance; }
 	static wstring GetAppVersion();
-	static BOOL PerformUpdate();
 
 private:
-	static wstring GetRequestUrl();
-	static BOOL ParseNewVersionResponse(const wstring & szResponse);
-	static BOOL DownloadUpdate(wstring szBasePath);
-	static BOOL ExtractUpdate(wstring szBasePath);
-	static BOOL InitiateInstall(wstring szBasePath);
-	static BOOL ExtractFile(unzFile lpZip, wstring szUpdatePath, wstring szFilename);
-	static BOOL ValidateUpdate(wstring szBasePath);
-	static BOOL GetLogDump(wstringstream & szLogDump);
-	static BOOL ReadLogToEnd(HANDLE hFile, wstringstream & szLogDump);
+	wstring GetRequestUrl();
+	BOOL ParseNewVersionResponse(const wstring & szResponse);
+	BOOL DownloadUpdate(wstring szBasePath);
+	BOOL PrepareInstall(wstring szPath);
+	BOOL ExtractUpdate(wstring szUpdateFilename);
+	BOOL ExtractFile(unzFile lpZip, wstring szUpdatePath, wstring szFilename);
+	BOOL ValidateUpdate();
+	BOOL GetLogDump(wstringstream & szLogDump);
+	BOOL ReadLogToEnd(HANDLE hFile, wstringstream & szLogDump);
+	wstring GetNewVersionLink() const { return m_szLink; }
+	void PostVersionRequest();
+	void PostDownloadRequest();
+	void ProcessVersionResponse();
+	void ProcessDownloadResponse();
+
+	wstring GetBasePath() const {
+		return GetDirname(GetModuleFileNameEx()) + L"\\";
+	}
+	void SetState(VERSION_STATE nState) {
+		m_nState = nState;
+		m_lpTargetWindow->PostMessage(WM_VERSION_STATE, m_nState);
+	}
 };
 
 #endif // _INC_VERSION

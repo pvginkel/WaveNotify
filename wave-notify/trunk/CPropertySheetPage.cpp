@@ -62,7 +62,7 @@ INT_PTR CPropertySheetPage::DialogProc(UINT uMessage, WPARAM wParam, LPARAM lPar
 	return FALSE;
 }
 
-INT_PTR CALLBACK CPropertySheetPage_DialogProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK CPropertySheetPage::DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
 {
 	CPropertySheetPage * lpPage;
 
@@ -106,7 +106,7 @@ void CPropertySheetPage::InitializeStructure(LPPROPSHEETPAGE lpPage)
 	lpPage->dwFlags = m_dwFlags | PSP_USETITLE;
 	lpPage->hInstance = CApp::Instance()->GetInstance();
 	lpPage->pszTemplate = MAKEINTRESOURCE(m_uResource);
-	lpPage->pfnDlgProc = CPropertySheetPage_DialogProc;
+	lpPage->pfnDlgProc = CPropertySheetPage::DialogProcCallback;
 	lpPage->lParam = (LPARAM)this;
 	lpPage->pszTitle = m_szTitle.c_str();
 }

@@ -15,34 +15,27 @@
  * along with Google Wave Notifier.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "stdafx.h"
-#include "include.h"
+#ifndef _INC_MUTEX
+#define _INC_MUTEX
 
-DWORD CLoginThread::ThreadProc()
+#pragma once
+
+class CMutex
 {
-	if (!m_lpSession->GetAuthKey())
-	{
-		m_lpTargetWindow->PostMessage(WM_LOGIN_STATUS, LIS_FAILED, m_lpSession->GetLoginError());
-		return 0;
+	HANDLE m_hHandle;
+
+private:
+	CMutex(HANDLE hHandle) { m_hHandle = hHandle; }
+
+public:
+	~CMutex() { CloseHandle(m_hHandle); }
+
+	HANDLE GetHandle() { return m_hHandle; }
+
+	static CMutex * Create(BOOL fInitialOwner, wstring szName = L"") {
+		HANDLE hHandle = CreateMutex(NULL, fInitialOwner, szName.empty() ? NULL : szName.c_str());
+		return hHandle == NULL ? NULL : new CMutex(hHandle);
 	}
+};
 
-	m_lpTargetWindow->PostMessage(WM_LOGIN_STATUS, LIS_GOT_KEY);
-
-	if (!m_lpSession->GetAuthCookie())
-	{
-		m_lpTargetWindow->PostMessage(WM_LOGIN_STATUS, LIS_FAILED, m_lpSession->GetLoginError());
-		return 0;
-	}
-
-	m_lpTargetWindow->PostMessage(WM_LOGIN_STATUS, LIS_GOT_COOKIE);
-
-	if (!m_lpSession->GetSessionDetails())
-	{
-		m_lpTargetWindow->PostMessage(WM_LOGIN_STATUS, LIS_FAILED, m_lpSession->GetLoginError());
-		return 0;
-	}
-
-	m_lpTargetWindow->PostMessage(WM_LOGIN_STATUS, LIS_DONE);
-
-	return 0;
-}
+#endif // _INC_MUTEX

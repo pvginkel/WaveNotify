@@ -20,14 +20,18 @@
 
 #pragma once
 
-// Turn this on to test animations
+// Turn this on to test animations. These are automatically disabled with remote
+// desktop and Wine when this is not enabled.
 #define FORCE_ANIMATIONS	1
 
-// Turn this on to have CCurl log to curl-log.txt
+// Turn this on to have CCurl log to curl-log.txt.
 #define CURL_VERBOSE_LOG	1
 
-// Turn this on to route automatic update requests to a local server
-//#define TEST_AUTOMATIC_UPDATE	1
+// Turn this on to route automatic update requests to a local server.
+#define TEST_AUTOMATIC_UPDATE	1
+
+// Turn this on to break every time a LOG(n) is called.
+#define BREAK_ON_LOG		1
 
 #define FILECOPY_BUFFER_SIZE	4096
 #define MAX_LOG_DUMP		(128 * 1024)
@@ -44,37 +48,26 @@
 #define VERSION_LINK		L"http://wave-notify.sourceforge.net/check_version.php"
 #endif
 
-#ifdef _DEBUG
-#define CURL_TIMEOUT		5 // 5 seconds
-#else
-#define CURL_TIMEOUT		30 // 30 seconds
-#endif
+// All web request timeouts are registered here (in seconds).
 
-#define CURL_WAIT_TIMEOUT	1000	// 1 second
+#define WEB_TIMEOUT_LONG	(5 * 60)
+#define WEB_TIMEOUT_SHORT	(1 * 60)
+#define WEB_TIMEOUT_CHANNEL	(10 * 60)
 
-// User messages
-#define WM_NOTIFTICON		(WM_USER + 1)
-#define WM_LINK_CLICKED		(WM_USER + 2)
-#define WM_LOGIN_STATUS		(WM_USER + 3)
-#define WM_LISTENER_STATUS	(WM_USER + 4)
-#define WM_POPUP_OPENING	(WM_USER + 5)
+// The interval in which the curl multi perform method is called (in milliseconds).
+
+#define CURL_WAIT_TIMEOUT	1000
+
+// User messages.
+
+#define WM_NOTIFTICON			(WM_USER + 1)
+#define WM_LINK_CLICKED			(WM_USER + 2)
+#define WM_WAVE_CONNECTION_STATE	(WM_USER + 3)
+#define WM_POPUP_OPENING		(WM_USER + 4)
+#define WM_CURL_RESPONSE		(WM_USER + 5)
+#define WM_VERSION_STATE		(WM_USER + 6)
 
 #define ID_NOTIFYICON		1
-
-typedef enum
-{
-	LIS_GOT_KEY,
-	LIS_GOT_COOKIE,
-	LIS_DONE,
-	LIS_FAILED
-} LOGIN_STATUS;
-
-typedef enum
-{
-	LTS_RECONNECTING,
-	LTS_CONNECTED,
-	LTS_RECEIVED
-} LISTENER_THREAD_STATUS;
 
 typedef enum
 {
@@ -82,6 +75,30 @@ typedef enum
 	DT_OPTIONS,
 	DT_LOGIN
 } DIALOG_TYPE;
+
+typedef enum
+{
+	TIMER_VERSION = 1,
+	TIMER_WORKING,
+	TIMER_LOGIN_SUCCESS,
+	TIMER_POPUP,
+	TIMER_MOUSEOVER,
+	TIMER_IDLE_COMPLETE,
+	TIMER_RECONNECT
+} TIMER_ID;
+
+#define TIMER_QUERY_INTERVAL		(2 * 60 * 1000)
+#define TIMER_VERSION_INTERVAL		(60 * 60 * 1000)
+#define TIMER_VERSION_INTERVAL_INITIAL	(10 * 60 * 1000)
+#define TIMER_WORKING_INTERVAL		900
+
+#define TIMER_IDLE_COMPLETE_INTERVAL	(4 * 1000)
+
+#define TIMER_RECONNECT_INITIAL		(5 * 1000)
+#define TIMER_RECONNECT_MAX		(60 * 1000)
+
+#define TIMER_REREPORT_TIMEOUT		(3 * 60 * 1000)		// 3 minutes
+
 
 #include "resource.h"
 
@@ -96,8 +113,9 @@ typedef enum
 #include "log.h"
 #include "support.h"
 #include "event.h"
-#include "curl.h"
+#include "mutex.h"
 #include "windowhandle.h"
+#include "curl.h"
 #include "window.h"
 #include "dialog.h"
 #include "notifyicon.h"
@@ -110,6 +128,7 @@ typedef enum
 
 // Application includes
 
+#include "version.h"
 #include "settings.h"
 #include "browser.h"
 #include "wave.h"
@@ -117,7 +136,6 @@ typedef enum
 #include "waveresponse.h"
 #include "unreadwave.h"
 #include "notifierapp.h"
-#include "version.h"
 #include "logindialog.h"
 #include "popups.h"
 #include "flyouts.h"

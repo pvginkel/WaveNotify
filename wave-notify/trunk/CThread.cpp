@@ -18,7 +18,7 @@
 #include "stdafx.h"
 #include "include.h"
 
-DWORD WINAPI CThread_ThreadProc(LPVOID lpParameter)
+DWORD WINAPI CThread::ThreadProcCallback(LPVOID lpParameter)
 {
 	return ((CThread *)lpParameter)->ThreadProc();
 }
