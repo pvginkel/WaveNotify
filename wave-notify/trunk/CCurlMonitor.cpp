@@ -108,18 +108,18 @@ void CCurlMonitor::ProcessEvent(CCurlMulti & vMulti)
 
 	m_vQueueRequests.clear();
 
-	for (TCurlVectorIter iter = m_vCancelRequests.begin(); iter != m_vCancelRequests.end(); iter++)
+	for (TCurlVectorIter iter1 = m_vCancelRequests.begin(); iter1 != m_vCancelRequests.end(); iter1++)
 	{
-		vCancelRequests.push_back(*iter);
+		vCancelRequests.push_back(*iter1);
 	}
 
 	m_vCancelRequests.clear();
 
 	m_vLock.Leave();
 
-	for (TCurlVectorIter iter = vCancelRequests.begin(); iter != vCancelRequests.end(); iter++)
+	for (TCurlVectorIter iter2 = vCancelRequests.begin(); iter2 != vCancelRequests.end(); iter2++)
 	{
-		vMulti.Remove(*iter);
+		vMulti.Remove(*iter2);
 	}
 
 	CancelRequests(vCancelRequests);
@@ -202,9 +202,9 @@ void CCurlMonitor::CancelRequests(TCurlVector & vRequests)
 		vToRemove.push_back(*iter);
 	}
 
-	for (TCurlVectorIter iter = vToRemove.begin(); iter != vToRemove.end(); iter++)
+	for (TCurlVectorIter iter1 = vToRemove.begin(); iter1 != vToRemove.end(); iter1++)
 	{
-		TCurlVectorIter pos = find(m_vRequests.begin(), m_vRequests.end(), *iter);
+		TCurlVectorIter pos = find(m_vRequests.begin(), m_vRequests.end(), *iter1);
 
 		ASSERT(pos != m_vRequests.end());
 
