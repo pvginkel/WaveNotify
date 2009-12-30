@@ -22,11 +22,25 @@
 
 #define MAX_AUTO_REDIRECT	30
 
-size_t CCurl_WriteData(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream);
-size_t CCurl_WriteHeader(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream);
-
-class CCurlReader;
 class CCurlCookies;
+class CCurl;
+
+typedef vector<CCurl *> TCurlVector;
+typedef TCurlVector::iterator TCurlVectorIter;
+typedef TCurlVector::const_iterator TCurlVectorConstIter;
+
+typedef enum
+{
+	CR_COMPLETED
+} CURL_RESPONSE;
+
+class CCurlReader
+{
+public:
+	virtual ~CCurlReader() { }
+
+	virtual BOOL Read(LPBYTE lpData, DWORD cbData) = 0;
+};
 
 class CCurlProxySettings
 {
@@ -67,6 +81,7 @@ class CCurl
 {
 private:
 	CURL * m_lpCurl;
+	CWindowHandle * m_lpTargetWindow;
 	TStringStringMap m_vHeaders;
 	long m_lStatus;
 	TByteVector m_vData;
@@ -80,20 +95,15 @@ private:
 	char * m_szProxyUsername;
 	CURLcode m_nResult;
 	BOOL m_fPostAdded;
-	DWORD m_dwStartTime;
 	BOOL m_fAutoRedirect;
 	BOOL m_fIgnoreSSLErrors;
 	INT m_nTimeout;
-	INT m_nAutoRedirectIndex;
-	BOOL m_fDisableDataRead;
 
 	static CCurlProxySettings * m_lpProxySettings;
 
 public:
-	CCurl(wstring szUrl);
+	CCurl(wstring szUrl, CWindowHandle * lpTargetWindow);
 	virtual ~CCurl();
-
-	BOOL Execute();
 
 	wstring GetUrlEncodedPostData() const { return m_szPostData == NULL ? L"" : ConvertToWideChar(m_szPostData); }
 	void SetUrlEncodedPostData(wstring szPostData);
@@ -114,21 +124,26 @@ public:
 	CURLcode GetResult() const { return m_nResult; }
 	CURL * GetHandle() const { return m_lpCurl; }
 	BOOL GetAutoRedirect() const { return m_fAutoRedirect; }
-	void SetAutoRedirect(BOOL fAutoRedirect) { m_fAutoRedirect = fAutoRedirect; }
+	void SetAutoRedirect(BOOL fAutoRedirect);
+	void SignalCompleted(CURLcode nCode);
 
 	static void SetProxySettings(CCurlProxySettings * lpProxySettings) {
 		if (m_lpProxySettings != NULL) delete m_lpProxySettings;
 		m_lpProxySettings = lpProxySettings;
 	};
+	static void Destroy(CCurl * lpCurl) {
+		if (lpCurl->m_lpReader != NULL)
+			delete lpCurl->m_lpReader;
+		delete lpCurl;
+	}
 
 private:
-	BOOL ExecuteAutoRedirect(wstring szRedirectUrl);
-
 	size_t WriteData(void * lpData, size_t dwSize, size_t dwBlocks);
 	size_t WriteHeader(void * lpData, size_t dwSize, size_t dwBlocks);
 
-	friend size_t CCurl_WriteData(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream);
-	friend size_t CCurl_WriteHeader(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream);
+	static size_t WriteDataCallback(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream);
+	static size_t WriteHeaderCallback(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream);
+	static INT DebugCallback(CURL * lpCurl, curl_infotype nInfoType, LPCSTR szMessage, size_t cbMessage, LPVOID lpParam);
 };
 
 class CCurlCookies
@@ -141,14 +156,6 @@ public:
 	virtual ~CCurlCookies() { curl_slist_free_all(m_lpCookies); }
 
 	curl_slist * GetCookies() const { return m_lpCookies; }
-};
-
-class CCurlReader
-{
-public:
-	virtual ~CCurlReader() { }
-
-	virtual BOOL Read(LPBYTE lpData, DWORD cbData) = 0;
 };
 
 class CCurlUTF8StringReader : public CCurlReader
@@ -205,6 +212,8 @@ public:
 		DWORD dwWritten;
 		return WriteFile(m_hFile, lpData, cbData, &dwWritten, NULL) && dwWritten == cbData;
 	}
+
+	HANDLE GetHandle() const { return m_hFile; }
 };
 
 class CCurlMulti
@@ -231,12 +240,16 @@ public:
 	}
 	void Remove(CCurl * lpCurl) {
 		if (curl_multi_remove_handle(m_lpMulti, lpCurl->GetHandle()) != CURLE_OK)
-			FAIL("Could not curl_multi_remove_handle");
+			LOG("Could not curl_multi_remove_handle");
+	}
+	void Remove(CURL * lpCurl) {
+		if (curl_multi_remove_handle(m_lpMulti, lpCurl) != CURLE_OK)
+			LOG("Could not curl_multi_remove_handle");
 	}
 	CWSAEvent * GetEvent();
 	BOOL Perform();
 	BOOL Completed() const { return m_nRunning <= 0; }
-	CURLcode GetLastResult();
+	CURLMsg * GetNextMessage() { return curl_multi_info_read(m_lpMulti, &m_nRunning); }
 	
 private:
 	void AddSockets(TSocketMap & vSockets, fd_set & vSet, INT nEventType);
@@ -261,8 +274,57 @@ public:
 	}
 	void Remove(CCurl * lpCurl) {
 		if (curl_easy_setopt(lpCurl->GetHandle(), CURLOPT_SHARE, NULL) != CURLE_OK)
-			FAIL("Could not curl_easy_setopt(CURLOPT_SHARE, 0)");
+			LOG("Could not curl_easy_setopt(CURLOPT_SHARE, 0)");
 	}
+};
+
+class CCurlMonitor : private CThread
+{
+private:
+	CLock m_vLock;
+	CAutoResetEvent m_vEvent;
+	BOOL m_fCancelled;
+	TCurlVector m_vQueueRequests;
+	TCurlVector m_vCancelRequests;
+	TCurlVector m_vRequests;
+	CWindowHandle * m_lpTargetWindow;
+	CCurlCache m_vCache;
+
+public:
+	CCurlMonitor(CWindowHandle * lpTargetWindow);
+	virtual ~CCurlMonitor();
+
+	void Cancel() {
+		m_fCancelled = TRUE;
+		m_vEvent.Set();
+	}
+
+	void QueueRequest(CCurl * lpRequest) {
+		m_vLock.Enter();
+		m_vQueueRequests.push_back(lpRequest);
+		m_vLock.Leave();
+
+		m_vEvent.Set();
+	}
+
+	void CancelRequest(CCurl * lpRequest) {
+		m_vLock.Enter();
+		m_vCancelRequests.push_back(lpRequest);
+		m_vLock.Leave();
+
+		m_vEvent.Set();
+	}
+
+protected:
+	DWORD ThreadProc();
+
+private:
+	void ProcessEvent(CCurlMulti & vMulti);
+	void ProcessMessages(CCurlMulti & vMulti);
+	void CancelAllRequests();
+	void QueueRequests(CCurlMulti & vMulti, TCurlVector & vRequests);
+	void CancelRequests(TCurlVector & vRequests);
+	void SignalCompleted(CCurl * lpCurl, CURLcode nCode);
 };
 
 #endif // _INC_CCURL

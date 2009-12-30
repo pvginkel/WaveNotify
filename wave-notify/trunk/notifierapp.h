@@ -20,15 +20,6 @@
 
 #pragma once
 
-#define TIMER_VERSION			1
-#define	TIMER_RECONNECTING		2
-
-#define TIMER_QUERY_INTERVAL		(2 * 60 * 1000)		// 2 minutes
-#define TIMER_VERSION_INTERVAL		(60 * 60 * 1000)	// 1 hour
-#define TIMER_RECONNECTING_INTERVAL	900
-
-#define REREPORT_TIMEOUT		(3 * 60 * 1000)		// 3 minutes
-
 typedef map<wstring, CDateTime> TStringDateTimeMap;
 typedef TStringDateTimeMap::iterator TStringDateTimeMapIter;
 typedef TStringDateTimeMap::const_iterator TStringDateTimeMapConstIter;
@@ -38,12 +29,16 @@ class CAppWindow : public CWindow
 private:
 	HMENU m_hPopupMenus;
 	CNotifyIcon * m_lpNotifyIcon;
-	BOOL m_fReconnecting;
-	INT m_nReconnectingCount;
+	BOOL m_fWorking;
+	INT m_nWorkingCount;
 	CWaveView * m_lpView;
 	CWaveCollection * m_lpReportedView;
 	TStringDateTimeMap m_vReportedTimes;
 	TStringBoolMap m_vRequestedContacts;
+	CWaveSession * m_lpSession;
+	CCurlMonitor * m_lpMonitor;
+	BOOL m_fQuitting;
+	BOOL m_fManualUpdateCheck;
 
 public:
 	CAppWindow();
@@ -53,6 +48,12 @@ public:
 	void HaveReportedWave(wstring szWaveID);
 	CWaveContact * GetWaveContact(wstring szEmailAddress);
 	void DisplayHelp();
+	void QueueRequest(CCurl * lpRequest);
+	void CancelRequest(CCurl * lpRequest);
+	void Login(wstring szUsername, wstring szPassword);
+	BOOL LoginFromRegistry();
+	void SignOut(BOOL fManual);
+	CWaveSession * GetSession() const { return m_lpSession; }
 
 protected:
 	ATOM CreateClass(LPWNDCLASSEX lpWndClass);
@@ -63,15 +64,16 @@ private:
 	LRESULT OnCreate();
 	LRESULT OnNotifyIcon(UINT uMessage, UINT uID);
 	LRESULT OnCommand(WORD wID);
-	LRESULT OnListenerStatus(LISTENER_THREAD_STATUS nStatus, CWaveResponse * lpResponse);
+	LRESULT OnWaveConnectionState(WAVE_CONNECTION_STATE nStatus, LPARAM lParam);
 	LRESULT OnTimer(WPARAM nTimerID);
+	LRESULT OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
+	LRESULT OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGIN_ERROR nError);
+	LRESULT OnVersionState(VERSION_STATE nState);
 
 	void ShowFlyout();
 	void ShowContextMenu();
-	void CheckForUpdates(BOOL fManual);
+	void CheckForUpdates();
 	void OpenInbox();
-	void Login();
-	void SignOut();
 	BOOL ActivateOpenDialog();
 	void ProcessResponse(CWaveResponse * lpResponse);
 	void ProcessReconnecting();
@@ -80,9 +82,15 @@ private:
 	void TruncateLastReported();
 	void DisplayWavePopups();
 	void CheckWavesNow();
-	void UpdateReconnectingIcon();
-	void StopReconnecting();
+	void UpdateWorkingIcon();
 	void CheckApplicationUpdated();
+	void PromptForCredentials();
+	void ProcessUnreadWavesNotifyIcon(INT nUnreadWaves);
+	void ProcessLoggedOn();
+	void ProcessSignedOut();
+	void StartWorking();
+	void StopWorking();
+	BOOL AllowContextMenu();
 };
 
 class CNotifierApp : public CApp
@@ -100,8 +108,6 @@ private:
 	HCURSOR m_hCursorArrow;
 	HCURSOR m_hCursorHand;
 	CAppWindow * m_lpWindow;
-	CWaveSession * m_lpSession;
-	CCurlCache * m_lpCurlCache;
 	wstring m_szShortcutTargetPath;
 	BOOL m_fPlaySoundOnNewWave;
 	wstring m_szBrowser;
@@ -122,37 +128,26 @@ public:
 	UINT GetWmTaskbarCreated() const { return m_uWmTaskbarCreated; }
 	HCURSOR GetCursorArrow() const { return m_hCursorArrow; }
 	HCURSOR GetCursorHand() const { return m_hCursorHand; }
-	CWaveSession * GetSession() const { return m_lpSession; }
+	CWaveSession * GetSession() const { return m_lpWindow->GetSession(); }
 	wstring GetShortcutTargetPath() const { return m_szShortcutTargetPath; }
-	void SetWaveSession(CWaveSession * lpSession) {
-		if (m_lpSession != NULL) delete m_lpSession;
-		m_lpSession = lpSession;
-		ProcessLoggedIn();
-	}
-	void Login();
-	void SignOut();
 	CAppWindow * GetAppWindow() const { return m_lpWindow; }
-	BOOL IsLoggedIn() const { return m_lpSession != NULL && m_lpSession->IsLoggedIn(); }
 	BOOL Initialise();
-	CCurlCache * GetCurlCache() const { return m_lpCurlCache; }
 	CWaveContact * GetWaveContact(wstring szEmailAddress) const { return m_lpWindow->GetWaveContact(szEmailAddress); }
 	void SetStartWithWindows(BOOL fValue);
 	void SetPlaySoundOnNewWave(BOOL fValue) { m_fPlaySoundOnNewWave = fValue; }
-	BOOL GetPlaySoundOnNewWave() { return m_fPlaySoundOnNewWave; }
-	wstring GetBrowser() { return m_szBrowser; }
+	BOOL GetPlaySoundOnNewWave() const { return m_fPlaySoundOnNewWave; }
+	wstring GetBrowser() const { return m_szBrowser; }
 	void SetBrowser(wstring szBrowser) { m_szBrowser = szBrowser; }
 	void SyncProxySettings();
 	void DetectStartWithWindowsSetting();
 	void OpenUrl(wstring szUrl);
+	void QueueRequest(CCurl * lpRequest);
+	void CancelRequest(CCurl * lpRequest);
 
 	static CNotifierApp * Instance() { return (CNotifierApp *)CApp::Instance(); }
 	static void Restart();
 
 private:
-	CWaveSession * CreateWaveSessionFromRegistry();
-	void PromptForCredentials();
-	void ProcessUnreadWavesNotifyIcon(INT nUnreadWaves);
-	void ProcessLoggedIn();
 	BOOL DetectShortcut(const wstring & szModulePath, const wstring & szFilename);
 	void CreateShortcut();
 };

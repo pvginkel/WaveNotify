@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CCurlMonitor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CCurlMulti.cpp"
 				>
 			</File>
@@ -216,10 +220,6 @@
 			</File>
 			<File
 				RelativePath=".\CLoginDialog.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CLoginThread.cpp"
 				>
 			</File>
 			<File
@@ -315,10 +315,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\CWaveChannel.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\CWaveCollection.cpp"
 				>
 			</File>
@@ -336,6 +332,10 @@
 			</File>
 			<File
 				RelativePath=".\CWaveName.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CWaveReader.cpp"
 				>
 			</File>
 			<File
@@ -566,6 +566,10 @@
 			</File>
 			<File
 				RelativePath=".\migration.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mutex.h"
 				>
 			</File>
 			<File

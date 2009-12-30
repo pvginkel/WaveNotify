@@ -42,7 +42,7 @@ INT_PTR CDialog::ShowDialog(CWindowHandle * lpParentWindow)
 		CApp::Instance()->GetInstance(),
 		MAKEINTRESOURCE(m_nResource),
 		lpParentWindow == NULL ? NULL : lpParentWindow->GetHandle(),
-		CDialog_DialogProc,
+		CDialog::DialogProcCallback,
 		(LPARAM)this);
 }
 
@@ -52,7 +52,7 @@ void CDialog::Create(INT nType, CWindowHandle * lpParentWindow)
 		CApp::Instance()->GetInstance(),
 		MAKEINTRESOURCE(m_nResource),
 		lpParentWindow == NULL ? NULL : lpParentWindow->GetHandle(),
-		CDialog_DialogProc,
+		CDialog::DialogProcCallback,
 		(LPARAM)this);
 
 	SetHandle(hWnd);
@@ -62,7 +62,7 @@ void CDialog::Create(INT nType, CWindowHandle * lpParentWindow)
 	ShowWindow(GetHandle(), SW_SHOW);
 }
 
-INT_PTR CALLBACK CDialog_DialogProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK CDialog::DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
 {
 	CDialog * lpDialog;
 

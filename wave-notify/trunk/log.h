@@ -20,11 +20,23 @@
 
 #pragma once
 
+#if defined(_DEBUG) && defined(BREAK_ON_LOG)
+
+#define LOG(_Mesg)			{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ) ); }
+#define LOG1(_Mesg, _1)			{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ) ); }
+#define LOG2(_Mesg, _1, _2)		{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ) ); }
+#define LOG3(_Mesg, _1, _2, _3)		{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ) ); }
+#define LOG4(_Mesg, _1, _2, _3, _4)	{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ), ( _4 ) ); }
+
+#else
+
 #define LOG(_Mesg)			Log_WriteA( __FILE__, __LINE__, ( _Mesg ) )
 #define LOG1(_Mesg, _1)			Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ) )
 #define LOG2(_Mesg, _1, _2)		Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ) )
 #define LOG3(_Mesg, _1, _2, _3)		Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ) )
 #define LOG4(_Mesg, _1, _2, _3, _4)	Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ), ( _4 ) )
+
+#endif
 
 #ifdef _DEBUG
 

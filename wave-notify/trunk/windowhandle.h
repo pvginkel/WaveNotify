@@ -20,6 +20,12 @@
 
 #pragma once
 
+class CWindowHandle;
+
+typedef vector<CWindowHandle *> TWindowHandleVector;
+typedef TWindowHandleVector::iterator TWindowHandleVectorIter;
+typedef TWindowHandleVector::const_iterator TWindowHandleVectorConstIter;
+
 class CWindowHandle
 {
 private:

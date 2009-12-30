@@ -41,8 +41,6 @@ public:
 	static CDialog * GetDialog(INT nType) { return m_vDialogs[nType]; }
 };
 
-INT_PTR CALLBACK CDialog_DialogProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
-
 class CDialog : public CWindowHandle
 {
 private:
@@ -60,7 +58,8 @@ public:
 protected:
 	virtual INT_PTR DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam);
 
-	friend INT_PTR CALLBACK CDialog_DialogProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
+private:
+	static INT_PTR CALLBACK DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
 };
 
 #endif // _INC_DIALOG

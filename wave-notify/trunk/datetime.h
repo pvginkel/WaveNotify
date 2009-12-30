@@ -161,7 +161,7 @@ private:
 		memcpy(&m_vSystemTime, &vSystemTime, sizeof(SYSTEMTIME));
 		BOOL fResult = SystemTimeToFileTime(&m_vSystemTime, (LPFILETIME)&m_uTime);
 		if (!fResult)
-			FAIL("Could not convert system time to filetmie");
+			FAIL("Could not convert system time to filetime");
 	}
 };
 

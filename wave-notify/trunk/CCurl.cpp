@@ -18,12 +18,12 @@
 #include "stdafx.h"
 #include "include.h"
 
-static INT CCurl_DebugCallback(CURL * lpCurl, curl_infotype nInfoType, LPCSTR szMessage, size_t cbMessage, LPVOID lpParam);
-
 CCurlProxySettings * CCurl::m_lpProxySettings = NULL;
 
-CCurl::CCurl(wstring szUrl)
+CCurl::CCurl(wstring szUrl, CWindowHandle * lpTargetWindow)
 {
+	m_lpTargetWindow = lpTargetWindow;
+
 	m_nResult = CURLE_OK;
 
 	/* Initialize CURL */
@@ -48,14 +48,15 @@ CCurl::CCurl(wstring szUrl)
 
 	/* Set the writer function */
 
-	curl_easy_setopt(m_lpCurl, CURLOPT_WRITEFUNCTION, CCurl_WriteData);
+	curl_easy_setopt(m_lpCurl, CURLOPT_WRITEFUNCTION, CCurl::WriteDataCallback);
 	curl_easy_setopt(m_lpCurl, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(m_lpCurl, CURLOPT_HEADERFUNCTION, CCurl_WriteHeader);
+	curl_easy_setopt(m_lpCurl, CURLOPT_HEADERFUNCTION, CCurl::WriteHeaderCallback);
 	curl_easy_setopt(m_lpCurl, CURLOPT_HEADERDATA, this);
+	curl_easy_setopt(m_lpCurl, CURLOPT_MAXREDIRS, MAX_AUTO_REDIRECT);
 
 #if defined(_DEBUG) && defined(CURL_VERBOSE_LOG)
 	curl_easy_setopt(m_lpCurl, CURLOPT_VERBOSE, 1);
-	curl_easy_setopt(m_lpCurl, CURLOPT_DEBUGFUNCTION, CCurl_DebugCallback);
+	curl_easy_setopt(m_lpCurl, CURLOPT_DEBUGFUNCTION, CCurl::DebugCallback);
 #endif
 
 	m_szUserAgent = NULL;
@@ -64,12 +65,9 @@ CCurl::CCurl(wstring szUrl)
 	strcpy(m_szError, "");
 	m_lpReader = NULL;
 	m_fPostAdded = FALSE;
-	m_dwStartTime = GetTickCount();
 	m_fIgnoreSSLErrors = FALSE;
 	m_nTimeout = -1;
 	m_fAutoRedirect = FALSE;
-	m_nAutoRedirectIndex = 0;
-	m_fDisableDataRead = FALSE;
 
 	m_szProxyHost = NULL;
 	m_fProxyAuthenticated = FALSE;
@@ -103,12 +101,6 @@ CCurl::CCurl(wstring szUrl)
 
 CCurl::~CCurl()
 {
-#ifdef _DEBUG
-	DWORD dwTime = GetTickCount() - m_dwStartTime;
-
-	LOG2("%s - %.2f", m_szUrl, DOUBLE(dwTime) / 1000.0);
-#endif
-
 	curl_easy_cleanup(m_lpCurl);
 
 	if (m_szUserAgent != NULL)
@@ -155,88 +147,6 @@ void CCurl::SetUrlEncodedPostData(wstring szPostData)
 	curl_easy_setopt(m_lpCurl, CURLOPT_POST, 1);
 	curl_easy_setopt(m_lpCurl, CURLOPT_POSTFIELDS, m_szPostData);
 	curl_easy_setopt(m_lpCurl, CURLOPT_POSTFIELDSIZE, strlen(m_szPostData));
-}
-
-BOOL CCurl::Execute()
-{
-	/* Perform the request */
-
-	m_nResult = curl_easy_perform(m_lpCurl);
-
-	if (m_nResult != CURLE_OK)
-	{
-		LOG1("cURL failed: %s", m_szError);
-
-		return FALSE;
-	}
-
-	curl_easy_getinfo(m_lpCurl, CURLINFO_RESPONSE_CODE, &m_lStatus);
-
-	if (m_fAutoRedirect)
-	{
-		wstring szRedirectUrl;
-
-		for (TStringStringMapIter iter = m_vHeaders.begin(); iter != m_vHeaders.end(); iter++)
-		{
-			if (_wcsicmp(iter->first.c_str(), L"Location") == 0)
-			{
-				szRedirectUrl = iter->second;
-				break;
-			}
-		}
-		
-		if (!szRedirectUrl.empty())
-		{
-			if (m_nAutoRedirectIndex >= MAX_AUTO_REDIRECT)
-			{
-				return FALSE;
-			}
-			else
-			{
-				return ExecuteAutoRedirect(szRedirectUrl);
-			}
-		}
-	}
-
-	return TRUE;
-}
-
-BOOL CCurl::ExecuteAutoRedirect(wstring szRedirectUrl)
-{
-	CCurl * lpRequest = new CCurl(szRedirectUrl);
-
-	// Initialize the new cURL request according to our own settings.
-
-	lpRequest->SetReader(GetReader());
-	lpRequest->SetUserAgent(GetUserAgent());
-	lpRequest->SetAutoRedirect(TRUE);
-	lpRequest->SetIgnoreSSLErrors(GetIgnoreSSLErrors());
-	lpRequest->SetTimeout(GetTimeout());
-
-	// Increment the auto redirect index to detect too many redirects.
-
-	lpRequest->m_nAutoRedirectIndex = m_nAutoRedirectIndex + 1;
-
-	// Execute the redirected request.
-
-	BOOL fResult = lpRequest->Execute();
-
-	// Copy the status of the new request to our own.
-
-	m_vHeaders.clear();
-
-	for (TStringStringMapIter iter = lpRequest->m_vHeaders.begin(); iter != lpRequest->m_vHeaders.end(); iter++)
-	{
-		m_vHeaders[iter->first] = iter->second;
-	}
-
-	m_lStatus = lpRequest->m_lStatus;
-	strcpy(m_szError, lpRequest->m_szError);
-	m_nResult = lpRequest->m_nResult;
-
-	delete lpRequest;
-
-	return fResult;
 }
 
 void CCurl::SetCookies(CCurlCookies * lpCookies)
@@ -290,7 +200,7 @@ size_t CCurl::WriteData(void * lpData, size_t dwSize, size_t dwBlocks)
 {
 	// Drop the incoming data when no reader is assigned.
 
-	if (!m_fDisableDataRead && m_lpReader != NULL && dwSize * dwBlocks > 0)
+	if (m_lpReader != NULL && dwSize * dwBlocks > 0)
 	{
 		if (!m_lpReader->Read((LPBYTE)lpData, (DWORD)(dwSize * dwBlocks)))
 		{
@@ -313,11 +223,6 @@ size_t CCurl::WriteHeader(void * lpData, size_t dwSize, size_t dwBlocks)
 		
 		if (!szName.empty() && !szValue.empty())
 		{
-			if (m_fAutoRedirect && _wcsicmp(szName.c_str(), L"Location") == 0)
-			{
-				m_fDisableDataRead = TRUE;
-			}
-
 			m_vHeaders[szName] = szValue;
 		}
 	}
@@ -335,21 +240,36 @@ string CCurl::GetAnsiString() const
 	return string((LPCSTR)_VECTOR_DATA(m_vData), m_vData.size());
 }
 
-static size_t CCurl_WriteData(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream)
+void CCurl::SignalCompleted(CURLcode nCode)
+{
+	m_nResult = nCode;
+
+	m_lpTargetWindow->PostMessage(WM_CURL_RESPONSE, CR_COMPLETED, (LPARAM)this);
+}
+
+void CCurl::SetAutoRedirect(BOOL fAutoRedirect)
+{
+	 m_fAutoRedirect = fAutoRedirect;
+
+	 curl_easy_setopt(m_lpCurl, CURLOPT_FOLLOWLOCATION, fAutoRedirect ? 1 : 0);
+}
+
+size_t CCurl::WriteDataCallback(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream)
 {
 	return ((CCurl *)lpStream)->WriteData(lpData, dwSize, dwBlocks);
 }
 
-static size_t CCurl_WriteHeader(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream)
+size_t CCurl::WriteHeaderCallback(void * lpData, size_t dwSize, size_t dwBlocks, void * lpStream)
 {
 	return ((CCurl *)lpStream)->WriteHeader(lpData, dwSize, dwBlocks);
 }
 
-static INT CCurl_DebugCallback(CURL * lpCurl, curl_infotype nInfoType, LPCSTR szMessage, size_t cbMessage, LPVOID lpParam)
+INT CCurl::DebugCallback(CURL * lpCurl, curl_infotype nInfoType, LPCSTR szMessage, size_t cbMessage, LPVOID lpParam)
 {
 	LPSTR szBuffer = (LPSTR)malloc(cbMessage + 1);
 
 	memcpy(szBuffer, szMessage, cbMessage);
+
 	szBuffer[cbMessage] = '\0';
 
 	Log_Append(L"curl-log.txt", szMessage);

@@ -18,15 +18,22 @@
 #include "stdafx.h"
 #include "include.h"
 
-CWaveSession::CWaveSession(wstring szUsername, wstring szPassword)
+CWaveSession::CWaveSession(CWindowHandle * lpTargetWindow)
 {
-	m_szUsername = szUsername;
-	m_szPassword = szPassword;
+	m_lpTargetWindow = lpTargetWindow;
+	m_szUsername = L"";
+	m_szPassword = L"";
 	m_lpCookies = NULL;
 	m_szAuthKey = L"";
 	m_szEmailAddress = L"";
-	m_lpChannel = NULL;
 	m_nLoginError = WLE_SUCCESS;
+	m_lpRequest = NULL;
+	m_lpChannelRequest = NULL;
+	m_nRequesting = WSR_NONE;
+	m_nState = WSS_OFFLINE;
+	m_nNextReconnectInterval = 0;
+
+	ResetChannelParameters();
 }
 
 CWaveSession::~CWaveSession()
@@ -35,33 +42,50 @@ CWaveSession::~CWaveSession()
 	{
 		delete m_lpCookies;
 	}
-	
-	StopListener();
+
+	for (TWaveListenerMapIter iter = m_vListeners.begin(); iter != m_vListeners.end(); iter++)
+	{
+		delete iter->second;
+	}
 }
 
-BOOL CWaveSession::Login()
+BOOL CWaveSession::Login(wstring szUsername, wstring szPassword)
 {
-	m_vLock.Enter();
+	if (m_nState != WSS_OFFLINE)
+	{
+		LOG("Not offline");
+		return FALSE;
+	}
 
-	BOOL fResult =
-		GetAuthKey() &&
-		GetAuthCookie() &&
-		GetSessionDetails();
+	if (m_lpRequest != NULL)
+	{
+		LOG("Requesting login while a request is running");
+		return FALSE;
+	}
 
-	m_vLock.Leave();
+	m_nState = WSS_CONNECTING;
 
-	return fResult;
+	SignalProgress(WCS_BEGIN_LOGON);
+
+	m_szUsername = szUsername;
+	m_szPassword = szPassword;
+
+	return Reconnect();
 }
 
-BOOL CWaveSession::GetAuthKey()
+BOOL CWaveSession::Reconnect()
 {
-	CCurl vRequest(WAVE_URL_CLIENTLOGIN);
-	CCurlUTF8StringReader vReader;
+	if (m_szUsername.empty() || m_szPassword.empty())
+	{
+		return FALSE;
+	}
 
-	vRequest.SetUserAgent(USERAGENT);
-	vRequest.SetTimeout(CURL_TIMEOUT);
-	vRequest.SetIgnoreSSLErrors(TRUE);
-	vRequest.SetReader(&vReader);
+	m_lpRequest = new CCurl(WAVE_URL_CLIENTLOGIN, m_lpTargetWindow);
+
+	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
+	m_lpRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpRequest->SetReader(new CCurlUTF8StringReader());
 
 	wstringstream szPostData;
 
@@ -72,26 +96,13 @@ BOOL CWaveSession::GetAuthKey()
 		<< UrlEncode(m_szPassword)
 		<< L"&service=wave&source=net.sf.wave-notify";
 
-	vRequest.SetUrlEncodedPostData(szPostData.str());
+	m_lpRequest->SetUrlEncodedPostData(szPostData.str());
 
-	CNotifierApp::Instance()->GetCurlCache()->Add(&vRequest);
+	m_nRequesting = WSR_AUTH_KEY;
 
-	BOOL fResult = vRequest.Execute();
+	CNotifierApp::Instance()->QueueRequest(m_lpRequest);
 
-	CNotifierApp::Instance()->GetCurlCache()->Remove(&vRequest);
-
-	if (!fResult)
-	{
-		m_nLoginError = WLE_NETWORK;
-
-		return FALSE;
-	}
-
-	m_szAuthKey = GetAuthKeyFromRequest(vReader.GetString());
-
-	m_nLoginError = m_szAuthKey.empty() ? WLE_AUTHENTICATE : WLE_SUCCESS;
-
-	return m_nLoginError == WLE_SUCCESS;
+	return TRUE;
 }
 
 wstring CWaveSession::GetAuthKeyFromRequest(wstring & szResponse) const
@@ -115,112 +126,48 @@ wstring CWaveSession::GetAuthKeyFromRequest(wstring & szResponse) const
 	}
 }
 
-BOOL CWaveSession::GetAuthCookie()
-{
-	CCurl vRequest(Format(WAVE_URL_AUTH, UrlEncode(m_szAuthKey).c_str()));
-
-	vRequest.SetUserAgent(USERAGENT);
-	vRequest.SetTimeout(CURL_TIMEOUT);
-	vRequest.SetIgnoreSSLErrors(TRUE);
-
-	CNotifierApp::Instance()->GetCurlCache()->Add(&vRequest);
-
-	BOOL fResult = vRequest.Execute();
-
-	CNotifierApp::Instance()->GetCurlCache()->Remove(&vRequest);
-
-	if (!fResult)
-	{
-		m_nLoginError = WLE_NETWORK;
-
-		return FALSE;
-	}
-
-	m_lpCookies = vRequest.GetCookies();
-
-	m_nLoginError = m_lpCookies == NULL ? WLE_AUTHENTICATE : WLE_SUCCESS;
-
-	return m_nLoginError == WLE_SUCCESS;
-}
 
 void CWaveSession::SignOut()
 {
-	m_vLock.Enter();
-
-	if (m_lpCookies != NULL)
+	if (m_nState == WSS_RECONNECTING)
 	{
-		CCurl vRequest(WAVE_URL_LOGOUT);
-
-		vRequest.SetUserAgent(USERAGENT);
-		vRequest.SetTimeout(CURL_TIMEOUT);
-		vRequest.SetIgnoreSSLErrors(TRUE);
-		vRequest.SetCookies(m_lpCookies);
-		vRequest.SetAutoRedirect(TRUE);
-
-		CNotifierApp::Instance()->GetCurlCache()->Add(&vRequest);
-	
-		vRequest.Execute();
-
-		CNotifierApp::Instance()->GetCurlCache()->Remove(&vRequest);
-
-		delete m_lpCookies;
-		m_lpCookies = NULL;
+		StopReconnecting();
 	}
+	else if (m_nState == WSS_ONLINE)
+	{
 
-	m_vLock.Leave();
+		m_nState = WSS_DISCONNECTING;
+
+		SignalProgress(WCS_BEGIN_SIGNOUT);
+
+		if (m_lpChannelRequest != NULL)
+		{
+			CNotifierApp::Instance()->CancelRequest(m_lpChannelRequest);
+		}
+		else
+		{
+			PostSignOutRequest();
+		}
+	}
 }
 
-BOOL CWaveSession::GetSessionDetails()
+void CWaveSession::PostSignOutRequest()
 {
-	CCurl vRequest(WAVE_URL_WAVES);
-	CCurlUTF8StringReader vReader;
+	m_lpRequest = new CCurl(WAVE_URL_LOGOUT, m_lpTargetWindow);
 
-	vRequest.SetUserAgent(USERAGENT);
-	vRequest.SetTimeout(CURL_TIMEOUT);
-	vRequest.SetIgnoreSSLErrors(TRUE);
-	vRequest.SetCookies(m_lpCookies);
-	vRequest.SetReader(&vReader);
+	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
+	m_lpRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpRequest->SetCookies(m_lpCookies);
+	m_lpRequest->SetAutoRedirect(TRUE);
 
-	CNotifierApp::Instance()->GetCurlCache()->Add(&vRequest);
+	m_nRequesting = WSR_SIGN_OUT;
 
-	BOOL fResult = vRequest.Execute();
+	CNotifierApp::Instance()->QueueRequest(m_lpRequest);
 
-	CNotifierApp::Instance()->GetCurlCache()->Remove(&vRequest);
+	delete m_lpCookies;
 
-	if (!fResult)
-	{
-		m_nLoginError = WLE_NETWORK;
-
-		return FALSE;
-	}
-
-	wstring szResponse(vReader.GetString());
-	wstring szSessionData(GetSessionData(szResponse));
-
-	if (szSessionData.empty())
-	{
-		m_nLoginError = WLE_AUTHENTICATE;
-
-		return FALSE;
-	}
-
-	m_szEmailAddress = GetKeyFromSessionResponse(L"username", szSessionData);
-	m_szSessionID = GetKeyFromSessionResponse(L"sessionid", szSessionData);
-	m_szProfileID = GetKeyFromSessionResponse(L"id", szSessionData);
-
-	if (
-		!m_szEmailAddress.empty() &&
-		!m_szSessionID.empty() &&
-		!m_szProfileID.empty()
-	) {
-		m_nLoginError = WLE_SUCCESS;
-	}
-	else
-	{
-		m_nLoginError = WLE_AUTHENTICATE;
-	}
-
-	return m_nLoginError == WLE_SUCCESS;
+	m_lpCookies = NULL;
 }
 
 wstring CWaveSession::GetSessionData(wstring & szResponse) const
@@ -328,108 +275,688 @@ wstring CWaveSession::GetKeyFromSessionResponse(wstring szKey, wstring & szRespo
 	return L"";
 }
 
-BOOL CWaveSession::IsLoggedIn() const
-{
-	return m_lpCookies != NULL;
-}
-
-void CWaveSession::StartListener()
-{
-	if (m_lpChannel == NULL)
-	{
-		m_lpChannel = new CWaveChannel(this, CNotifierApp::Instance()->GetAppWindow());
-	}
-}
-
-void CWaveSession::StopListener()
-{
-	if (m_lpChannel != NULL)
-	{
-		m_lpChannel->Cancel();
-
-		delete m_lpChannel;
-
-		m_lpChannel = NULL;
-	}
-}
-
 void CWaveSession::SetCookies(CCurlCookies * lpCookies)
 {
-	m_vLock.Enter();
-
 	if (m_lpCookies != NULL)
 	{
 		delete m_lpCookies;
 	}
 
 	m_lpCookies = lpCookies;
-
-	m_vLock.Leave();
 }
 
-BOOL CWaveSession::PostRequests(TWaveRequestVector & vRequests)
+void CWaveSession::AddProgressTarget(CWindowHandle * lpSignalWindow)
 {
-	// This function is responsible for deleting the requests because requests
+	m_vSignalWindows.push_back(lpSignalWindow);
+}
+
+void CWaveSession::RemoveProgressTarget(CWindowHandle * lpSignalWindow)
+{
+	TWindowHandleVectorIter pos = find(m_vSignalWindows.begin(), m_vSignalWindows.end(), lpSignalWindow);
+
+	if (pos == m_vSignalWindows.end())
+	{
+		LOG("Could not remove target window; not registered");
+	}
+	else
+	{
+		m_vSignalWindows.erase(pos);
+	}
+}
+
+BOOL CWaveSession::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
+{
+	// Do we understand the response?
+
+	if (nState != CR_COMPLETED || lpCurl == NULL)
+	{
+		return FALSE;
+	}
+
+	// Check whether it's just a Curl request we need to clean up.
+
+	TCurlVectorIter pos = find(m_vOwnedRequests.begin(), m_vOwnedRequests.end(), lpCurl);
+
+	if (pos != m_vOwnedRequests.end())
+	{
+		m_vOwnedRequests.erase(pos);
+
+		CCurl::Destroy(lpCurl);
+
+		return TRUE;
+	}
+
+	// Is this response from the channel listener?
+
+	if (lpCurl == m_lpChannelRequest)
+	{
+		ProcessChannelResponse();
+
+		return TRUE;
+	}
+
+	// Is this a login request?
+
+	if (lpCurl == m_lpRequest)
+	{
+		switch (m_nRequesting)
+		{
+		case WSR_AUTH_KEY:
+			ProcessAuthKeyResponse();
+			break;
+
+		case WSR_COOKIE:
+			ProcessCookieResponse();
+			break;
+
+		case WSR_SESSION_DETAILS:
+			ProcessSessionDetailsResponse();
+			break;
+
+		case WSR_SID:
+			ProcessSIDResponse();
+			break;
+
+		case WSR_SIGN_OUT:
+			ProcessSignOutResponse();
+			break;
+
+		default:
+			LOG1("Illegal requesting state %d", m_nRequesting);
+
+			CCurl::Destroy(m_lpRequest);
+
+			m_lpRequest = NULL;
+			m_nRequesting = WSR_NONE;
+
+			break;
+		}
+
+		return TRUE;
+	}
+
+	// This is not one of our request.
+
+	return FALSE;
+}
+
+void CWaveSession::ProcessAuthKeyResponse()
+{
+	CCurlUTF8StringReader * lpReader = (CCurlUTF8StringReader *)m_lpRequest->GetReader();
+
+	if (m_lpRequest->GetResult() != CURLE_OK)
+	{
+		m_nLoginError = WLE_NETWORK;
+	}
+	else
+	{
+		m_szAuthKey = GetAuthKeyFromRequest(lpReader->GetString());
+
+		m_nLoginError = m_szAuthKey.empty() ? WLE_AUTHENTICATE : WLE_SUCCESS;
+	}
+	
+	delete lpReader;
+	delete m_lpRequest;
+
+	m_lpRequest = NULL;
+	m_nRequesting = WSR_NONE;
+
+	if (m_nLoginError == WLE_SUCCESS)
+	{
+		SignalProgress(WCS_GOT_KEY);
+
+		PostAuthCookieRequest();
+	}
+	else if (m_nState == WSS_RECONNECTING)
+	{
+		NextReconnect();
+	}
+	else
+	{
+		m_nState = WSS_OFFLINE;
+
+		SignalProgress(WCS_FAILED);
+	}
+}
+
+void CWaveSession::ProcessCookieResponse()
+{
+	if (m_lpRequest->GetResult() != CURLE_OK)
+	{
+		m_nLoginError = WLE_NETWORK;
+	}
+	else
+	{
+		m_lpCookies = m_lpRequest->GetCookies();
+
+		m_nLoginError = m_lpCookies == NULL ? WLE_AUTHENTICATE : WLE_SUCCESS;
+	}
+	
+	delete m_lpRequest;
+
+	m_lpRequest = NULL;
+	m_nRequesting = WSR_NONE;
+
+	if (m_nLoginError == WLE_SUCCESS)
+	{
+		SignalProgress(WCS_GOT_COOKIE);
+
+		PostSessionDetailsRequest();
+	}
+	else if (m_nState == WSS_RECONNECTING)
+	{
+		NextReconnect();
+	}
+	else
+	{
+		m_nState = WSS_OFFLINE;
+
+		SignalProgress(WCS_FAILED);
+	}
+}
+
+void CWaveSession::ProcessSessionDetailsResponse()
+{
+	CCurlUTF8StringReader * lpReader = (CCurlUTF8StringReader *)m_lpRequest->GetReader();
+
+	if (m_lpRequest->GetResult() != CURLE_OK)
+	{
+		m_nLoginError = WLE_NETWORK;
+	}
+	else
+	{
+		wstring szResponse(lpReader->GetString());
+		wstring szSessionData(GetSessionData(szResponse));
+
+		if (szSessionData.empty())
+		{
+			m_nLoginError = WLE_AUTHENTICATE;
+		}
+		else
+		{
+			m_szEmailAddress = GetKeyFromSessionResponse(L"username", szSessionData);
+			m_szSessionID = GetKeyFromSessionResponse(L"sessionid", szSessionData);
+			m_szProfileID = GetKeyFromSessionResponse(L"id", szSessionData);
+
+			if (
+				!m_szEmailAddress.empty() &&
+				!m_szSessionID.empty() &&
+				!m_szProfileID.empty()
+			) {
+				m_nLoginError = WLE_SUCCESS;
+			}
+			else
+			{
+				m_nLoginError = WLE_AUTHENTICATE;
+			}
+		}
+	}
+	
+	delete lpReader;
+	delete m_lpRequest;
+
+	m_lpRequest = NULL;
+	m_nRequesting = WSR_NONE;
+
+	if (m_nLoginError == WLE_SUCCESS)
+	{
+		m_nState = WSS_ONLINE;
+
+		SignalProgress(WCS_LOGGED_ON);
+
+		ResetChannelParameters();
+
+		PostSIDRequest();
+	}
+	else if (m_nState == WSS_RECONNECTING)
+	{
+		NextReconnect();
+	}
+	else
+	{
+		m_nState = WSS_OFFLINE;
+
+		SignalProgress(WCS_FAILED);
+	}
+}
+
+void CWaveSession::ProcessSIDResponse()
+{
+	CCurlUTF8StringReader * lpReader = (CCurlUTF8StringReader *)m_lpRequest->GetReader();
+	
+	BOOL fSuccess = FALSE;
+
+	if (m_lpRequest->GetResult() == CURLE_OK)
+	{
+		SetCookies(m_lpRequest->GetCookies());
+
+		wstring szChannelResponse(ExtractChannelResponse(lpReader->GetString()));
+
+		if (!szChannelResponse.empty())
+		{
+			fSuccess = ParseChannelResponse(szChannelResponse);
+		}
+	}
+	
+	delete lpReader;
+	delete m_lpRequest;
+
+	m_lpRequest = NULL;
+	m_nRequesting = WSR_NONE;
+
+	if (fSuccess)
+	{
+		SignalProgress(WCS_CONNECTED);
+
+		PostChannelRequest();
+	}
+	else
+	{
+		InitiateReconnect();
+	}
+}
+
+wstring CWaveSession::ExtractChannelResponse(wstring szResponse)
+{
+	if (!szResponse.empty())
+	{
+		DWORD dwPos = szResponse.find(L'\n');
+
+		if (dwPos != wstring::npos)
+		{
+			DWORD dwLength = _wtol(szResponse.substr(0, dwPos).c_str());
+
+			if (szResponse.length() >= dwPos + 1 + dwLength)
+			{
+				return szResponse.substr(dwPos + 1, dwLength);
+			}
+		}
+	}
+
+	return L"";
+}
+
+void CWaveSession::ProcessSignOutResponse()
+{
+	m_nState = WSS_OFFLINE;
+
+	SignalProgress(WCS_SIGNED_OUT);
+
+	delete m_lpCookies;
+
+	m_lpCookies = NULL;
+
+	delete m_lpRequest;
+
+	m_lpRequest = NULL;
+	m_nRequesting = WSR_NONE;
+}
+
+void CWaveSession::ProcessChannelResponse()
+{
+	CWaveReader * lpReader = (CWaveReader *)m_lpChannelRequest->GetReader();
+	
+	BOOL fSuccess = FALSE;
+
+	fSuccess =
+		m_lpChannelRequest->GetResult() == CURLE_OK ||
+		m_lpChannelRequest->GetResult() == CURLE_OPERATION_TIMEOUTED;
+
+	if (fSuccess)
+	{
+		SetCookies(m_lpChannelRequest->GetCookies());
+	}
+	
+	delete lpReader;
+	delete m_lpChannelRequest;
+
+	m_lpChannelRequest = NULL;
+	m_nRequesting = WSR_NONE;
+
+	if (fSuccess)
+	{
+		PostChannelRequest();
+	}
+	else if (m_nState == WSS_DISCONNECTING)
+	{
+		PostSignOutRequest();
+	}
+	else
+	{
+		InitiateReconnect();
+	}
+}
+
+void CWaveSession::SignalProgress(WAVE_CONNECTION_STATE nStatus)
+{
+	for (TWindowHandleVectorIter iter = m_vSignalWindows.begin(); iter != m_vSignalWindows.end(); iter++)
+	{
+		(*iter)->PostMessage(WM_WAVE_CONNECTION_STATE, nStatus, m_nLoginError);
+	}
+}
+
+void CWaveSession::PostAuthCookieRequest()
+{
+	m_lpRequest = new CCurl(
+		Format(WAVE_URL_AUTH, UrlEncode(m_szAuthKey).c_str()),
+		m_lpTargetWindow
+	);
+
+	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
+	m_lpRequest->SetIgnoreSSLErrors(TRUE);
+
+	m_nRequesting = WSR_COOKIE;
+
+	CNotifierApp::Instance()->QueueRequest(m_lpRequest);
+}
+
+void CWaveSession::PostSessionDetailsRequest()
+{
+	m_lpRequest = new CCurl(WAVE_URL_WAVES, m_lpTargetWindow);
+
+	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
+	m_lpRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpRequest->SetCookies(m_lpCookies);
+	m_lpRequest->SetReader(new CCurlUTF8StringReader());
+
+	m_nRequesting = WSR_SESSION_DETAILS;
+
+	CNotifierApp::Instance()->QueueRequest(m_lpRequest);
+}
+
+void CWaveSession::PostSIDRequest()
+{
+	m_lpRequest = new CCurl(
+		Format(WAVE_URL_SESSIONID, m_nRID++, BuildHash().c_str()),
+		m_lpTargetWindow
+	);
+
+	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
+	m_lpRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpRequest->SetCookies(GetCookies());
+	m_lpRequest->SetReader(new CCurlUTF8StringReader());
+
+	m_lpRequest->SetUrlEncodedPostData(L"count=0");
+
+	m_nRequesting = WSR_SID;
+
+	CNotifierApp::Instance()->QueueRequest(m_lpRequest);
+}
+
+void CWaveSession::PostChannelRequest()
+{
+	ASSERT(m_lpChannelRequest == NULL);
+
+	m_lpChannelRequest = new CCurl(
+		Format(WAVE_URL_CHANNEL, m_szSID.c_str(), m_nAID, BuildHash().c_str()),
+		m_lpTargetWindow
+	);
+
+	m_lpChannelRequest->SetUserAgent(USERAGENT);
+	m_lpChannelRequest->SetTimeout(WEB_TIMEOUT_CHANNEL);
+	m_lpChannelRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpChannelRequest->SetCookies(GetCookies());
+	m_lpChannelRequest->SetReader(new CWaveReader(this));
+
+	CNotifierApp::Instance()->QueueRequest(m_lpChannelRequest);
+}
+
+void CWaveSession::ResetChannelParameters()
+{
+	m_szSID = L"";
+	m_nAID = 0;
+	m_nRID = Rand(10000, 90000);
+	m_nNextRequestID = 0;
+	m_nNextListenerID = 0;
+}
+
+BOOL CWaveSession::ParseChannelResponse(wstring szResponse)
+{
+	Json::Reader vReader;
+	Json::Value vRoot;
+
+	if (!vReader.parse(szResponse, vRoot))
+	{
+		return FALSE;
+	}
+
+	BOOL fSuccess = TRUE;
+
+	for (DWORD i = 0; i < vRoot.size(); i++)
+	{
+		Json::Value vItem(vRoot[i]);
+		INT nAID = vItem[0u].asInt();
+
+		Json::Value vContent(vItem[1]);
+
+		wstring szType = vContent[0u].asString();
+
+		fSuccess = FALSE;
+
+		if (szType == L"c")
+		{
+			if (vContent.size() > 1)
+			{
+				m_szSID = vContent[1].asString();
+
+				fSuccess = TRUE;
+			}
+		}
+		else if (szType == L"wfe")
+		{
+			if (vContent.size() > 1)
+			{
+				CWaveResponse * lpResponse = ParseWfeResponse(vContent[1].asString(), fSuccess);
+
+				if (fSuccess && lpResponse != NULL)
+				{
+					ReportReceived(lpResponse);
+				}
+			}
+		}
+		else
+		{
+			// There are noop's being sent, but everything else is also
+			// ignored.
+
+			fSuccess = TRUE;
+		}
+
+		if (fSuccess)
+		{
+			m_nAID = nAID;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return fSuccess;
+}
+
+void CWaveSession::InitiateReconnect()
+{
+	m_nNextReconnectInterval = TIMER_RECONNECT_INITIAL;
+
+	SetTimer(m_lpTargetWindow->GetHandle(), TIMER_RECONNECT, m_nNextReconnectInterval, CWaveSession::ReconnectTimerCallback);
+
+	m_nState = WSS_RECONNECTING;
+
+	SignalProgress(WCS_RECONNECTING);
+}
+
+wstring CWaveSession::BuildHash()
+{
+	wstring szResult;
+
+	szResult.reserve(12);
+
+	for (INT i = 0; i < 12; i++)
+	{
+		szResult += *(WAVE_HASH_POOL + Rand(0, _ARRAYSIZE(WAVE_HASH_POOL) - 1));
+	}
+
+	return szResult;
+}
+
+CWaveResponse * CWaveSession::ParseWfeResponse(wstring szResponse, BOOL & fSuccess)
+{
+	Json::Reader vReader;
+	Json::Value vRoot;
+
+	if (!vReader.parse(szResponse, vRoot))
+	{
+		fSuccess = FALSE;
+		return NULL;
+	}
+
+	fSuccess = TRUE;
+
+	return CWaveResponse::Parse(vRoot);
+}
+
+void CWaveSession::PostRequests(TWaveRequestVector & vRequests)
+{
+	// This method is responsible for deleting the requests because requests
 	// may later be stored. Responses can be linked to a request and when this
 	// becomes necessary, this function will take the requests for later retrieval.
 	// Now, we just delete them.
 
-	BOOL fResult = FALSE;
+	wstringstream szPostData;
 
-	if (m_lpChannel != NULL)
+	szPostData << L"count=" << vRequests.size();
+
+	INT nOffset = 0;
+
+	for (TWaveRequestVectorConstIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
 	{
-		fResult = m_lpChannel->PostRequests(vRequests);
+		szPostData << L"&req" << nOffset << L"_key=" << UrlEncode(SerializeRequest(*iter));
+
+		nOffset++;
 	}
-	else
-	{
-		LOG("Could not post request; channel not running");
-	}
+
+	// Post the JSON to the channel.
+
+	wstring szUrl = Format(WAVE_URL_CHANNEL_POST, m_szSID.c_str(), m_nRID++, BuildHash().c_str());
+
+	CCurl * lpRequest = new CCurl(szUrl, m_lpTargetWindow);
+
+	lpRequest->SetUserAgent(USERAGENT);
+	lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
+	lpRequest->SetIgnoreSSLErrors(TRUE);
+	lpRequest->SetCookies(GetCookies());
+
+	lpRequest->SetUrlEncodedPostData(szPostData.str());
+
+	CNotifierApp::Instance()->QueueRequest(lpRequest);
+
+	m_vOwnedRequests.push_back(lpRequest);
 
 	for (TWaveRequestVectorIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
 	{
+		(*iter)->RequestCompleted();
+
 		delete *iter;
 	}
 
 	vRequests.clear();
+}
 
-	return fResult;
+wstring CWaveSession::SerializeRequest(CWaveRequest * lpRequest)
+{
+	// Prepare the request basics.
+
+	Json::Value vRoot(Json::objectValue);
+
+	vRoot[L"a"] = Json::Value(GetSessionID());
+	vRoot[L"r"] = Json::Value(Format(L"%x", m_nNextRequestID++));
+	vRoot[L"t"] = Json::Value(lpRequest->GetType());
+	vRoot[L"p"] = Json::Value(Json::objectValue);
+
+	// Let the request object write the parameters.
+
+	lpRequest->CreateRequest(vRoot[L"p"]);
+
+	// Get the encoded JSON data.
+
+	Json::FastWriter vWriter;
+
+	return vWriter.write(vRoot);
 }
 
 void CWaveSession::AddListener(CWaveListener * lpListener)
 {
-	if (m_lpChannel != NULL)
-	{
-		m_lpChannel->AddListener(lpListener);
-	}
-	else
-	{
-		LOG("Could not add listener; channel not running");
-		delete lpListener;
-	}
+	m_vListeners[lpListener->GetID()] = lpListener;
 }
 
 CWaveListener * CWaveSession::CreateListener(wstring szSearchString)
 {
-	if (m_lpChannel != NULL)
-	{
-		return m_lpChannel->CreateListener(szSearchString);
-	}
-	else
-	{
-		LOG("Could not create listener; channel not running");
-		return NULL;
-	}
+	return new CWaveListener(
+		Format(L"%s%d", GetSessionID().c_str(), m_nNextListenerID++),
+		szSearchString
+	);
 }
 
 BOOL CWaveSession::RemoveListener(wstring szID)
 {
-	if (m_lpChannel != NULL)
+	TWaveListenerMapIter pos = m_vListeners.find(szID);
+
+	BOOL fResult = pos != m_vListeners.end();
+
+	if (fResult)
 	{
-		return m_lpChannel->RemoveListener(szID);
+		m_vListeners.erase(pos);
+
+		delete pos->second;
+	}
+
+	return fResult;
+}
+
+VOID CALLBACK CWaveSession::ReconnectTimerCallback(HWND hWnd, UINT uMsg, UINT_PTR nEventId, DWORD dwTime)
+{
+	CNotifierApp::Instance()->GetSession()->ReconnectTimer();
+}
+
+void CWaveSession::ReconnectTimer()
+{
+	KillTimer(m_lpTargetWindow->GetHandle(), TIMER_RECONNECT);
+
+	Reconnect();
+}
+
+void CWaveSession::NextReconnect()
+{
+	m_nNextReconnectInterval *= 2;
+
+	if (m_nNextReconnectInterval > TIMER_RECONNECT_MAX)
+	{
+		m_nNextReconnectInterval = TIMER_RECONNECT_MAX;
+	}
+
+	SetTimer(m_lpTargetWindow->GetHandle(), TIMER_RECONNECT, m_nNextReconnectInterval, CWaveSession::ReconnectTimerCallback);
+}
+
+void CWaveSession::StopReconnecting()
+{
+	if (m_nState != WSS_RECONNECTING)
+	{
+		LOG("StopReconnecting called while not reconnecting");
 	}
 	else
 	{
-		LOG("Could not remove listener; channel not running");
-		return FALSE;
+		delete m_lpCookies;
+
+		m_lpCookies = NULL;
+
+		m_nState = WSS_OFFLINE;
+
+		SignalProgress(WCS_SIGNED_OUT);
+
+		KillTimer(m_lpTargetWindow->GetHandle(), TIMER_RECONNECT);
 	}
 }

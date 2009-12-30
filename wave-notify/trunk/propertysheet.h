@@ -20,8 +20,6 @@
 
 #pragma once
 
-INT_PTR CALLBACK CPropertySheetPage_DialogProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
-
 class CPropertySheet;
 class CPropertySheetPage;
 
@@ -120,7 +118,9 @@ protected:
 	}
 
 	friend class CPropertySheet;
-	friend INT_PTR CALLBACK CPropertySheetPage_DialogProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
+
+private:
+	static INT_PTR CALLBACK DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
 };
 
 #endif // _INC_PROPERTYSHEET

@@ -22,38 +22,197 @@
 #define UPDATE_PATH		L"update-tmp"
 #define UPDATE_EXEC		L"update.exe"
 
-BOOL CVersion::m_fNewVersionAvailable = FALSE;
+CVersion * CVersion::m_lpInstance = NULL;
 
-// Buffer is allocated here to circumvent the memory leak detection.
-
-wstring CVersion::m_szLink(140, L' ');
-wstring CVersion::m_szVersion(140, L' ');
-
-BOOL CVersion::NewVersionAvailable()
+CVersion::CVersion()
 {
-	CCurl vRequest(GetRequestUrl());
-	CCurlAnsiStringReader vReader;
+	ASSERT(m_lpInstance == NULL);
 
-	vRequest.SetTimeout(CURL_TIMEOUT);
-	vRequest.SetIgnoreSSLErrors(TRUE);
-	vRequest.SetReader(&vReader);
+	m_lpTargetWindow = NULL;
+	m_nRequesting = VR_NONE;
+	m_lpRequest = NULL;
+	m_nState = VS_NONE;
 
-	wstringstream szLogDump;
+	m_lpInstance = this;
+}
 
-	szLogDump << L"logdump=";
+CVersion::~CVersion()
+{
+	ASSERT(m_lpRequest == NULL);
 
-	if (GetLogDump(szLogDump))
+	m_lpInstance = NULL;
+}
+
+BOOL CVersion::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
+{
+	// Do we understand the response?
+
+	if (nState != CR_COMPLETED || lpCurl == NULL)
 	{
-		vRequest.SetUrlEncodedPostData(szLogDump.str());
+		return FALSE;
 	}
 
-	if (vRequest.Execute())
+	// Check whether it's our Curl request.
+
+	if (lpCurl == m_lpRequest)
 	{
-		return ParseNewVersionResponse(vReader.GetString());
+		switch (m_nRequesting)
+		{
+		case VR_VERSION:
+			ProcessVersionResponse();
+			break;
+
+		case VR_DOWNLOAD:
+			ProcessDownloadResponse();
+			break;
+
+		default:
+			LOG1("Illegal requesting state %d", m_nRequesting);
+
+			CCurl::Destroy(m_lpRequest);
+
+			m_lpRequest = NULL;
+			m_nRequesting = VR_NONE;
+
+			SetState(VS_NONE);
+			break;
+		}
+
+		return TRUE;
+	}
+
+	// This is not one of our request.
+
+	return FALSE;
+}
+
+BOOL CVersion::CheckVersion()
+{
+	// The Window handle must have been attached to be able to perform Curl
+	// requests.
+
+	ASSERT(m_lpTargetWindow != NULL);
+
+	if (GetState() == VS_NONE)
+	{
+		SetState(VS_CHECKING);
+
+		PostVersionRequest();
+
+		return TRUE;
 	}
 	else
 	{
 		return FALSE;
+	}
+}
+
+void CVersion::PostVersionRequest()
+{
+	m_lpRequest = new CCurl(GetRequestUrl(), m_lpTargetWindow);
+
+	m_lpRequest->SetTimeout(WEB_TIMEOUT_LONG);
+	m_lpRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpRequest->SetReader(new CCurlAnsiStringReader());
+
+	wstringstream szLogDump;
+
+	if (GetLogDump(szLogDump))
+	{
+		m_lpRequest->SetUrlEncodedPostData(szLogDump.str());
+	}
+
+	m_nRequesting = VR_VERSION;
+
+	CNotifierApp::Instance()->QueueRequest(m_lpRequest);
+}
+
+void CVersion::PostDownloadRequest()
+{
+	wstring szPath(GetBasePath() + UPDATE_FILENAME);
+
+	DeleteFile(szPath.c_str());
+
+	HANDLE hFile = CreateFile(szPath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		LOG1("Could not create file %S", szPath.c_str());
+
+		return;
+	}
+
+	m_lpRequest = new CCurl(m_szLink, m_lpTargetWindow);
+
+	m_lpRequest->SetTimeout(WEB_TIMEOUT_LONG);
+	m_lpRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpRequest->SetReader(new CCurlFileReader(hFile));
+	m_lpRequest->SetAutoRedirect(TRUE);
+
+	m_nRequesting = VR_DOWNLOAD;
+
+	CNotifierApp::Instance()->QueueRequest(m_lpRequest);
+}
+
+void CVersion::ProcessVersionResponse()
+{
+	CCurlAnsiStringReader * lpReader = (CCurlAnsiStringReader *)m_lpRequest->GetReader();
+
+	BOOL fSuccess = FALSE;
+
+	if (m_lpRequest->GetResult() == CURLE_OK)
+	{
+		fSuccess = ParseNewVersionResponse(lpReader->GetString());
+	}
+	
+	delete lpReader;
+	delete m_lpRequest;
+
+	m_lpRequest = NULL;
+	m_nRequesting = VR_NONE;
+
+	if (fSuccess && !m_szLink.empty())
+	{
+		SetState(VS_DOWNLOADING);
+
+		PostDownloadRequest();
+	}
+	else
+	{
+		SetState(VS_NONE);
+	}
+}
+
+void CVersion::ProcessDownloadResponse()
+{
+	CCurlFileReader * lpReader = (CCurlFileReader *)m_lpRequest->GetReader();
+
+	BOOL fSuccess = m_lpRequest->GetResult() == CURLE_OK;
+
+	CloseHandle(lpReader->GetHandle());
+
+	delete lpReader;
+	delete m_lpRequest;
+
+	m_lpRequest = NULL;
+	m_nRequesting = VR_NONE;
+
+	wstring szPath(GetBasePath() + UPDATE_FILENAME);
+
+	if (fSuccess)
+	{
+		fSuccess = PrepareInstall(szPath);
+	}
+
+	DeleteFile(szPath.c_str());
+
+	if (fSuccess)
+	{
+		SetState(VS_AVAILABLE);
+	}
+	else
+	{
+		SetState(VS_NONE);
 	}
 }
 
@@ -110,6 +269,24 @@ wstring CVersion::GetRequestUrl()
 	szUrl << VERSION_LINK << L"?version=" << UrlEncode(GetAppVersion());
 
 	CSettings vSettings(FALSE);
+	wstring szAttemptedVersion;
+
+	if (vSettings.GetAttemptedVersion(szAttemptedVersion))
+	{
+		szUrl << L"&attempted=" << szAttemptedVersion;
+	}
+
+	// Cookie has been forced on to help debug update problems. Having
+	// the cookie present always allows the server to make sure clients are
+	// updating correctly.
+
+	wstring szCookie;
+
+	if (vSettings.GetStatisticsCookie(szCookie) && !szCookie.empty())
+	{
+		szUrl << L"&cookie=" << UrlEncode(szCookie);
+	}
+
 	BOOL fCollectStatistics;
 
 	if (vSettings.GetCollectStatistics(fCollectStatistics) && fCollectStatistics)
@@ -155,13 +332,6 @@ wstring CVersion::GetRequestUrl()
 		}
 
 		szUrl << L"&client=" << UrlEncode(szClientVersion);
-
-		wstring szCookie;
-
-		if (vSettings.GetStatisticsCookie(szCookie) && !szCookie.empty())
-		{
-			szUrl << L"&cookie=" << UrlEncode(szCookie);
-		}
 	}
 
 	return szUrl.str();
@@ -170,7 +340,6 @@ wstring CVersion::GetRequestUrl()
 BOOL CVersion::ParseNewVersionResponse(const wstring & szResponse)
 {
 	TStringStringMap vMap;
-	wstring szAttemptedVersion;
 
 	if (!ParseStringMap(szResponse, vMap))
 	{
@@ -187,6 +356,7 @@ BOOL CVersion::ParseNewVersionResponse(const wstring & szResponse)
 	if (pos != vMap.end())
 	{
 		LOG1("Problem while checking for new version: %S", pos->second.c_str());
+		
 		return FALSE;
 	}
 
@@ -206,7 +376,6 @@ BOOL CVersion::ParseNewVersionResponse(const wstring & szResponse)
 		goto __up_to_date;
 	}
 
-
 	m_szLink = pos->second;
 
 	pos = vMap.find(L"Version");
@@ -218,94 +387,36 @@ BOOL CVersion::ParseNewVersionResponse(const wstring & szResponse)
 
 	m_szVersion = pos->second;
 
-	if (
-		CSettings(FALSE).GetAttemptedVersion(szAttemptedVersion) &&
-		m_szVersion == szAttemptedVersion
-	) {
-		goto __up_to_date;
-	}
-
-	m_fNewVersionAvailable = TRUE;
-
 	return TRUE;
 
 __up_to_date:
-	m_szLink = L"";
 	m_szVersion = L"";
+	m_szLink = L"";
 
-	m_fNewVersionAvailable = FALSE;
-
-	return FALSE;
+	return TRUE;
 }
 
-BOOL CVersion::PerformUpdate()
+BOOL CVersion::PrepareInstall(wstring szPath)
 {
 	CSettings(TRUE).SetAttemptedVersion(m_szVersion);
 
-	wstring szBasePath(GetDirname(GetModuleFileNameEx()) + L"\\");
-
-	if (szBasePath.empty())
-	{
-		LOG("Could not get module name");
-
-		return FALSE;
-	}
-
-	if (!DownloadUpdate(szBasePath))
+	if (!ExtractUpdate(szPath))
 	{
 		return FALSE;
 	}
 
-	if (!ExtractUpdate(szBasePath))
+	if (!ValidateUpdate())
 	{
 		return FALSE;
 	}
 
-	if (!ValidateUpdate(szBasePath))
-	{
-		return FALSE;
-	}
-
-	return InitiateInstall(szBasePath);
+	return TRUE;
 }
 
-BOOL CVersion::DownloadUpdate(wstring szBasePath)
+BOOL CVersion::ExtractUpdate(wstring szUpdateFilename)
 {
-	wstring szPath(szBasePath + UPDATE_FILENAME);
+	wstring szBasePath(GetBasePath());
 
-	DeleteFile(szPath.c_str());
-
-	HANDLE hFile = CreateFile(szPath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-	if (hFile == INVALID_HANDLE_VALUE)
-	{
-		LOG1("Could not create file %S", szPath.c_str());
-
-		return FALSE;
-	}
-
-	CCurl vRequest(m_szLink);
-	CCurlFileReader vReader(hFile);
-
-	vRequest.SetTimeout(CURL_TIMEOUT);
-	vRequest.SetIgnoreSSLErrors(TRUE);
-	vRequest.SetReader(&vReader);
-	vRequest.SetAutoRedirect(TRUE);
-
-	BOOL fResult = vRequest.Execute();
-
-	CloseHandle(hFile);
-
-	if (!fResult)
-	{
-		DeleteFile(szPath.c_str());
-	}
-
-	return fResult;
-}
-
-BOOL CVersion::ExtractUpdate(wstring szBasePath)
-{
 	// Ensure that an empty update directory exists.
 
 	wstring szUpdatePath(szBasePath + UPDATE_PATH + L"\\");
@@ -315,8 +426,6 @@ BOOL CVersion::ExtractUpdate(wstring szBasePath)
 	CreateDirectory(szUpdatePath.c_str(), NULL);
 
 	// Extract the zip file.
-
-	wstring szUpdateFilename(szBasePath + UPDATE_FILENAME);
 
 	unzFile lpZip = unzOpenW(szUpdateFilename);
 
@@ -362,13 +471,12 @@ __end:
 		RemoveDirectory(szUpdatePath, TRUE);
 	}
 
-	DeleteFile(szUpdateFilename.c_str());
-
 	return fSuccess;
 }
 
-BOOL CVersion::InitiateInstall(wstring szBasePath)
+BOOL CVersion::PerformUpdate()
 {
+	wstring szBasePath(GetBasePath());
 	wstring szUpdatePath(szBasePath + UPDATE_PATH + L"\\");
 	wstring szExecPathSource(szUpdatePath + UPDATE_EXEC);
 	wstring szExecPath(szBasePath + UPDATE_EXEC);
@@ -377,7 +485,7 @@ BOOL CVersion::InitiateInstall(wstring szBasePath)
 
 	DeleteFile(szExecPath.c_str());
 
-	if (!MoveFileEx(szExecPathSource.c_str(), szExecPath.c_str(), MOVEFILE_COPY_ALLOWED))
+	if (!MoveFile(szExecPathSource.c_str(), szExecPath.c_str()))
 	{
 		return FALSE;
 	}
@@ -387,11 +495,6 @@ BOOL CVersion::InitiateInstall(wstring szBasePath)
 	// has been extracted to as parameters.
 
 	wstring szModuleFilename(GetBasename(GetModuleFileNameEx()));
-
-	if (szModuleFilename.empty())
-	{
-		return FALSE;
-	}
 
 	wstring szCommandLine(Format(
 		L"\"%s\" /pid %u /path \"%s\" /exec \"%s\"",
@@ -480,9 +583,9 @@ __end:
 	return fSuccess;
 }
 
-BOOL CVersion::ValidateUpdate(wstring szBasePath)
+BOOL CVersion::ValidateUpdate()
 {
-	wstring szUpdatePath(szBasePath + UPDATE_PATH + L"\\");
+	wstring szUpdatePath(GetBasePath() + UPDATE_PATH + L"\\");
 	wstring szExecPath(szUpdatePath + UPDATE_EXEC);
 
 	// For the update to be correct, we need an update.exe.
@@ -499,6 +602,8 @@ BOOL CVersion::ValidateUpdate(wstring szBasePath)
 
 BOOL CVersion::GetLogDump(wstringstream & szLogDump)
 {
+	szLogDump << L"logdump=";
+
 	BOOL fResult = FALSE;
 
 	HANDLE hFile = CreateFile(L"log.txt", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -569,4 +674,15 @@ BOOL CVersion::ReadLogToEnd(HANDLE hFile, wstringstream & szLogDump)
 	free(szBuffer);
 
 	return fResult;
+}
+
+void CVersion::CancelRequests()
+{
+	if (m_lpRequest != NULL)
+	{
+		CNotifierApp::Instance()->CancelRequest(m_lpRequest);
+
+		m_lpRequest = NULL;
+		m_nRequesting = VR_NONE;
+	}
 }

@@ -38,7 +38,7 @@ ATOM CWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 
 	lpWndClass->cbSize = sizeof(WNDCLASSEX);
 	lpWndClass->lpszClassName = m_szClassName.c_str();
-	lpWndClass->lpfnWndProc = CWindow_WndProc;
+	lpWndClass->lpfnWndProc = CWindow::WndProcCallback;
 	lpWndClass->hInstance = CApp::Instance()->GetInstance();
 
 	return RegisterClassEx(lpWndClass);
@@ -109,7 +109,7 @@ BOOL CWindow::Create()
 	return GetHandle() != NULL && IsWindow(GetHandle());
 }
 
-static LRESULT CALLBACK CWindow_WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK CWindow::WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
 {
 	CWindow * lpWindow;
 

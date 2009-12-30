@@ -15,27 +15,34 @@
 # along with Google Wave Notifier.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-LINK_LIBS=deps\curl-7.15.1\libcurl_imp.lib deps\zlib-1.2.3\zlibwapi.lib version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib
+LINK_LIBS=deps\curl-7.15.1\libcurl_imp.lib deps\zlib-1.2.3\zlibwapi.lib		\
+	version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib
 CPP_FLAGS=/I.\deps\curl-7.15.1\include /I.\deps\zlib-1.2.3\include
 OUTDIR=Deploy
 TARGET=$(OUTDIR)\wave-notify.exe
 
-LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CBrowser.obj CCurl.obj CCurlAnsiStringReader.obj \
-	CCurlMulti.obj CDialog.obj CFlyout.obj CLoginDialog.obj CLoginThread.obj CMessagePopup.obj \
-	CMigration.obj CModelessDialogs.obj CModelessPropertySheets.obj CNotifierApp.obj \
-	CNotifyIcon.obj ConvetString.obj COptionsSheet.obj CPopup.obj CPopupBase.obj CPopupWindow.obj \
-	CPropertySheet.obj CPropertySheetPage.obj CRegKey.obj CSettings.obj CThread.obj CUnreadWave.obj \
-	CUnreadWaveCollection.obj CUnreadWavePopup.obj CUnreadWavesFlyout.obj CUTF8Converter.obj \
-	CVersion.obj CWave.obj CWaveChannel.obj CWaveCollection.obj CWaveContact.obj \
-	CWaveContactCollection.obj CWaveMessage.obj CWaveName.obj CWaveRequestGetAllContacts.obj \
-	CWaveRequestGetContactDetails.obj CWaveRequestStartListening.obj CWaveRequestStopListening.obj \
-	CWaveResponse.obj CWaveSession.obj CWaveView.obj CWindow.obj CWindowHandle.obj Encryption.obj \
-	Format.obj GetFont.obj GetWindowsVersion.obj Json_Reader.obj Json_Value.obj Json_Writer.obj \
-	Log.obj Main.obj StdAfx.obj SubclassStaticForLink.obj Support.obj TaskbarLocation.obj \
-	Trim.obj Unzip.obj UrlEncode.obj Wine.obj wave-notify.res
+LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CBrowser.obj	\
+	CCurl.obj CCurlAnsiStringReader.obj CCurlMonitor.obj CCurlMulti.obj	\
+	CDialog.obj CFlyout.obj CLoginDialog.obj CMessagePopup.obj		\
+	CMigration.obj CModelessDialogs.obj CModelessPropertySheets.obj		\
+	CNotifierApp.obj CNotifyIcon.obj ConvetString.obj COptionsSheet.obj	\
+	CPopup.obj CPopupBase.obj CPopupWindow.obj CPropertySheet.obj		\
+	CPropertySheetPage.obj CRegKey.obj CSettings.obj CThread.obj 		\
+	CUnreadWave.obj CUnreadWaveCollection.obj CUnreadWavePopup.obj		\
+	CUnreadWavesFlyout.obj CUTF8Converter.obj CVersion.obj CWave.obj	\
+	CWaveCollection.obj CWaveContact.obj CWaveContactCollection.obj		\
+	CWaveMessage.obj CWaveName.obj CWaveReader.obj				\
+	CWaveRequestGetAllContacts.obj CWaveRequestGetContactDetails.obj	\
+	CWaveRequestStartListening.obj CWaveRequestStopListening.obj		\
+	CWaveResponse.obj CWaveSession.obj CWaveView.obj CWindow.obj		\
+	CWindowHandle.obj Encryption.obj Format.obj GetFont.obj			\
+	GetWindowsVersion.obj Json_Reader.obj Json_Value.obj Json_Writer.obj	\
+	Log.obj Main.obj StdAfx.obj SubclassStaticForLink.obj Support.obj	\
+	TaskbarLocation.obj Trim.obj Unzip.obj UrlEncode.obj Wine.obj		\
+	wave-notify.res
 
-TARGET_EXTRA=deps\curl-7.15.1\libcurl.dll deps\curl-7.15.1\libeay32.dll \
-	deps\curl-7.15.1\ssleay32.dll deps\curl-7.15.1\zlib1.dll \
+TARGET_EXTRA=deps\curl-7.15.1\libcurl.dll deps\curl-7.15.1\libeay32.dll		\
+	deps\curl-7.15.1\ssleay32.dll deps\curl-7.15.1\zlib1.dll		\
 	deps\zlib-1.2.3\zlibwapi.dll wave-notify.chm
 
 ###############################################################################

@@ -37,10 +37,6 @@ CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
 
 	m_lpWindow = new CAppWindow();
 
-	m_lpSession = NULL;
-
-	m_lpCurlCache = new CCurlCache();
-
 	SyncProxySettings();
 
 	CSettings vSettings(FALSE);
@@ -70,19 +66,12 @@ CNotifierApp::~CNotifierApp()
 	DestroyCursor(m_hCursorArrow);
 	DestroyCursor(m_hCursorHand);
 
-	if (m_lpSession != NULL)
-	{
-		delete m_lpSession;
-	}
-
 	if (CPopupWindow::Instance() != NULL)
 	{
 		CPopupWindow::Instance()->CancelAll();
 	}
 
 	CCurl::SetProxySettings(NULL);
-
-	delete m_lpCurlCache;
 }
 
 BOOL CNotifierApp::Initialise()
@@ -95,89 +84,6 @@ INT CNotifierApp::Execute()
 	m_lpWindow->Create();
 
 	return CApp::Execute();
-}
-
-void CNotifierApp::Login()
-{
-	if (m_lpSession == NULL)
-	{
-		m_lpSession = CreateWaveSessionFromRegistry();
-	}
-
-	if (m_lpSession != NULL && !m_lpSession->IsLoggedIn())
-	{
-		m_lpSession->Login();
-	}
-
-	if (m_lpSession == NULL || !m_lpSession->IsLoggedIn())
-	{
-		if (m_lpSession != NULL)
-		{
-			delete m_lpSession;
-			m_lpSession = NULL;
-		}
-
-		PromptForCredentials();
-	}
-	else
-	{
-		ProcessLoggedIn();
-	}
-}
-
-CWaveSession * CNotifierApp::CreateWaveSessionFromRegistry()
-{
-	CSettings settings(FALSE);
-
-	CWaveSession * lpSession = NULL;
-
-	wstring szUsername;
-	wstring szPassword;
-
-	if (
-		settings.GetGoogleUsername(szUsername) &&
-		settings.GetGooglePassword(szPassword)
-	) {
-		if (!szUsername.empty() && !szPassword.empty())
-		{
-			lpSession = new CWaveSession(szUsername, szPassword);
-		}
-	}
-
-	return lpSession;
-}
-
-void CNotifierApp::PromptForCredentials()
-{
-	(new CLoginDialog())->Create(DT_LOGIN, CNotifierApp::Instance()->GetAppWindow());
-}
-
-void CNotifierApp::SignOut()
-{
-	if (m_lpSession != NULL && m_lpSession->IsLoggedIn())
-	{
-		m_lpSession->StopListener();
-		m_lpSession->SignOut();
-
-		SetWaveSession(NULL);
-	}
-}
-
-void CNotifierApp::ProcessUnreadWavesNotifyIcon(INT nUnreadWaves)
-{
-	m_lpWindow->GetNotifyIcon()->SetIcon(nUnreadWaves > 0 ? m_hNotifyIconUnread : m_hNotifyIcon);
-}
-
-void CNotifierApp::ProcessLoggedIn()
-{
-	BOOL fIsLoggedIn = IsLoggedIn();
-
-	m_lpWindow->GetNotifyIcon()->SetIcon(fIsLoggedIn ? m_hNotifyIcon : m_hNotifyIconGray);
-
-	if (fIsLoggedIn)
-	{
-		m_lpSession->StartListener();
-	}
 }
 
 void CNotifierApp::SetStartWithWindows(BOOL fValue)
@@ -427,4 +333,14 @@ __end:
 void CNotifierApp::OpenUrl(wstring szUrl)
 {
 	CBrowser::OpenUrl(m_szBrowser, szUrl);
+}
+
+void CNotifierApp::QueueRequest(CCurl * lpRequest)
+{
+	m_lpWindow->QueueRequest(lpRequest);
+}
+
+void CNotifierApp::CancelRequest(CCurl * lpRequest)
+{
+	m_lpWindow->CancelRequest(lpRequest);
 }

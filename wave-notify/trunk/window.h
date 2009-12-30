@@ -20,8 +20,6 @@
 
 #pragma once
 
-LRESULT CALLBACK CWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
 class CWindow : public CWindowHandle
 {
 private:
@@ -52,7 +50,8 @@ public:
 		if (hCursor != NULL) ::SetCursor(m_hCursor);
 	}
 
-	friend LRESULT CALLBACK CWindow_WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
+private:
+	static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
 };
 
 #endif // _INC_WINDOW

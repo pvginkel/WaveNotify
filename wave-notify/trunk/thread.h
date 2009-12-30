@@ -20,8 +20,6 @@
 
 #pragma once
 
-DWORD WINAPI CThread_ThreadProc(LPVOID lpParameter);
-
 class CThread
 {
 private:
@@ -30,7 +28,7 @@ private:
 
 public:
 	CThread(BOOL fSuspended = FALSE) {
-		m_hThread = CreateThread(NULL, 0, CThread_ThreadProc, this, fSuspended ? CREATE_SUSPENDED : 0, &m_dwThreadId);
+		m_hThread = CreateThread(NULL, 0, CThread::ThreadProcCallback, this, fSuspended ? CREATE_SUSPENDED : 0, &m_dwThreadId);
 	}
 	virtual ~CThread() {
 		Join();
@@ -57,7 +55,8 @@ protected:
 	virtual DWORD ThreadProc() = 0;
 	void Exit(DWORD dwExitCode = 0) { ExitThread(dwExitCode); }
 
-	friend DWORD WINAPI CThread_ThreadProc(LPVOID lpParameter);
+private:
+	static DWORD WINAPI ThreadProcCallback(LPVOID lpParameter);
 };
 
 #endif // _INC_THREAD
