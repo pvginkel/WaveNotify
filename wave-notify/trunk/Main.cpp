@@ -52,6 +52,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	CMigration::Migrate();
 
 	//
+	// Setup cURL.
+	//
+
+	CCurl::GlobalInitialise();
+
+	//
 	// Initialize the automatic update module.
 	//
 
@@ -91,6 +97,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	}
 
 	delete lpVersion;
+
+	CCurl::GlobalCleanup();
 
 	if (lpMutex != NULL)
 	{

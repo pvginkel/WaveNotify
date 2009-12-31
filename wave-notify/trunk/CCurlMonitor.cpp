@@ -42,51 +42,41 @@ CCurlMonitor::~CCurlMonitor()
 
 DWORD CCurlMonitor::ThreadProc()
 {
+	CCurlMulti vMulti;
+
 	while (!m_fCancelled)
 	{
-		WaitForSingleObject(m_vEvent.GetHandle(), INFINITE);
+		vMulti.Perform();
+
+		ProcessMessages(vMulti);
+
+		DWORD dwResult;
+
+		if (vMulti.GetRunning() > 0)
+		{
+			CEvent * lpEvent = vMulti.GetEvent();
+
+			HANDLE vHandles[2] = { m_vEvent.GetHandle(), lpEvent->GetHandle() };
+
+			dwResult = WaitForMultipleObjectsEx(
+				_ARRAYSIZE(vHandles), vHandles, FALSE, CURL_WAIT_TIMEOUT, TRUE);
+
+			delete lpEvent;
+		}
+		else
+		{
+			dwResult = WaitForSingleObject(m_vEvent.GetHandle(), CURL_WAIT_TIMEOUT);
+		}
 
 		if (m_fCancelled)
 		{
 			break;
 		}
 
-		CCurlMulti vMulti;
-
-		ProcessEvent(vMulti);
-
-		if (m_vRequests.size() == 0)
+		if (dwResult == WAIT_OBJECT_0)
 		{
-			continue;
+			ProcessEvent(vMulti);
 		}
-
-		while (vMulti.Perform())
-		{
-			ProcessMessages(vMulti);
-
-			CEvent * lpEvent = vMulti.GetEvent();
-
-			HANDLE vHandles[2] = { m_vEvent.GetHandle(), lpEvent->GetHandle() };
-
-			DWORD dwResult = WaitForMultipleObjectsEx(
-				_ARRAYSIZE(vHandles), vHandles, FALSE, CURL_WAIT_TIMEOUT, TRUE);
-
-			delete lpEvent;
-
-			if (m_fCancelled)
-			{
-				break;
-			}
-
-			if (dwResult == WAIT_OBJECT_0)
-			{
-				ProcessEvent(vMulti);
-			}
-		}
-
-		ProcessMessages(vMulti);
-
-		ASSERT(m_vRequests.size() == 0);
 	}
 
 	CancelAllRequests();

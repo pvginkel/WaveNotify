@@ -137,6 +137,14 @@ public:
 		delete lpCurl;
 	}
 
+	static void GlobalInitialise() {
+		CURLcode nResult = curl_global_init(CURL_GLOBAL_ALL);
+		ASSERT(nResult == CURLE_OK);
+	}
+	static void GlobalCleanup() {
+		curl_global_cleanup();
+	}
+
 private:
 	size_t WriteData(void * lpData, size_t dwSize, size_t dwBlocks);
 	size_t WriteHeader(void * lpData, size_t dwSize, size_t dwBlocks);
@@ -247,9 +255,12 @@ public:
 			LOG("Could not curl_multi_remove_handle");
 	}
 	CWSAEvent * GetEvent();
-	BOOL Perform();
-	BOOL Completed() const { return m_nRunning <= 0; }
-	CURLMsg * GetNextMessage() { return curl_multi_info_read(m_lpMulti, &m_nRunning); }
+	void Perform();
+	CURLMsg * GetNextMessage() {
+		int nRemaining;
+		return curl_multi_info_read(m_lpMulti, &nRemaining);
+	}
+	INT GetRunning() const { return m_nRunning; }
 	
 private:
 	void AddSockets(TSocketMap & vSockets, fd_set & vSet, INT nEventType);

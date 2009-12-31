@@ -68,7 +68,7 @@ void CCurlMulti::AddSockets(TSocketMap & vSockets, fd_set & vSet, INT nEventType
 	}
 }
 
-BOOL CCurlMulti::Perform()
+void CCurlMulti::Perform()
 {
 	CURLMcode nResult;
 
@@ -79,6 +79,4 @@ BOOL CCurlMulti::Perform()
 	{
 		FAIL("Wrong result from curl_multi_perform");
 	}
-
-	return !Completed();
 }
