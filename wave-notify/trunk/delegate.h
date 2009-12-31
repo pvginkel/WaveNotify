@@ -130,13 +130,20 @@ public:
 			m_vDelegates.erase(pos);
 	}
 	bool operator==(LPVOID * lpOther) const {
+		// This may only be used for the == NULL and != NULL
+		// constructions.
 		ASSERT(lpOther == NULL);
 		return m_vDelegates.empty();
 	}
 	bool operator!=(LPVOID * lpOther) const { return !(*this == lpOther); }
 	void operator()() {
 		ASSERT(!m_vDelegates.empty());
-		for (TDelegateVectorIter iter = m_vDelegates.begin(); iter != m_vDelegates.end(); iter++)
+		
+		// Delegates vector is copied here because there are some times
+		// that delete the this inside the timer.
+		TDelegateVector vCopy(m_vDelegates.begin(), m_vDelegates.end());
+
+		for (TDelegateVectorIter iter = vCopy.begin(); iter != vCopy.end(); iter++)
 			(*iter)();
 	}
 
