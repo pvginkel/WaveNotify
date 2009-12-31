@@ -287,6 +287,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CTimer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CTimerCollection.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CUnreadWave.cpp"
 				>
 			</File>
@@ -485,6 +493,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\delegate.h"
+				>
+			</File>
+			<File
 				RelativePath=".\dialog.h"
 				>
 			</File>
@@ -622,6 +634,10 @@
 			</File>
 			<File
 				RelativePath=".\thread.h"
+				>
+			</File>
+			<File
+				RelativePath=".\timer.h"
 				>
 			</File>
 			<File

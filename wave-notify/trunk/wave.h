@@ -142,7 +142,7 @@ private:
 	TWaveListenerMap m_vListeners;
 	INT m_nNextListenerID;
 	WAVE_SESSION_STATE m_nState;
-	UINT m_nNextReconnectInterval;
+	CTimer * m_lpReconnectTimer;
 
 public:
 	CWaveSession(CWindowHandle * lpTargetWindow);

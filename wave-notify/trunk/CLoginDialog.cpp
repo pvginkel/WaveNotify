@@ -38,11 +38,17 @@ CLoginDialog::CLoginDialog(CAppWindow * lpAppWindow) : CDialog(IDD_LOGIN)
 		IMAGE_ICON, 16, 16, 0);
 
 	m_fLoggingOn = FALSE;
+
+	m_lpLoginTimer = new CTimer(320);
+
+	m_lpLoginTimer->Tick += AddressOf<CLoginDialog>(this, &CLoginDialog::ProcessLoginSuccess);
 }
 
 CLoginDialog::~CLoginDialog()
 {
 	CNotifierApp::Instance()->GetSession()->RemoveProgressTarget(this);
+
+	delete m_lpLoginTimer;
 
 	DestroyIcon(m_hStateOffline);
 	DestroyIcon(m_hStateUnknown);
@@ -61,9 +67,6 @@ INT_PTR CLoginDialog::DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 
 	case WM_WAVE_CONNECTION_STATE:
 		return OnWaveConnectionState((WAVE_CONNECTION_STATE)wParam, lParam);
-
-	case WM_TIMER:
-		return OnTimer(wParam);
 
 	default:
 		return CDialog::DialogProc(uMessage, wParam, lParam);
@@ -224,7 +227,7 @@ INT_PTR CLoginDialog::OnLoginStateChanged(WAVE_CONNECTION_STATE nState, WAVE_LOG
 	case WCS_LOGGED_ON:
 		SetStateIcon(m_hStateOnline);
 		SetDlgItemText(IDC_LOGIN_STATE, L"Online");
-		SetTimer(GetHandle(), TIMER_LOGIN_SUCCESS, 320, NULL);
+		m_lpLoginTimer->SetRunning(TRUE);
 		break;
 
 	case WCS_FAILED:
@@ -239,6 +242,8 @@ INT_PTR CLoginDialog::OnLoginStateChanged(WAVE_CONNECTION_STATE nState, WAVE_LOG
 
 void CLoginDialog::ProcessLoginSuccess()
 {
+	m_lpLoginTimer->SetRunning(FALSE);
+
 	UpdateRegistry();
 
 	DestroyWindow(GetHandle());
@@ -310,18 +315,6 @@ void CLoginDialog::UpdateRegistry()
 void CLoginDialog::SetStateIcon(HICON hIcon)
 {
 	SendDlgItemMessage(IDC_LOGIN_STATEICON, STM_SETICON, (WPARAM)hIcon);
-}
-
-INT_PTR CLoginDialog::OnTimer(WPARAM nTimerId)
-{
-	switch (nTimerId)
-	{
-	case TIMER_LOGIN_SUCCESS:
-		ProcessLoginSuccess();
-		break;
-	}
-
-	return TRUE;
 }
 
 BOOL CALLBACK CLoginDialog::DisableWindowsEnumCallback(HWND hWnd, LPARAM lParam)

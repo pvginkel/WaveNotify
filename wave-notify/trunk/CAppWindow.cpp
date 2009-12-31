@@ -27,12 +27,22 @@ CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
 	m_fWorking = FALSE;
 	m_fManualUpdateCheck = FALSE;
 	
+	m_lpTimers = new CTimerCollection(this);
+
 	m_lpMonitor = new CCurlMonitor(this);
 
 	m_lpSession = new CWaveSession(this);
 	m_lpSession->AddProgressTarget(this);
 
 	CVersion::Instance()->SetTargetWindow(this);
+
+	m_lpWorkingTimer = new CTimer(TIMER_WORKING_INTERVAL);
+
+	m_lpWorkingTimer->Tick += AddressOf<CAppWindow>(this, &CAppWindow::UpdateWorkingIcon);
+
+	m_lpVersionTimer = new CTimer(TIMER_VERSION_INTERVAL_INITIAL);
+
+	m_lpVersionTimer->Tick += AddressOf<CAppWindow>(this, &CAppWindow::CheckForUpdates);
 
 	// TODO: Deserialize the last reported here.
 
@@ -62,6 +72,11 @@ CAppWindow::~CAppWindow()
 	delete m_lpReportedView;
 
 	delete m_lpNotifyIcon;
+
+	delete m_lpWorkingTimer;
+	delete m_lpVersionTimer;
+
+	delete m_lpTimers;
 
 	CVersion::Instance()->SetTargetWindow(NULL);
 
@@ -105,7 +120,8 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 		return OnWaveConnectionState((WAVE_CONNECTION_STATE)wParam, lParam);
 
 	case WM_TIMER:
-		return OnTimer(wParam);
+		m_lpTimers->Process((UINT_PTR)wParam);
+		return 0;
 
 	case WM_DESTROY:
 		m_lpNotifyIcon->Destroy();
@@ -165,7 +181,7 @@ LRESULT CAppWindow::OnCreate()
 		PromptForCredentials();
 	}
 	
-	SetTimer(GetHandle(), TIMER_VERSION, TIMER_VERSION_INTERVAL_INITIAL, NULL);
+	m_lpVersionTimer->SetRunning(TRUE);
 
 	CheckApplicationUpdated();
 
@@ -316,7 +332,7 @@ LRESULT CAppWindow::OnCommand(WORD wID)
 
 void CAppWindow::CheckForUpdates()
 {
-	KillTimer(GetHandle(), TIMER_VERSION);
+	m_lpVersionTimer->SetRunning(FALSE);
 
 	CVersion::Instance()->CheckVersion();
 }
@@ -812,22 +828,6 @@ CWaveContact * CAppWindow::GetWaveContact(wstring szEmailAddress)
 	return lpContact;
 }
 
-LRESULT CAppWindow::OnTimer(WPARAM nTimerID)
-{
-	switch (nTimerID)
-	{
-	case TIMER_VERSION:
-		CheckForUpdates();
-		break;
-
-	case TIMER_WORKING:
-		UpdateWorkingIcon();
-		break;
-	}
-
-	return 0;
-}
-
 void CAppWindow::CheckWavesNow()
 {
 	if (CPopupWindow::Instance() != NULL)
@@ -952,7 +952,7 @@ void CAppWindow::StartWorking()
 
 		UpdateWorkingIcon();
 
-		SetTimer(GetHandle(), TIMER_WORKING, TIMER_WORKING_INTERVAL, NULL);
+		m_lpWorkingTimer->SetRunning(TRUE);
 	}
 }
 
@@ -962,7 +962,7 @@ void CAppWindow::StopWorking()
 	{
 		m_fWorking = FALSE;
 
-		KillTimer(GetHandle(), TIMER_WORKING);
+		m_lpWorkingTimer->SetRunning(FALSE);
 
 		m_lpNotifyIcon->SetIcon(
 			m_lpSession->GetState() == WSS_ONLINE ?
@@ -998,7 +998,8 @@ LRESULT CAppWindow::OnVersionState(VERSION_STATE nState)
 			m_fManualUpdateCheck = FALSE;
 		}
 
-		SetTimer(GetHandle(), TIMER_VERSION, TIMER_VERSION_INTERVAL, NULL);
+		m_lpVersionTimer->SetInterval(TIMER_VERSION_INTERVAL);
+		m_lpVersionTimer->SetRunning(TRUE);
 		break;
 
 	case VS_AVAILABLE:

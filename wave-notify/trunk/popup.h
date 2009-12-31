@@ -44,6 +44,9 @@ private:
 	BOOL m_fMouseOver;
 	INT m_nAnimationStep;
 	CPopup * m_lpCurrent;
+	CTimer * m_lpPopupTimer;
+	CTimer * m_lpMouseOverTimer;
+	CTimer * m_lpIdleCompleteTimer;
 
 public:
 	CPopupWindow();
@@ -74,6 +77,7 @@ private:
 	void DequeuePopup();
 	void ProcessPopupTimer();
 	void ProcessMouseOverTimer();
+	void ProcessIdleCompleteTimer();
 	void AnimatePending();
 	void AnimateOpening();
 	void AnimateWaiting();
@@ -82,7 +86,6 @@ private:
 	void CompleteClosing();
 	void UpdateFromAnimationStep();
 
-	LRESULT OnTimer(WPARAM nTimerId);
 	LRESULT OnMouseMove();
 	LRESULT OnMouseLeave();
 };
