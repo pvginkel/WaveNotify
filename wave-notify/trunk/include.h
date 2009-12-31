@@ -78,14 +78,11 @@ typedef enum
 
 typedef enum
 {
-	TIMER_VERSION = 1,
-	TIMER_WORKING,
-	TIMER_LOGIN_SUCCESS,
-	TIMER_POPUP,
-	TIMER_MOUSEOVER,
-	TIMER_IDLE_COMPLETE,
-	TIMER_RECONNECT
+	// Leave this at the bottom for the CTimer class.
+	TIMER_MAX
 } TIMER_ID;
+
+// All timer intervals (in milliseconds).
 
 #define TIMER_QUERY_INTERVAL		(2 * 60 * 1000)
 #define TIMER_VERSION_INTERVAL		(60 * 60 * 1000)
@@ -97,12 +94,13 @@ typedef enum
 #define TIMER_RECONNECT_INITIAL		(5 * 1000)
 #define TIMER_RECONNECT_MAX		(60 * 1000)
 
-#define TIMER_REREPORT_TIMEOUT		(3 * 60 * 1000)		// 3 minutes
+#define TIMER_REREPORT_TIMEOUT		(3 * 60 * 1000)
 
+// And the actual includes.
 
 #include "resource.h"
 
-// Framework includes
+// Framework includes.
 
 #include "types.h"
 #include "thread.h"
@@ -112,6 +110,7 @@ typedef enum
 #include "registry.h"
 #include "log.h"
 #include "support.h"
+#include "delegate.h"
 #include "event.h"
 #include "mutex.h"
 #include "windowhandle.h"
@@ -119,6 +118,7 @@ typedef enum
 #include "window.h"
 #include "dialog.h"
 #include "notifyicon.h"
+#include "timer.h"
 #include "popup.h"
 #include "flyout.h"
 #include "propertysheet.h"
@@ -126,7 +126,7 @@ typedef enum
 #include "datetime.h"
 #include "unzip.h"
 
-// Application includes
+// Application includes.
 
 #include "version.h"
 #include "settings.h"

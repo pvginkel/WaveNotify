@@ -33,6 +33,18 @@ CPopupWindow::CPopupWindow() : CWindow(L"Popup")
 	m_nAnimationStep = 0;
 
 	Create();
+
+	m_lpPopupTimer = new CTimer();
+
+	m_lpPopupTimer->Tick += AddressOf<CPopupWindow>(this, &CPopupWindow::ProcessPopupTimer);
+
+	m_lpMouseOverTimer = new CTimer(200);
+
+	m_lpMouseOverTimer->Tick += AddressOf<CPopupWindow>(this, &CPopupWindow::ProcessMouseOverTimer);
+
+	m_lpIdleCompleteTimer = new CTimer(TIMER_IDLE_COMPLETE_INTERVAL);
+
+	m_lpIdleCompleteTimer->Tick += AddressOf<CPopupWindow>(this, &CPopupWindow::ProcessIdleCompleteTimer);
 }
 
 CPopupWindow::~CPopupWindow()
@@ -42,6 +54,10 @@ CPopupWindow::~CPopupWindow()
 		delete m_lpCurrent;
 		m_lpCurrent = NULL;
 	}
+
+	delete m_lpPopupTimer;
+	delete m_lpMouseOverTimer;
+	delete m_lpIdleCompleteTimer;
 
 	m_lpInstance = NULL;
 
@@ -94,7 +110,8 @@ void CPopupWindow::Show(CPopup * lpPopup)
 		{
 			m_nState = PS_PENDING;
 
-			SetTimer(GetHandle(), TIMER_POPUP, 200, NULL);
+			m_lpPopupTimer->SetInterval(200);
+			m_lpPopupTimer->SetRunning(TRUE);
 		}
 	}
 }
@@ -145,9 +162,6 @@ LRESULT CPopupWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMessage)
 	{
-	case WM_TIMER:
-		return OnTimer(wParam);
-
 	case WM_MOUSEMOVE:
 		OnMouseMove();
 		break;
@@ -171,26 +185,11 @@ LRESULT CPopupWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-LRESULT CPopupWindow::OnTimer(WPARAM nTimerId)
+void CPopupWindow::ProcessIdleCompleteTimer()
 {
-	switch (nTimerId)
-	{
-	case TIMER_POPUP:
-		ProcessPopupTimer();
-		break;
+	m_lpIdleCompleteTimer->SetRunning(FALSE);
 
-	case TIMER_MOUSEOVER:
-		ProcessMouseOverTimer();
-		break;
-
-	case TIMER_IDLE_COMPLETE:
-		KillTimer(GetHandle(), TIMER_IDLE_COMPLETE);
-
-		ShowPopup();
-		break;
-	}
-
-	return 0;
+	ShowPopup();
 }
 
 void CPopupWindow::ProcessPopupTimer()
@@ -214,7 +213,7 @@ void CPopupWindow::ProcessMouseOverTimer()
 
 	if (!PtInRect(&rc, pt))
 	{
-		KillTimer(GetHandle(), TIMER_MOUSEOVER);
+		m_lpMouseOverTimer->SetRunning(FALSE);
 
 		SendMessage(WM_MOUSELEAVE);
 	}
@@ -224,13 +223,13 @@ LRESULT CPopupWindow::OnMouseMove()
 {
 	if (!m_fMouseOver)
 	{
-		SetTimer(GetHandle(), TIMER_MOUSEOVER, 200, NULL);
+		m_lpMouseOverTimer->SetRunning(TRUE);
 
 		m_fMouseOver = TRUE;
 
 		if (m_nState == PS_WAITING)
 		{
-			KillTimer(GetHandle(), TIMER_POPUP);
+			m_lpPopupTimer->SetRunning(FALSE);
 		}
 	}
 
@@ -244,9 +243,8 @@ void CPopupWindow::AnimatePending()
 #ifdef _DEBUG
 		ShowPopup();
 #else
-		KillTimer(GetHandle(), TIMER_POPUP);
-
-		SetTimer(GetHandle(), TIMER_IDLE_COMPLETE, TIMER_IDLE_COMPLETE_INTERVAL, NULL);
+		m_lpPopupTimer->SetRunning(FALSE);
+		m_lpIdleCompleteTimer->SetRunning(TRUE);
 #endif
 	}
 }
@@ -274,17 +272,18 @@ void CPopupWindow::OpeningComplete()
 
 	if (!m_fMouseOver)
 	{
-		SetTimer(GetHandle(), TIMER_POPUP, m_lpCurrent->GetDuration(), NULL);
+		m_lpPopupTimer->SetInterval(m_lpCurrent->GetDuration());
+		m_lpPopupTimer->SetRunning(TRUE);
 	}
 	else
 	{
-		KillTimer(GetHandle(), TIMER_POPUP);
+		m_lpPopupTimer->SetRunning(FALSE);
 	}
 }
 
 void CPopupWindow::AnimateWaiting()
 {
-	KillTimer(GetHandle(), TIMER_POPUP);
+	m_lpPopupTimer->SetRunning(FALSE);
 
 	if (!m_vQueue.empty())
 	{
@@ -306,7 +305,8 @@ void CPopupWindow::AnimateWaiting()
 		CalculatePopupRect();
 		UpdateFromAnimationStep();
 
-		SetTimer(GetHandle(), TIMER_POPUP, m_lpCurrent->GetDuration(), NULL);
+		m_lpPopupTimer->SetInterval(m_lpCurrent->GetDuration());
+		m_lpPopupTimer->SetRunning(TRUE);
 
 		InvalidateRect(GetHandle(), NULL, TRUE);
 	}
@@ -319,7 +319,8 @@ void CPopupWindow::AnimateWaiting()
 		m_nState = PS_CLOSING;
 		m_nAnimationStep = ANIMATION_STEPS;
 
-		SetTimer(GetHandle(), TIMER_POPUP, m_lpCurrent->GetAnimationDuration() / ANIMATION_STEPS, NULL);
+		m_lpPopupTimer->SetInterval(m_lpCurrent->GetAnimationDuration() / ANIMATION_STEPS);
+		m_lpPopupTimer->SetRunning(TRUE);
 
 		UpdateFromAnimationStep();
 
@@ -356,7 +357,8 @@ LRESULT CPopupWindow::OnMouseLeave()
 
 		if (m_nState == PS_WAITING)
 		{
-			SetTimer(GetHandle(), TIMER_POPUP, 2000, NULL);
+			m_lpPopupTimer->SetInterval(2000);
+			m_lpPopupTimer->SetRunning(TRUE);
 		}
 	}
 
@@ -483,7 +485,8 @@ void CPopupWindow::ShowPopup()
 		m_nState = PS_OPENING;
 		m_nAnimationStep = 0;
 
-		SetTimer(GetHandle(), TIMER_POPUP, m_lpCurrent->GetAnimationDuration() / ANIMATION_STEPS, NULL);
+		m_lpPopupTimer->SetInterval(m_lpCurrent->GetAnimationDuration() / ANIMATION_STEPS);
+		m_lpPopupTimer->SetRunning(TRUE);
 
 		SetLayeredWindowAttributes(GetHandle(), 0, 0, LWA_ALPHA);
 	}
@@ -563,6 +566,7 @@ void CPopupWindow::ExtendPopupDuration(INT nDuration)
 {
 	if (!m_fMouseOver && m_nState == PS_WAITING)
 	{
-		SetTimer(GetHandle(), TIMER_POPUP, nDuration, NULL);
+		m_lpPopupTimer->SetInterval(nDuration);
+		m_lpPopupTimer->SetRunning(TRUE);
 	}
 }

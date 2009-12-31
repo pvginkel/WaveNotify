@@ -31,7 +31,10 @@ CWaveSession::CWaveSession(CWindowHandle * lpTargetWindow)
 	m_lpChannelRequest = NULL;
 	m_nRequesting = WSR_NONE;
 	m_nState = WSS_OFFLINE;
-	m_nNextReconnectInterval = 0;
+
+	m_lpReconnectTimer = new CTimer();
+
+	m_lpReconnectTimer->Tick += AddressOf<CWaveSession>(this, &CWaveSession::ReconnectTimer);
 
 	ResetChannelParameters();
 }
@@ -47,6 +50,8 @@ CWaveSession::~CWaveSession()
 	{
 		delete iter->second;
 	}
+
+	delete m_lpReconnectTimer;
 }
 
 BOOL CWaveSession::Login(wstring szUsername, wstring szPassword)
@@ -427,7 +432,7 @@ void CWaveSession::ProcessCookieResponse()
 	}
 	else
 	{
-		m_lpCookies = m_lpRequest->GetCookies();
+		SetCookies(m_lpRequest->GetCookies());
 
 		m_nLoginError = m_lpCookies == NULL ? WLE_AUTHENTICATE : WLE_SUCCESS;
 	}
@@ -780,9 +785,8 @@ BOOL CWaveSession::ParseChannelResponse(wstring szResponse)
 
 void CWaveSession::InitiateReconnect()
 {
-	m_nNextReconnectInterval = TIMER_RECONNECT_INITIAL;
-
-	SetTimer(m_lpTargetWindow->GetHandle(), TIMER_RECONNECT, m_nNextReconnectInterval, CWaveSession::ReconnectTimerCallback);
+	m_lpReconnectTimer->SetInterval(TIMER_RECONNECT_INITIAL);
+	m_lpReconnectTimer->SetRunning(TRUE);
 
 	m_nState = WSS_RECONNECTING;
 
@@ -917,28 +921,22 @@ BOOL CWaveSession::RemoveListener(wstring szID)
 	return fResult;
 }
 
-VOID CALLBACK CWaveSession::ReconnectTimerCallback(HWND hWnd, UINT uMsg, UINT_PTR nEventId, DWORD dwTime)
-{
-	CNotifierApp::Instance()->GetSession()->ReconnectTimer();
-}
-
 void CWaveSession::ReconnectTimer()
 {
-	KillTimer(m_lpTargetWindow->GetHandle(), TIMER_RECONNECT);
+	m_lpReconnectTimer->SetRunning(FALSE);
 
 	Reconnect();
 }
 
 void CWaveSession::NextReconnect()
 {
-	m_nNextReconnectInterval *= 2;
+	INT nNextInterval = m_lpReconnectTimer->GetInterval() * 2;
 
-	if (m_nNextReconnectInterval > TIMER_RECONNECT_MAX)
-	{
-		m_nNextReconnectInterval = TIMER_RECONNECT_MAX;
-	}
+	m_lpReconnectTimer->SetInterval(
+		nNextInterval > TIMER_RECONNECT_MAX ? TIMER_RECONNECT_MAX : nNextInterval
+	);
 
-	SetTimer(m_lpTargetWindow->GetHandle(), TIMER_RECONNECT, m_nNextReconnectInterval, CWaveSession::ReconnectTimerCallback);
+	m_lpReconnectTimer->SetRunning(TRUE);
 }
 
 void CWaveSession::StopReconnecting()
@@ -957,6 +955,6 @@ void CWaveSession::StopReconnecting()
 
 		SignalProgress(WCS_SIGNED_OUT);
 
-		KillTimer(m_lpTargetWindow->GetHandle(), TIMER_RECONNECT);
+		m_lpReconnectTimer->SetRunning(FALSE);
 	}
 }

@@ -31,6 +31,7 @@ private:
 	HICON m_hStateOnline;
 	CAppWindow * m_lpAppWindow;
 	BOOL m_fLoggingOn;
+	CTimer * m_lpLoginTimer;
 
 public:
 	CLoginDialog(CAppWindow * lpAppWindow);
@@ -50,7 +51,6 @@ private:
 	INT_PTR OnLoginStateChanged(WAVE_CONNECTION_STATE nState, WAVE_LOGIN_ERROR nLoginError);
 	void ProcessLoginSuccess();
 	void ProcessLoginFailure(WAVE_LOGIN_ERROR nLoginError);
-	INT_PTR OnTimer(WPARAM nTimerId);
 	void EnableControls(BOOL fEnabled);
 
 	static BOOL CALLBACK DisableWindowsEnumCallback(HWND hWnd, LPARAM lParam);

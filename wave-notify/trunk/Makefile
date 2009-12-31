@@ -28,7 +28,8 @@ LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CBrowser.obj	\
 	CNotifierApp.obj CNotifyIcon.obj ConvetString.obj COptionsSheet.obj	\
 	CPopup.obj CPopupBase.obj CPopupWindow.obj CPropertySheet.obj		\
 	CPropertySheetPage.obj CRegKey.obj CSettings.obj CThread.obj 		\
-	CUnreadWave.obj CUnreadWaveCollection.obj CUnreadWavePopup.obj		\
+	CTimer.cpp CTimerCollection.cpp CUnreadWave.obj 			\
+	CUnreadWaveCollection.obj CUnreadWavePopup.obj				\
 	CUnreadWavesFlyout.obj CUTF8Converter.obj CVersion.obj CWave.obj	\
 	CWaveCollection.obj CWaveContact.obj CWaveContactCollection.obj		\
 	CWaveMessage.obj CWaveName.obj CWaveReader.obj				\

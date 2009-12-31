@@ -39,6 +39,9 @@ private:
 	CCurlMonitor * m_lpMonitor;
 	BOOL m_fQuitting;
 	BOOL m_fManualUpdateCheck;
+	CTimerCollection * m_lpTimers;
+	CTimer * m_lpWorkingTimer;
+	CTimer * m_lpVersionTimer;
 
 public:
 	CAppWindow();
@@ -65,7 +68,6 @@ private:
 	LRESULT OnNotifyIcon(UINT uMessage, UINT uID);
 	LRESULT OnCommand(WORD wID);
 	LRESULT OnWaveConnectionState(WAVE_CONNECTION_STATE nStatus, LPARAM lParam);
-	LRESULT OnTimer(WPARAM nTimerID);
 	LRESULT OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
 	LRESULT OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGIN_ERROR nError);
 	LRESULT OnVersionState(VERSION_STATE nState);
@@ -91,6 +93,9 @@ private:
 	void StartWorking();
 	void StopWorking();
 	BOOL AllowContextMenu();
+
+private:
+	friend class CWorkingTimer;
 };
 
 class CNotifierApp : public CApp
