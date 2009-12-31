@@ -42,6 +42,10 @@
 
 #define GLOBAL_MUTEX		L"Local\\{A6A3BA8F-CDFF-48f6-B894-B869E59F2EA0}"
 
+#define HOMEPAGE_LINK		L"http://wave-notify.soruceforge.net/index.php?from=client"
+#define CHANGELOG_LINK		L"http://wave-notify.sourceforge.net/changelog.php?from=client"
+#define TRANSLATORS_LINK	L"http://wave-notify.sourceforge.net/translators.php?from=client"
+
 #if defined(_DEBUG) && defined(TEST_AUTOMATIC_UPDATE)
 #define VERSION_LINK		L"http://ethan/wave-notify/htdocs/check_version.php"
 #else

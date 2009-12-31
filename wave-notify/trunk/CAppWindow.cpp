@@ -859,9 +859,11 @@ void CAppWindow::CheckApplicationUpdated()
 
 		if (szVersion != szNewVersion)
 		{
-			CMessagePopup * lpPopup = new CMessagePopup(L"Google Wave Notifier has been updated. Click here to read about new features.");
+			CMessagePopup * lpPopup = new CMessagePopup(
+				L"Google Wave Notifier has been updated. Click here to read about new features."
+			);
 
-			lpPopup->SetUrl(L"http://wave-notify.sourceforge.net/changelog.php");
+			lpPopup->SetUrl(CHANGELOG_LINK);
 			lpPopup->SetDuration(8000);
 
 			lpPopup->Show();

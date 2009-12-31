@@ -46,7 +46,7 @@ INT CUnreadWave::Paint(CDC & dc, RECT & rcClient, BOOL fMouseOver, BOOL fExclude
 
 	if (fMouseOver)
 	{
-		dc.SetTextColor(RGB(0, 0, 255));
+		dc.SetTextColor(RGB(0, 102, 204));
 		hSelectedFont = hUnderlineFont;
 		hSelectedBoldFont = hUnderlineBoldFont;
 	}
