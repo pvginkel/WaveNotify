@@ -93,8 +93,8 @@ LRESULT CUnreadWavesFlyout::OnPaint()
 
 void CUnreadWavesFlyout::PaintBottom(CDC & dc, RECT & rcBounds)
 {
-	static HPEN hBorderPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_BTNSHADOW));
-	static HBRUSH hBackgroundBrush = GetSysColorBrush(COLOR_BTNFACE);
+	static HPEN hBorderPen = CreatePen(PS_SOLID, 1, RGB(204, 217, 234));
+	static HBRUSH hBackgroundBrush = CreateSolidBrush(RGB(241, 245, 251));
 	static HFONT hFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_NORMAL, FALSE, TRUE);
 
 	//
@@ -139,8 +139,8 @@ void CUnreadWavesFlyout::PaintBottom(CDC & dc, RECT & rcBounds)
 
 	dc.DrawText(L"Go to Inbox", &rc, DT_CALCRECT | DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
 
-	dc.SetTextColor(RGB(0, 0, 255));
-	dc.SetBkColor(GetSysColor(COLOR_BTNFACE));
+	dc.SetTextColor(RGB(0, 102, 204));
+	dc.SetBkColor(RGB(241, 245, 251));
 
 	dc.DrawText(L"Go to Inbox", &rc, DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
 

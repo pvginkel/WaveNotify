@@ -141,7 +141,7 @@ static void SubclassStaticForLink_Paint(HWND hWnd)
 
 	CDC dc(BeginPaint(hWnd, &ps));
 
-	dc.SetTextColor(RGB(0, 0, 255));
+	dc.SetTextColor(RGB(0, 102, 204));
 	dc.SetBkColor(GetSysColor(COLOR_3DFACE));
 
 	RECT rc;

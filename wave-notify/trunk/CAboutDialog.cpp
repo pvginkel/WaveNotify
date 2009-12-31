@@ -85,7 +85,10 @@ INT_PTR CAboutDialog::OnInitDialog()
 		)
 	);
 
-	SubclassStaticForLink(GetDlgItem(IDC_ABOUT_HOMEPAGE));
+	SubclassStaticForLink(
+		GetDlgItem(IDC_ABOUT_HOMEPAGE),
+		HOMEPAGE_LINK
+	);
 	SubclassStaticForLink(GetDlgItem(IDC_ABOUT_LICENSE_LINK));
 
 	SendDlgItemMessage(IDC_ABOUT_TITLE, WM_SETFONT, (WPARAM)hBoldFont);
