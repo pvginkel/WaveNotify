@@ -97,6 +97,21 @@ CCurl::CCurl(wstring szUrl, CWindowHandle * lpTargetWindow)
 			curl_easy_setopt(m_lpCurl, CURLOPT_PROXYUSERPWD, m_szProxyUsername);
 		}
 	}
+
+	/*
+	// TODO: When this is nessesary, cleanup the slist. wave.google.com does not
+	// seem to keep the connection open though. Check when the connection is closed
+	// (see curl-log.txt) and verify whether it is possible to implement the
+	// connection to google wave in such a way that the connections are re-used.
+	CURLcode nResult = curl_easy_setopt(
+		m_lpCurl,
+		CURLOPT_HTTPHEADER,
+		curl_slist_append(
+			curl_slist_append(NULL, "Connection: keep-alive"),
+			"Keep-Alive: 300"
+		)
+	);
+	*/
 }
 
 CCurl::~CCurl()
