@@ -70,6 +70,10 @@ void CTimerCollection::Unregister(CTimer * lpTimer)
 		m_vFreeEventIds.clear();
 		m_nNextEventId = TIMER_MAX;
 	}
+	else
+	{
+		m_vFreeEventIds.push_back(lpTimer->m_nEventId);
+	}
 }
 
 BOOL CTimerCollection::Process(UINT_PTR nEventId)

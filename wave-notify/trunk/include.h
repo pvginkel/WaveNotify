@@ -83,7 +83,7 @@ typedef enum
 typedef enum
 {
 	// Leave this at the bottom for the CTimer class.
-	TIMER_MAX
+	TIMER_MAX = 1
 } TIMER_ID;
 
 // All timer intervals (in milliseconds).
