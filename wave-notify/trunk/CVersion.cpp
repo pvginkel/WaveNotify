@@ -606,39 +606,34 @@ BOOL CVersion::GetLogDump(wstringstream & szLogDump)
 
 	BOOL fResult = FALSE;
 
-	HANDLE hFile = CreateFile(L"log.txt", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hFile = CreateFile(L"log.txt", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (hFile != INVALID_HANDLE_VALUE)
 	{
-		DWORD dwLastOffset;
-		CSettings vSettings(TRUE);
-
-		if (!vSettings.GetLastLogDumpPosition(dwLastOffset))
-		{
-			dwLastOffset = 0;
-		}
-
 		DWORD dwFileSize = GetFileSize(hFile, NULL);
 
 		if (dwFileSize != INVALID_FILE_SIZE)
 		{
-			if (dwFileSize > dwLastOffset)
+			if (dwFileSize > 0)
 			{
-				if (dwFileSize - dwLastOffset > MAX_LOG_DUMP)
+				DWORD dwOffset = 0;
+
+				if (dwFileSize - dwOffset > MAX_LOG_DUMP)
 				{
-					dwLastOffset = dwFileSize - MAX_LOG_DUMP;
+					dwOffset = dwFileSize - MAX_LOG_DUMP;
 				}
 
-				DWORD dwResult = SetFilePointer(hFile, (LONG)dwLastOffset, NULL, FILE_BEGIN);
+				DWORD dwResult = SetFilePointer(hFile, (LONG)dwOffset, NULL, FILE_BEGIN);
 
 				if (dwResult != INVALID_SET_FILE_POINTER)
 				{
 					fResult = ReadLogToEnd(hFile, szLogDump);
 				}
 			}
-
-			vSettings.SetLastLogDumpPosition(dwFileSize);
 		}
+
+		SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
+		SetEndOfFile(hFile);
 
 		CloseHandle(hFile);
 	}

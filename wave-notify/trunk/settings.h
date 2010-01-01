@@ -61,7 +61,6 @@ private:
 	static const wstring RegUseGenericUnicodeFont;
 	static const wstring RegPlaySoundOnNewWave;
 	static const wstring RegBrowser;
-	static const wstring RegLastLogDumpPosition;
 
 	CRegKey * m_lpKey;
 
@@ -94,7 +93,6 @@ public:
 	SETTINGS_VALUE(BOOL, UseGenericUnicodeFont);
 	SETTINGS_VALUE(BOOL, PlaySoundOnNewWave);
 	SETTINGS_VALUE(wstring, Browser);
-	SETTINGS_VALUE(DWORD, LastLogDumpPosition);
 
 	BOOL GetValue(wstring szName, wstring & szValue) const {
 		if (m_lpKey == NULL) return FALSE;
