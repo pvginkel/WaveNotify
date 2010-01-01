@@ -125,7 +125,9 @@ public:
 	CURL * GetHandle() const { return m_lpCurl; }
 	BOOL GetAutoRedirect() const { return m_fAutoRedirect; }
 	void SetAutoRedirect(BOOL fAutoRedirect);
-	void SignalCompleted(CURLcode nCode);
+	void SignalCompleted(CURLcode nCode, LONG lStatus);
+	LONG GetStatus() const { return m_lStatus; }
+	wstring GetHeader(wstring szHeader) const;
 
 	static void SetProxySettings(CCurlProxySettings * lpProxySettings) {
 		if (m_lpProxySettings != NULL) delete m_lpProxySettings;
@@ -335,7 +337,7 @@ private:
 	void CancelAllRequests();
 	void QueueRequests(CCurlMulti & vMulti, TCurlVector & vRequests);
 	void CancelRequests(TCurlVector & vRequests);
-	void SignalCompleted(CCurl * lpCurl, CURLcode nCode);
+	void SignalCompleted(CCurl * lpCurl, CURLcode nCode, LONG lStatus);
 };
 
 #endif // _INC_CCURL

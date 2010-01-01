@@ -88,4 +88,12 @@ public:
 	void RequestCompleted();
 };
 
+class CWaveRequestContactUpdates : public CWaveRequest
+{
+public:
+	CWaveRequestContactUpdates() : CWaveRequest(WMT_CONTACT_UPDATES) { }
+
+	void CreateRequest(Json::Value & vRoot);
+};
+
 #endif // _INC_WAVEREQUEST

@@ -52,24 +52,37 @@ void CWaveContactCollection::Merge(CWaveContactCollection * lpContacts)
 {
 	for (TWaveContactMapIter iter = lpContacts->m_vContacts.begin(); iter != lpContacts->m_vContacts.end(); iter++)
 	{
-		// Remove the existing item when it exists.
-
 		TWaveContactMapIter pos = m_vContacts.find(iter->first);
 
 		if (pos != m_vContacts.end())
 		{
-			delete pos->second;
+			pos->second->Merge(iter->second);
 
-			m_vContacts.erase(pos);
+			delete iter->second;
 		}
-
-		// Add the new or updated item to our collection.
-
-		m_vContacts[iter->second->GetEmailAddress()] = iter->second;
+		else
+		{
+			m_vContacts[iter->second->GetEmailAddress()] = iter->second;
+		}
 	}
 
 	// We've transferred the enitre contents of the other collection to our collection;
 	// clear out the other collection.
 
 	lpContacts->m_vContacts.clear();
+}
+
+void CWaveContactCollection::Merge(CWaveContactStatusCollection * lpStatuses)
+{
+	const TWaveContactStatusMap & vStatuses = lpStatuses->GetStatuses();
+
+	for (TWaveContactStatusMapConstIter iter = vStatuses.begin(); iter != vStatuses.end(); iter++)
+	{
+		TWaveContactMapIter pos = m_vContacts.find(iter->first);
+
+		if (pos != m_vContacts.end())
+		{
+			pos->second->Merge(iter->second);
+		}
+	}
 }

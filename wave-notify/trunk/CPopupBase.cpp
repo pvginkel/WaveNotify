@@ -46,12 +46,15 @@ void CPopupBase::PaintBackground(CDC & dc)
 
 	dc.FillRect(&rc, hBackgroundBrush);
 
-	dc.DrawIconEx(
-		(PL_BORDER_WIDTH + PL_PADDING) + (PL_ICON_DX / 2),
-		(PL_BORDER_WIDTH + PL_PADDING) + (PL_ICON_DY / 2),
-		hIcon,
-		PL_ICON_SIZE,
-		PL_ICON_SIZE);
+	if (m_fPaintIcon)
+	{
+		dc.DrawIconEx(
+			(PL_BORDER_WIDTH + PL_PADDING) + (PL_ICON_DX / 2),
+			(PL_BORDER_WIDTH + PL_PADDING) + (PL_ICON_DY / 2),
+			hIcon,
+			PL_ICON_SIZE,
+			PL_ICON_SIZE);
+	}
 
 	if (m_fEnableCloseButton)
 	{

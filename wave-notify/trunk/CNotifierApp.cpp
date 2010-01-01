@@ -46,6 +46,11 @@ CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
 		m_fPlaySoundOnNewWave = TRUE;
 	}
 
+	if (!vSettings.GetNotificationWhenOnline(m_fNotificationWhenOnline))
+	{
+		m_fNotificationWhenOnline = TRUE;
+	}
+
 	if (!vSettings.GetBrowser(m_szBrowser))
 	{
 		m_szBrowser = CBrowser::BrowserDefault;

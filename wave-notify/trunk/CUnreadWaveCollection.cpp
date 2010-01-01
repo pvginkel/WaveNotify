@@ -196,7 +196,7 @@ WAVE_CHANGED_STATUS CUnreadWaveCollection::GetChangedStatus(CWave * lpReportedWa
 		{
 			if ((*iter)->GetEmailAddress() != szSelf)
 			{
-				return WCS_CHANGED;
+				return ((*iter)->GetText().empty()) ? WCS_IGNORE : WCS_CHANGED;
 			}
 		}
 
@@ -252,7 +252,7 @@ WAVE_CHANGED_STATUS CUnreadWaveCollection::GetChangedStatus(CWave * lpReportedWa
 
 	// When all new messages were of the owner, we do not consider the new wave.
 
-	return nNewMessages != 0 ? WCS_CHANGED : WCS_IGNORE;
+	return nNewMessages > 0 ? WCS_CHANGED : WCS_IGNORE;
 }
 
 BOOL CUnreadWaveCollection::WavesEqual(CWave * lpReportedWave, CWave * lpNewWave) const

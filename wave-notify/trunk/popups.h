@@ -44,6 +44,18 @@
 #define PL_ICON_DY		-12	// Full Y adjustment of the icon
 
 //
+// Contact online popup information
+//
+
+#define PL_CO_HEIGHT		86	// Full height of the popup
+#define PL_CO_WIDTH		263	// Full width of the popup
+#define PL_CO_ICON_SIZE		64	// Avatar size
+#define PL_CO_ICON_DX		9	// Avatar left offset
+#define PL_CO_ICON_DY		9	// Avatar top offset
+#define PL_CO_LABEL_DX		7	// Label left offset
+#define PL_CO_LABEL_DY		4	// Label top offset
+
+//
 // Flyout layout information
 //
 
@@ -56,7 +68,8 @@
 typedef enum
 {
 	PT_MESSAGE,
-	PT_WAVE
+	PT_WAVE,
+	PT_CONTACT_ONLINE
 } POPUP_TYPE;
 
 class CPopupBase : public CPopup
@@ -64,18 +77,22 @@ class CPopupBase : public CPopup
 private:
 	POPUP_TYPE m_nType;
 	BOOL m_fEnableCloseButton;
+	BOOL m_fPaintIcon;
 	RECT m_rcCloseButtonRect;
 
 protected:
 	CPopupBase(POPUP_TYPE nType) {
 		m_nType = nType;
 		m_fEnableCloseButton = TRUE;
+		m_fPaintIcon = TRUE;
 		memset(&m_rcCloseButtonRect, 0, sizeof(RECT));
 	}
 
 	void PaintBackground(CDC & dc);
-	BOOL GetEnableCloseButton() { return m_fEnableCloseButton; }
+	BOOL GetEnableCloseButton() const { return m_fEnableCloseButton; }
 	void SetEnableCloseButton(BOOL fValue) { m_fEnableCloseButton = fValue; }
+	BOOL GetPaintIcon() const { return m_fPaintIcon; }
+	void SetPaintIcon(BOOL fValue) { m_fPaintIcon = fValue; }
 	BOOL HitTestCloseButton(POINT pt);
 
 public:
@@ -121,6 +138,24 @@ public:
 		m_uCount = uCount;
 		InvalidateRect(GetHandle(), NULL, FALSE);
 	}
+
+protected:
+	LRESULT WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam);
+
+private:
+	LRESULT OnPaint();
+	LRESULT OnLeftButtonUp(LPARAM lParam);
+};
+
+class CContactOnlinePopup : public CPopupBase
+{
+private:
+	CWaveContact * m_lpContact;
+	BOOL m_fOnline;
+
+public:
+	CContactOnlinePopup(CWaveContact * lpContact, BOOL fOnline);
+	~CContactOnlinePopup() { }
 
 protected:
 	LRESULT WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam);

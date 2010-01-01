@@ -42,6 +42,9 @@ private:
 	CTimerCollection * m_lpTimers;
 	CTimer * m_lpWorkingTimer;
 	CTimer * m_lpVersionTimer;
+	BOOL m_fReceivedFirstContactUpdates;
+	CCurl * m_lpAvatarRequest;
+	wstring m_szRequestingAvatar;
 
 public:
 	CAppWindow();
@@ -93,6 +96,9 @@ private:
 	void StartWorking();
 	void StopWorking();
 	BOOL AllowContextMenu();
+	void ReportContactUpdates(CWaveContactStatusCollection * lpStatuses);
+	void SeedAvatars();
+	void ProcessAvatarResponse();
 
 private:
 	friend class CWorkingTimer;
@@ -116,6 +122,7 @@ private:
 	wstring m_szShortcutTargetPath;
 	BOOL m_fPlaySoundOnNewWave;
 	wstring m_szBrowser;
+	BOOL m_fNotificationWhenOnline;
 
 public:
 	CNotifierApp(HINSTANCE hInstance, wstring szCmdLine);
@@ -141,6 +148,8 @@ public:
 	void SetStartWithWindows(BOOL fValue);
 	void SetPlaySoundOnNewWave(BOOL fValue) { m_fPlaySoundOnNewWave = fValue; }
 	BOOL GetPlaySoundOnNewWave() const { return m_fPlaySoundOnNewWave; }
+	void SetNotificationWhenOnline(BOOL fValue) { m_fNotificationWhenOnline = fValue; }
+	BOOL GetNotificationWhenOnline() const { return m_fNotificationWhenOnline; }
 	wstring GetBrowser() const { return m_szBrowser; }
 	void SetBrowser(wstring szBrowser) { m_szBrowser = szBrowser; }
 	void SyncProxySettings();

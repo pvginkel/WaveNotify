@@ -163,9 +163,15 @@ void CCurlMonitor::ProcessMessages(CCurlMulti & vMulti)
 			continue;
 		}
 
+		// Get the status.
+
+		long lStatus;
+
+		curl_easy_getinfo(lpCurlHandle, CURLINFO_RESPONSE_CODE, &lStatus);
+
 		// Process the result from the message.
 
-		SignalCompleted(lpCurl, nCode);
+		SignalCompleted(lpCurl, nCode, lStatus);
 	}
 }
 
@@ -187,7 +193,7 @@ void CCurlMonitor::CancelRequests(TCurlVector & vRequests)
 
 	for (TCurlVectorIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
 	{
-		SignalCompleted(*iter, (CURLcode)-1);
+		SignalCompleted(*iter, (CURLcode)-1, 0);
 
 		vToRemove.push_back(*iter);
 	}
@@ -202,9 +208,9 @@ void CCurlMonitor::CancelRequests(TCurlVector & vRequests)
 	}
 }
 
-void CCurlMonitor::SignalCompleted(CCurl * lpCurl, CURLcode nCode)
+void CCurlMonitor::SignalCompleted(CCurl * lpCurl, CURLcode nCode, LONG lStatus)
 {
 	m_vCache.Remove(lpCurl);
 	
-	lpCurl->SignalCompleted(nCode);
+	lpCurl->SignalCompleted(nCode, lStatus);
 }
