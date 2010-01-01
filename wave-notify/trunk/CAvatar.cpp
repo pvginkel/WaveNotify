@@ -53,6 +53,8 @@ BOOL CAvatar::LoadImage(const TByteVector & vData, wstring szContentType)
 	gdImagePtr lpSource = NULL;
 	HDC hDC = NULL;
 	BOOL fSuccess = FALSE;
+	LPVOID lpData = NULL;
+	LPBYTE lpBits = NULL;
 
 	m_hBitmap = NULL;
 
@@ -81,8 +83,6 @@ BOOL CAvatar::LoadImage(const TByteVector & vData, wstring szContentType)
 		goto __end;
 	}
 
-	LPBYTE lpBits = NULL;
-
 	m_hBitmap = CreateDIBSection(hDC, &m_vBitmap, DIB_RGB_COLORS, (void **)&lpBits, NULL, 0);
 
 	if (m_hBitmap == NULL)
@@ -101,7 +101,7 @@ BOOL CAvatar::LoadImage(const TByteVector & vData, wstring szContentType)
 		goto __end;
 	}
 
-	LPVOID lpData = _VECTOR_DATA(vData);
+	lpData = (LPVOID)_VECTOR_DATA(vData);
 
 	if (szContentType == L"image/png")
 	{

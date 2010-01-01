@@ -16,24 +16,31 @@
 #
 
 LINK_LIBS=deps\curl-7.15.1\libcurl_imp.lib deps\zlib-1.2.3\zlibwapi.lib		\
-	version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib
-CPP_FLAGS=/I.\deps\curl-7.15.1\include /I.\deps\zlib-1.2.3\include
+	deps\gd-2.0.34\bgd.lib version.lib shlwapi.lib comctl32.lib crypt32.lib	\
+	ws2_32.lib winmm.lib
+
+CPP_FLAGS=/I.\deps\curl-7.15.1\include /I.\deps\zlib-1.2.3\include		\
+	/I.\deps\gd-2.0.34\include
+
 OUTDIR=Deploy
 TARGET=$(OUTDIR)\wave-notify.exe
 
-LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CBrowser.obj	\
-	CCurl.obj CCurlAnsiStringReader.obj CCurlMonitor.obj CCurlMulti.obj	\
+LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CAvatar.obj	\
+	CBrowser.obj CContactOnlinePopup.obj CCurl.obj				\
+	CCurlAnsiStringReader.obj CCurlMonitor.obj CCurlMulti.obj		\
 	CDialog.obj CFlyout.obj CLoginDialog.obj CMessagePopup.obj		\
 	CMigration.obj CModelessDialogs.obj CModelessPropertySheets.obj		\
 	CNotifierApp.obj CNotifyIcon.obj ConvetString.obj COptionsSheet.obj	\
 	CPopup.obj CPopupBase.obj CPopupWindow.obj CPropertySheet.obj		\
 	CPropertySheetPage.obj CRegKey.obj CSettings.obj CThread.obj 		\
-	CTimer.cpp CTimerCollection.cpp CUnreadWave.obj 			\
+	CTimer.obj CTimerCollection.obj CUnreadWave.obj 			\
 	CUnreadWaveCollection.obj CUnreadWavePopup.obj				\
 	CUnreadWavesFlyout.obj CUTF8Converter.obj CVersion.obj CWave.obj	\
 	CWaveCollection.obj CWaveContact.obj CWaveContactCollection.obj		\
+	CWaveContactStatus.obj CWaveContactStatusCollection.obj			\
 	CWaveMessage.obj CWaveName.obj CWaveReader.obj				\
-	CWaveRequestGetAllContacts.obj CWaveRequestGetContactDetails.obj	\
+	CWaveRequestContactUpdates.obj CWaveRequestGetAllContacts.obj		\
+	CWaveRequestGetContactDetails.obj					\
 	CWaveRequestStartListening.obj CWaveRequestStopListening.obj		\
 	CWaveResponse.obj CWaveSession.obj CWaveView.obj CWindow.obj		\
 	CWindowHandle.obj Encryption.obj Format.obj GetFont.obj			\

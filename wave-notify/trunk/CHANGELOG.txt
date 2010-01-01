@@ -9,6 +9,11 @@ bugs on SourceForge at https://sourceforge.net/projects/wave-notify/support.
 If you enjoy using the Google Wave Notifier application, please leave a review
 on the SourceForge website.
 
+Version 10.1.1.31
+
+  * Implemented online and offline notification of users in the contact
+    list.
+
 Version 9.12.30.30
 
   * Rebuild internet communication so that all web requests are done in
