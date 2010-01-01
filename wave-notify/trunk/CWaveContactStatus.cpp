@@ -22,7 +22,7 @@ CWaveContactStatus::CWaveContactStatus(Json::Value & vRoot)
 {
 	m_szEmailAddress = vRoot[L"2"][L"1"].asString();
 	
-	Json::Value & vStatus(vRoot[L"3"]);
+	Json::Value & vStatus = vRoot[L"3"];
 
 	m_fOnline = vStatus[L"2"].asBool();
 	m_szStatusMessage = vStatus[L"3"].asString();
