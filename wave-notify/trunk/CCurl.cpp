@@ -255,9 +255,10 @@ string CCurl::GetAnsiString() const
 	return string((LPCSTR)_VECTOR_DATA(m_vData), m_vData.size());
 }
 
-void CCurl::SignalCompleted(CURLcode nCode)
+void CCurl::SignalCompleted(CURLcode nCode, LONG lStatus)
 {
 	m_nResult = nCode;
+	m_lStatus = lStatus;
 
 	m_lpTargetWindow->PostMessage(WM_CURL_RESPONSE, CR_COMPLETED, (LPARAM)this);
 }
@@ -292,4 +293,18 @@ INT CCurl::DebugCallback(CURL * lpCurl, curl_infotype nInfoType, LPCSTR szMessag
 	free(szBuffer);
 
 	return 0;
+}
+
+wstring CCurl::GetHeader(wstring szHeader) const
+{
+	TStringStringMapConstIter pos = m_vHeaders.find(szHeader);
+
+	if (pos == m_vHeaders.end())
+	{
+		return L"";
+	}
+	else
+	{
+		return pos->second;
+	}
 }

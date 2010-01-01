@@ -79,4 +79,9 @@ void CMigration::InitialiseNewSettings()
 	{
 		vSettings.SetBrowser(CBrowser::BrowserDefault);
 	}
+
+	if (!vSettings.GetNotificationWhenOnline(fValue))
+	{
+		vSettings.SetNotificationWhenOnline(TRUE);
+	}
 }

@@ -129,4 +129,25 @@ protected:
 	}
 };
 
+class CWaveResponseContactUpdates : public CWaveResponse
+{
+private:
+	CWaveContactStatusCollection * m_lpStatuses;
+
+public:
+	CWaveResponseContactUpdates() : CWaveResponse(WMT_CONTACT_UPDATES) {
+		m_lpStatuses = NULL;
+	}
+	~CWaveResponseContactUpdates() {
+		if (m_lpStatuses != NULL) delete m_lpStatuses;
+	}
+
+	CWaveContactStatusCollection * GetStatuses() const { return m_lpStatuses; }
+
+protected:
+	void AssignJson(Json::Value & vRoot) {
+		m_lpStatuses = new CWaveContactStatusCollection(vRoot[L"1"]);
+	}
+};
+
 #endif // _INC_WAVERESPONSE

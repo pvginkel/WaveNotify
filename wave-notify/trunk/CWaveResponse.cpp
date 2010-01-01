@@ -69,6 +69,10 @@ CWaveResponse * CWaveResponse::Parse(Json::Value & vRoot)
 		case WMT_STOP_LISTENING:
 			lpResponse = new CWaveResponseStopListening();
 			break;
+
+		case WMT_CONTACT_UPDATES:
+			lpResponse = new CWaveResponseContactUpdates();
+			break;
 		}
 	}
 

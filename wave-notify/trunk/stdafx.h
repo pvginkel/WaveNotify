@@ -73,5 +73,6 @@ using namespace std;
 #include <zlib\zip.h>
 #include <zlib\unzip.h>
 #include "json\json.h"
+#include <gd\gd.h>
 
 #endif // _INC_STDAFX

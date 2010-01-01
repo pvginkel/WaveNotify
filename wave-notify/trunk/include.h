@@ -135,6 +135,7 @@ typedef enum
 
 // Application includes.
 
+#include "avatar.h"
 #include "version.h"
 #include "settings.h"
 #include "browser.h"

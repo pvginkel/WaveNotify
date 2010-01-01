@@ -121,6 +121,11 @@ BOOL COptionsGeneralPage::OnFocus()
 		SetDlgItemChecked(IDC_OPTIONS_PLAYSOUNDONNEWWAVE, fValue);
 	}
 
+	if (vSettings.GetNotificationWhenOnline(fValue))
+	{
+		SetDlgItemChecked(IDC_OPTIONS_NOTIFICATIONWHENONLINE, fValue);
+	}
+
 	wstring szBrowser;
 
 	if (!vSettings.GetBrowser(szBrowser))
@@ -174,6 +179,12 @@ BOOL COptionsGeneralPage::OnApply()
 	vSettings.SetPlaySoundOnNewWave(fValue);
 
 	CNotifierApp::Instance()->SetPlaySoundOnNewWave(fValue);
+
+	fValue = GetDlgItemChecked(IDC_OPTIONS_NOTIFICATIONWHENONLINE);
+
+	vSettings.SetNotificationWhenOnline(fValue);
+
+	CNotifierApp::Instance()->SetNotificationWhenOnline(fValue);
 
 	INT nSelectedBrowser = SendDlgItemMessage(IDC_OPTIONS_BROWSER, CB_GETCURSEL);
 

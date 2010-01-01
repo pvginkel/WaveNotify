@@ -22,17 +22,19 @@
 
 #define RECONNECT_DELAY	5000
 
-#define WAVE_URL_CLIENTLOGIN 	L"https://www.google.com/accounts/ClientLogin"
-#define WAVE_URL_AUTH 		L"https://wave.google.com/wave/?nouacheck&auth=%s"
-#define WAVE_URL_LOGOUT 	L"https://wave.google.com/wave/logout"
-#define WAVE_URL_WAVES 		L"https://wave.google.com/wave/?nouacheck"
-#define WAVE_URL_INBOX 		L"https://wave.google.com/wave/?auth=%s"
-#define WAVE_URL_WAVE		L"https://wave.google.com/wave/?auth=%s#restored:wave:%s.1"
-#define WAVE_URL_SESSIONID	L"https://wave.google.com/wave/wfe/channel?VER=6&RID=%d&CVER=3&zx=%s&t=1"
-#define WAVE_URL_CHANNEL	L"https://wave.google.com/wave/wfe/channel?VER=6&RID=rpc&SID=%s&CI=0&AID=%d&TYPE=xmlhttp&zx=%s&t=1"
-#define WAVE_URL_CHANNEL_POST	L"https://wave.google.com/wave/wfe/channel?VER=6&SID=%s&RID=%d&zx=%s&t=1"
+#define WAVE_URL_CLIENTLOGIN 		L"https://www.google.com/accounts/ClientLogin"
+#define WAVE_URL_AUTH 			L"https://wave.google.com/wave/?nouacheck&auth=%s"
+#define WAVE_URL_LOGOUT 		L"https://wave.google.com/wave/logout"
+#define WAVE_URL_WAVES 			L"https://wave.google.com/wave/?nouacheck"
+#define WAVE_URL_INBOX 			L"https://wave.google.com/wave/?auth=%s"
+#define WAVE_URL_WAVE			L"https://wave.google.com/wave/?auth=%s#restored:wave:%s.1"
+#define WAVE_URL_SESSIONID		L"https://wave.google.com/wave/wfe/channel?VER=6&RID=%d&CVER=3&zx=%s&t=1"
+#define WAVE_URL_CHANNEL		L"https://wave.google.com/wave/wfe/channel?VER=6&RID=rpc&SID=%s&CI=0&AID=%d&TYPE=xmlhttp&zx=%s&t=1"
+#define WAVE_URL_CHANNEL_POST		L"https://wave.google.com/wave/wfe/channel?VER=6&SID=%s&RID=%d&zx=%s&t=1"
+#define WAVE_URL_AVATAR_PRIVATE_PREFIX	L"https://wave.google.com/wave/c"
+#define WAVE_URL_AVATAR_PUBLIC_PREFIX	L"https://www.google.com/s2"
 
-#define WAVE_HASH_POOL		L"abcdefghijklmnopqrstuvwxyz0123456789"
+#define WAVE_HASH_POOL			L"abcdefghijklmnopqrstuvwxyz0123456789"
 
 class CWave;
 class CWaveName;
@@ -42,6 +44,8 @@ class CWaveResponse;
 class CWaveMessage;
 class CWaveListener;
 class CWaveResponseStartListening;
+class CWaveContactStatus;
+class CWaveContactStatusCollection;
 
 typedef vector<CWaveMessage *> TWaveMessageVector;
 typedef TWaveMessageVector::iterator TWaveMessageVectorIter;
@@ -67,6 +71,9 @@ typedef TWaveMap::const_iterator TWaveMapConstIter;
 typedef vector<CWaveRequest *> TWaveRequestVector;
 typedef TWaveRequestVector::iterator TWaveRequestVectorIter;
 typedef TWaveRequestVector::const_iterator TWaveRequestVectorConstIter;
+typedef map<wstring, CWaveContactStatus *> TWaveContactStatusMap;
+typedef TWaveContactStatusMap::iterator TWaveContactStatusMapIter;
+typedef TWaveContactStatusMap::const_iterator TWaveContactStatusMapConstIter;
 
 typedef enum
 {
@@ -88,7 +95,8 @@ typedef enum
         WMT_GET_CONTACT_DETAILS = 2032,
         WMT_GET_ALL_CONTACTS = 2033,
         WMT_START_LISTENING = 2602,
-        WMT_STOP_LISTENING = 2007
+        WMT_STOP_LISTENING = 2007,
+	WMT_CONTACT_UPDATES = 2012
 } WAVE_MESSAGE_TYPE;
 
 typedef enum
@@ -217,6 +225,10 @@ private:
 	wstring m_szAvatarUrl;
 	TWaveNameVector m_vNames;
 	BOOL m_fIsSelf;
+	wstring m_szStatusMessage;
+	BOOL m_fOnline;
+	BOOL m_fRequestedAvatar;
+	CAvatar * m_lpAvatar;
 
 public:
 	CWaveContact(Json::Value & vRoot);
@@ -226,6 +238,19 @@ public:
 	wstring GetName() const { return m_szName; }
 	const TWaveNameVector & GetNames() const { return m_vNames; }
 	wstring GetDisplayName() const { return m_szDisplayName; }
+	wstring GetStatusMessage() const { return m_szStatusMessage; }
+	BOOL GetOnline() const { return m_fOnline; }
+	BOOL GetRequestedAvatar() const { return m_fRequestedAvatar; }
+	void SetRequestedAvatar(BOOL fRequestedAvatar) { m_fRequestedAvatar = fRequestedAvatar; }
+	CAvatar * GetAvatar() const { return m_lpAvatar; }
+	void SetAvatar(CAvatar * lpAvatar) {
+		if (m_lpAvatar != NULL) delete m_lpAvatar;
+		m_lpAvatar = lpAvatar;
+	}
+	wstring GetAvatarUrl() const { return m_szAvatarUrl; }
+	wstring GetAbsoluteAvatarUrl() const;
+	void Merge(CWaveContactStatus * lpStatus);
+	void Merge(CWaveContact * lpContact);
 };
 
 class CWaveContactCollection
@@ -244,6 +269,35 @@ public:
 		return pos == m_vContacts.end() ? NULL : pos->second;
 	}
 	void Merge(CWaveContactCollection * lpContacts);
+	void Merge(CWaveContactStatusCollection * lpStatuses);
+};
+
+class CWaveContactStatus
+{
+private:
+	wstring m_szEmailAddress;
+	BOOL m_fOnline;
+	wstring m_szStatusMessage;
+
+public:
+	CWaveContactStatus(Json::Value & vRoot);
+	virtual ~CWaveContactStatus();
+
+	wstring GetEmailAddress() const { return m_szEmailAddress; }
+	BOOL GetOnline() const { return m_fOnline; }
+	wstring GetStatusMessage() const { return m_szStatusMessage; }
+};
+
+class CWaveContactStatusCollection
+{
+private:
+	TWaveContactStatusMap m_vStatuses;
+
+public:
+	CWaveContactStatusCollection(Json::Value & vRoot);
+	virtual ~CWaveContactStatusCollection();
+
+	const TWaveContactStatusMap & GetStatuses() const { return m_vStatuses; }
 };
 
 typedef enum
@@ -396,6 +450,7 @@ public:
 private:
 	void ProcessContacts(CWaveContactCollection * lpContacts);
 	void ProcessWaves(CWaveResponseStartListening * lpResponse);
+	void ProcessContactUpdates(CWaveContactStatusCollection * lpStatuses);
 };
 
 class CWaveReader : public CCurlReader

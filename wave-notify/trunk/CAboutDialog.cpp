@@ -85,6 +85,14 @@ INT_PTR CAboutDialog::OnInitDialog()
 		)
 	);
 
+	SetDlgItemText(
+		IDC_ABOUT_GD_VERSION,
+		Format(
+			GetDlgItemText(IDC_ABOUT_GD_VERSION),
+			ConvertToWideChar(GD_VERSION_STRING).c_str()
+		)
+	);
+
 	SubclassStaticForLink(
 		GetDlgItem(IDC_ABOUT_HOMEPAGE),
 		HOMEPAGE_LINK

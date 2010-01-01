@@ -26,6 +26,8 @@ CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
 	m_fQuitting = FALSE;
 	m_fWorking = FALSE;
 	m_fManualUpdateCheck = FALSE;
+	m_fReceivedFirstContactUpdates = FALSE;
+	m_lpAvatarRequest = NULL;
 	
 	m_lpTimers = new CTimerCollection(this);
 
@@ -478,6 +480,21 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 				}
 			}
 		}
+		else if (lpResponse->GetType() == WMT_CONTACT_UPDATES)
+		{
+			if (m_fReceivedFirstContactUpdates)
+			{
+				if (CNotifierApp::Instance()->GetNotificationWhenOnline())
+				{
+					ReportContactUpdates(
+						((CWaveResponseContactUpdates *)lpResponse)->GetStatuses());
+				}
+			}
+			else
+			{
+				m_fReceivedFirstContactUpdates = TRUE;
+			}
+		}
 
 		if (m_lpView != NULL)
 		{
@@ -510,7 +527,11 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 					}
 				}
 			}
+
+			// TODO: Signal the flyout
 		}
+
+		SeedAvatars();
 
 		delete lpResponse;
 	}
@@ -775,11 +796,19 @@ void CAppWindow::ProcessConnected()
 
 	CWaveRequestGetContactDetails * lpRequest = new CWaveRequestGetContactDetails();
 
-	lpRequest->AddEmailAddress(m_lpSession->GetEmailAddress());
+	wstring szEmailAddress(m_lpSession->GetEmailAddress());
+
+	lpRequest->AddEmailAddress(szEmailAddress);
 
 	m_lpSession->QueueRequest(lpRequest);
 
 	m_lpSession->QueueRequest(new CWaveRequestStartListening(L"in:inbox"));
+
+	m_lpSession->QueueRequest(new CWaveRequestStartListening(L"pingto:" + szEmailAddress));
+
+	m_fReceivedFirstContactUpdates = FALSE;
+
+	m_lpSession->QueueRequest(new CWaveRequestContactUpdates());
 
 	m_lpSession->FlushRequestQueue();
 }
@@ -929,7 +958,11 @@ void CAppWindow::CancelRequest(CCurl * lpRequest)
 
 LRESULT CAppWindow::OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
 {
-	if (
+	if (m_lpAvatarRequest != NULL && m_lpAvatarRequest == lpCurl)
+	{
+		ProcessAvatarResponse();
+	}
+	else if (
 		!m_lpSession->ProcessCurlResponse(nState, lpCurl) &&
 		!CVersion::Instance()->ProcessCurlResponse(nState, lpCurl)
 	) {
@@ -1006,4 +1039,92 @@ LRESULT CAppWindow::OnVersionState(VERSION_STATE nState)
 	}
 
 	return 0;
+}
+
+void CAppWindow::ReportContactUpdates(CWaveContactStatusCollection * lpStatuses)
+{
+	const TWaveContactStatusMap & vStatuses = lpStatuses->GetStatuses();
+
+	for (TWaveContactStatusMapConstIter iter = vStatuses.begin(); iter != vStatuses.end(); iter++)
+	{
+		CWaveContact * lpContact = GetWaveContact(iter->first);
+
+		if (lpContact->GetOnline() != iter->second->GetOnline())
+		{
+			(new CContactOnlinePopup(lpContact, iter->second->GetOnline()))->Show();
+		}
+	}
+}
+
+void CAppWindow::SeedAvatars()
+{
+	// The response processor of this request will automatically
+	// queue the next avatar request for us.
+
+	if (m_lpAvatarRequest != NULL)
+	{
+		return;
+	}
+
+	const TWaveContactMap & vContacts = m_lpView->GetContacts()->GetContacts();
+	CWaveContact * lpContact = NULL;
+
+	for (TWaveContactMapConstIter iter = vContacts.begin(); iter != vContacts.end(); iter++)
+	{
+		if (!iter->second->GetRequestedAvatar())
+		{
+			lpContact = iter->second;
+			break;
+		}
+	}
+
+	if (lpContact == NULL)
+	{
+		return;
+	}
+
+	m_szRequestingAvatar = lpContact->GetEmailAddress();
+
+	wstring szAvatarUrl(lpContact->GetAbsoluteAvatarUrl());
+
+
+	m_lpAvatarRequest = new CCurl(szAvatarUrl, this);
+
+	m_lpAvatarRequest->SetUserAgent(USERAGENT);
+	m_lpAvatarRequest->SetTimeout(WEB_TIMEOUT_LONG);
+	m_lpAvatarRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpAvatarRequest->SetReader(new CCurlBinaryReader());
+	m_lpAvatarRequest->SetCookies(m_lpSession->GetCookies());
+
+	CNotifierApp::Instance()->QueueRequest(m_lpAvatarRequest);
+}
+
+void CAppWindow::ProcessAvatarResponse()
+{
+	CCurlBinaryReader * lpReader = (CCurlBinaryReader *)m_lpAvatarRequest->GetReader();
+	CWaveContact * lpContact = GetWaveContact(m_szRequestingAvatar);
+
+	lpContact->SetRequestedAvatar(TRUE);
+
+	if (m_lpAvatarRequest->GetResult() == CURLE_OK && m_lpAvatarRequest->GetStatus() == 200)
+	{
+		SIZE szSize = { PL_CO_ICON_SIZE, PL_CO_ICON_SIZE };
+
+		wstring szContentType(m_lpAvatarRequest->GetHeader(L"Content-Type"));
+
+		if (!szContentType.empty())
+		{
+			lpContact->SetAvatar(
+				CAvatar::Create(lpReader->GetData(), szSize, szContentType)
+			);
+		}
+	}
+
+	delete lpReader;
+	delete m_lpAvatarRequest;
+
+	m_lpAvatarRequest = NULL;
+	m_szRequestingAvatar = L"";
+
+	SeedAvatars();
 }

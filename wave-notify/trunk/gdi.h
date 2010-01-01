@@ -42,6 +42,9 @@ public:
 	void SetBkColor(COLORREF cr) const { ::SetBkColor(m_hDC, cr); }
 	void MoveToEx(INT x, INT y, LPPOINT lppt = NULL) const { ::MoveToEx(m_hDC, x, y, lppt); }
 	void LineTo(INT x, INT y) const { ::LineTo(m_hDC, x, y); }
+	void BitBlt(POINT ptDest, SIZE szDest, CDC * lpSourceDC, POINT ptSource, DWORD dwRop) const {
+		::BitBlt(m_hDC, ptDest.x, ptDest.y, szDest.cx, szDest.cy, lpSourceDC->GetHandle(), ptSource.x, ptSource.y, dwRop);
+	}
 };
 
 #endif // _INC_GDI

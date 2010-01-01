@@ -47,6 +47,9 @@ BOOL CWaveView::ProcessResponse(CWaveResponse * lpResponse)
 		ProcessWaves((CWaveResponseStartListening *)lpResponse);
 		break;
 
+	case WMT_CONTACT_UPDATES:
+		ProcessContactUpdates(((CWaveResponseContactUpdates *)lpResponse)->GetStatuses());
+
 	default:
 		return FALSE;
 	}
@@ -68,4 +71,9 @@ void CWaveView::ProcessWaves(CWaveResponseStartListening * lpResponse)
 	lpResponse->GetRemovedWaves(vRemovedWaves);
 
 	m_lpWaves->RemoveWaves(vRemovedWaves);
+}
+
+void CWaveView::ProcessContactUpdates(CWaveContactStatusCollection * lpStatuses)
+{
+	m_lpContacts->Merge(lpStatuses);
 }

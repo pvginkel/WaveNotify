@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -191,7 +191,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CAvatar.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CBrowser.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CContactOnlinePopup.cpp"
 				>
 			</File>
 			<File
@@ -335,6 +343,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CWaveContactStatus.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CWaveContactStatusCollection.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CWaveMessage.cpp"
 				>
 			</File>
@@ -344,6 +360,10 @@
 			</File>
 			<File
 				RelativePath=".\CWaveReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CWaveRequestContactUpdates.cpp"
 				>
 			</File>
 			<File
@@ -478,6 +498,10 @@
 			</File>
 			<File
 				RelativePath=".\app.h"
+				>
+			</File>
+			<File
+				RelativePath=".\avatar.h"
 				>
 			</File>
 			<File
