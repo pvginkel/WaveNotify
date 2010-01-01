@@ -20,6 +20,8 @@
 
 CUnreadWaveCollection::CUnreadWaveCollection(CWaveCollection * lpLastReported, CWaveCollection * lpCurrent)
 {
+	CNotifierApp::Instance()->GetSession()->SuspendRequestFlush();
+
 	if (lpLastReported == NULL)
 	{
 		InsertAllWaves(lpCurrent);
@@ -28,6 +30,8 @@ CUnreadWaveCollection::CUnreadWaveCollection(CWaveCollection * lpLastReported, C
 	{
 		InsertChangesOnly(lpLastReported, lpCurrent);
 	}
+
+	CNotifierApp::Instance()->GetSession()->ResponseRequestFlush();
 }
 
 CUnreadWaveCollection::~CUnreadWaveCollection()
