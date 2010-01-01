@@ -29,8 +29,10 @@ CWaveSession::CWaveSession(CWindowHandle * lpTargetWindow)
 	m_nLoginError = WLE_SUCCESS;
 	m_lpRequest = NULL;
 	m_lpChannelRequest = NULL;
+	m_lpPostRequest = NULL;
 	m_nRequesting = WSR_NONE;
 	m_nState = WSS_OFFLINE;
+	m_nFlushSuspended = 0;
 
 	m_lpReconnectTimer = new CTimer();
 
@@ -144,6 +146,11 @@ void CWaveSession::SignOut()
 		m_nState = WSS_DISCONNECTING;
 
 		SignalProgress(WCS_BEGIN_SIGNOUT);
+
+		if (m_lpPostRequest != NULL)
+		{
+			CNotifierApp::Instance()->CancelRequest(m_lpPostRequest);
+		}
 
 		if (m_lpChannelRequest != NULL)
 		{
@@ -318,15 +325,11 @@ BOOL CWaveSession::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
 		return FALSE;
 	}
 
-	// Check whether it's just a Curl request we need to clean up.
+	// Is this the response from the post request?
 
-	TCurlVectorIter pos = find(m_vOwnedRequests.begin(), m_vOwnedRequests.end(), lpCurl);
-
-	if (pos != m_vOwnedRequests.end())
+	if (lpCurl == m_lpPostRequest)
 	{
-		m_vOwnedRequests.erase(pos);
-
-		CCurl::Destroy(lpCurl);
+		ProcessPostResponse();
 
 		return TRUE;
 	}
@@ -554,6 +557,8 @@ void CWaveSession::ProcessSIDResponse()
 		SignalProgress(WCS_CONNECTED);
 
 		PostChannelRequest();
+
+		FlushRequestQueue();
 	}
 	else
 	{
@@ -595,6 +600,15 @@ void CWaveSession::ProcessSignOutResponse()
 
 	m_lpRequest = NULL;
 	m_nRequesting = WSR_NONE;
+}
+
+void CWaveSession::ProcessPostResponse()
+{
+	delete m_lpPostRequest;
+	
+	m_lpPostRequest = NULL;
+
+	FlushRequestQueue();
 }
 
 void CWaveSession::ProcessChannelResponse()
@@ -823,7 +837,7 @@ CWaveResponse * CWaveSession::ParseWfeResponse(wstring szResponse, BOOL & fSucce
 	return CWaveResponse::Parse(vRoot);
 }
 
-void CWaveSession::PostRequests(TWaveRequestVector & vRequests)
+void CWaveSession::PostRequests()
 {
 	// This method is responsible for deleting the requests because requests
 	// may later be stored. Responses can be linked to a request and when this
@@ -832,11 +846,11 @@ void CWaveSession::PostRequests(TWaveRequestVector & vRequests)
 
 	wstringstream szPostData;
 
-	szPostData << L"count=" << vRequests.size();
+	szPostData << L"count=" << m_vRequestQueue.size();
 
 	INT nOffset = 0;
 
-	for (TWaveRequestVectorConstIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
+	for (TWaveRequestVectorConstIter iter = m_vRequestQueue.begin(); iter != m_vRequestQueue.end(); iter++)
 	{
 		szPostData << L"&req" << nOffset << L"_key=" << UrlEncode(SerializeRequest(*iter));
 
@@ -847,27 +861,25 @@ void CWaveSession::PostRequests(TWaveRequestVector & vRequests)
 
 	wstring szUrl = Format(WAVE_URL_CHANNEL_POST, m_szSID.c_str(), m_nRID++, BuildHash().c_str());
 
-	CCurl * lpRequest = new CCurl(szUrl, m_lpTargetWindow);
+	m_lpPostRequest = new CCurl(szUrl, m_lpTargetWindow);
 
-	lpRequest->SetUserAgent(USERAGENT);
-	lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
-	lpRequest->SetIgnoreSSLErrors(TRUE);
-	lpRequest->SetCookies(GetCookies());
+	m_lpPostRequest->SetUserAgent(USERAGENT);
+	m_lpPostRequest->SetTimeout(WEB_TIMEOUT_SHORT);
+	m_lpPostRequest->SetIgnoreSSLErrors(TRUE);
+	m_lpPostRequest->SetCookies(GetCookies());
 
-	lpRequest->SetUrlEncodedPostData(szPostData.str());
+	m_lpPostRequest->SetUrlEncodedPostData(szPostData.str());
 
-	CNotifierApp::Instance()->QueueRequest(lpRequest);
+	CNotifierApp::Instance()->QueueRequest(m_lpPostRequest);
 
-	m_vOwnedRequests.push_back(lpRequest);
-
-	for (TWaveRequestVectorIter iter1 = vRequests.begin(); iter1 != vRequests.end(); iter1++)
+	for (TWaveRequestVectorIter iter1 = m_vRequestQueue.begin(); iter1 != m_vRequestQueue.end(); iter1++)
 	{
 		(*iter1)->RequestCompleted();
 
 		delete *iter1;
 	}
 
-	vRequests.clear();
+	m_vRequestQueue.clear();
 }
 
 wstring CWaveSession::SerializeRequest(CWaveRequest * lpRequest)
@@ -956,5 +968,37 @@ void CWaveSession::StopReconnecting()
 		SignalProgress(WCS_SIGNED_OUT);
 
 		m_lpReconnectTimer->SetRunning(FALSE);
+	}
+}
+
+void CWaveSession::QueueRequest(CWaveRequest * lpRequest)
+{
+	m_vRequestQueue.push_back(lpRequest);
+}
+
+void CWaveSession::FlushRequestQueue()
+{
+	if (
+		m_nFlushSuspended == 0 &&
+		!m_szSID.empty() &&
+		m_lpPostRequest == NULL &&
+		m_vRequestQueue.size() > 0
+	) {
+		PostRequests();
+	}
+}
+
+void CWaveSession::SuspendRequestFlush()
+{
+	m_nFlushSuspended++;
+}
+
+void CWaveSession::ResponseRequestFlush()
+{
+	m_nFlushSuspended--;
+
+	if (m_nFlushSuspended == 0)
+	{
+		FlushRequestQueue();
 	}
 }

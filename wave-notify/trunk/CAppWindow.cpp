@@ -771,19 +771,17 @@ void CAppWindow::ProcessConnected()
 
 	m_lpView = new CWaveView();
 
-	TWaveRequestVector vRequests;
-
-	vRequests.push_back(new CWaveRequestGetAllContacts());
+	m_lpSession->QueueRequest(new CWaveRequestGetAllContacts());
 
 	CWaveRequestGetContactDetails * lpRequest = new CWaveRequestGetContactDetails();
 
 	lpRequest->AddEmailAddress(m_lpSession->GetEmailAddress());
 
-	vRequests.push_back(lpRequest);
+	m_lpSession->QueueRequest(lpRequest);
 
-	vRequests.push_back(new CWaveRequestStartListening(L"in:inbox"));
+	m_lpSession->QueueRequest(new CWaveRequestStartListening(L"in:inbox"));
 
-	m_lpSession->PostRequests(vRequests);
+	m_lpSession->FlushRequestQueue();
 }
 
 void CAppWindow::HaveReportedWave(wstring szWaveID)
@@ -816,11 +814,9 @@ CWaveContact * CAppWindow::GetWaveContact(wstring szEmailAddress)
 
 		lpRequest->AddEmailAddress(szEmailAddress);
 
-		TWaveRequestVector vRequests;
+		m_lpSession->QueueRequest(lpRequest);
 
-		vRequests.push_back(lpRequest);
-
-		m_lpSession->PostRequests(vRequests);
+		m_lpSession->FlushRequestQueue();
 
 		m_vRequestedContacts[szEmailAddress] = TRUE;
 	}

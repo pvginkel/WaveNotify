@@ -134,7 +134,7 @@ private:
 	WAVE_SESSION_REQUESTING m_nRequesting;
 	CCurl * m_lpRequest;
 	CCurl * m_lpChannelRequest;
-	TCurlVector m_vOwnedRequests;
+	CCurl * m_lpPostRequest;
 	wstring m_szSID;
 	INT m_nAID;
 	INT m_nRID;
@@ -143,6 +143,8 @@ private:
 	INT m_nNextListenerID;
 	WAVE_SESSION_STATE m_nState;
 	CTimer * m_lpReconnectTimer;
+	INT m_nFlushSuspended;
+	TWaveRequestVector m_vRequestQueue;
 
 public:
 	CWaveSession(CWindowHandle * lpTargetWindow);
@@ -157,7 +159,6 @@ public:
 	wstring GetProfileID() const { return m_szProfileID; }
 	CCurlCookies * GetCookies() const { return m_lpCookies; }
 	void SetCookies(CCurlCookies * lpCookies);
-	void PostRequests(TWaveRequestVector & vRequests);
 	void AddListener(CWaveListener * lpListener);
 	CWaveListener * CreateListener(wstring szSearchString);
 	BOOL RemoveListener(wstring szID);
@@ -168,6 +169,10 @@ public:
 	BOOL ParseChannelResponse(wstring szResponse);
 	WAVE_SESSION_STATE GetState() const { return m_nState; }
 	void StopReconnecting();
+	void QueueRequest(CWaveRequest * lpRequest);
+	void FlushRequestQueue();
+	void SuspendRequestFlush();
+	void ResponseRequestFlush();
 
 private:
 	void ReportReceived(CWaveResponse * lpResponse) {
@@ -182,6 +187,7 @@ private:
 	void ProcessAuthKeyResponse();
 	void ProcessCookieResponse();
 	void ProcessSessionDetailsResponse();
+	void ProcessPostResponse();
 	void SignalProgress(WAVE_CONNECTION_STATE nStatus);
 	void InitiateReconnect();
 	void PostChannelRequest();
@@ -197,6 +203,7 @@ private:
 	void ReconnectTimer();
 	void NextReconnect();
 	wstring ExtractChannelResponse(wstring szResponse);
+	void PostRequests();
 
 	static VOID CALLBACK ReconnectTimerCallback(HWND hWnd, UINT uMsg, UINT_PTR nEventId, DWORD dwTime);
 };
