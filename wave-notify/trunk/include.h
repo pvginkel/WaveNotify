@@ -33,6 +33,9 @@
 // Turn this on to break every time a LOG(n) is called.
 #define BREAK_ON_LOG		1
 
+// Turn this on to test the mechanism to send the log.txt to the server.
+#define TEST_LOG_DUMP		1
+
 #define FILECOPY_BUFFER_SIZE	4096
 #define MAX_LOG_DUMP		(128 * 1024)
 

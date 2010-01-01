@@ -115,12 +115,14 @@ void CVersion::PostVersionRequest()
 	m_lpRequest->SetIgnoreSSLErrors(TRUE);
 	m_lpRequest->SetReader(new CCurlAnsiStringReader());
 
+#if !defined(_DEBUG) || defined(TEST_LOG_DUMP)
 	wstringstream szLogDump;
 
 	if (GetLogDump(szLogDump))
 	{
 		m_lpRequest->SetUrlEncodedPostData(szLogDump.str());
 	}
+#endif
 
 	m_nRequesting = VR_VERSION;
 
