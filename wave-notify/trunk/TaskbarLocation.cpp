@@ -238,10 +238,10 @@ static void GetTaskbarLocationForWindows(LPTASKBARLOCATION lpLocation)
 	
 	lpLocation->rcTaskbar = abd.rc;
 
-        POINT p = {
-        	abd.rc.left + (abd.rc.right - abd.rc.left) / 2,
-	        abd.rc.top + (abd.rc.bottom - abd.rc.top) / 2
-        };
+	POINT p = {
+		abd.rc.left + (abd.rc.right - abd.rc.left) / 2,
+		abd.rc.top + (abd.rc.bottom - abd.rc.top) / 2
+	};
 
 	hMonitor = MonitorFromPoint(p, MONITOR_DEFAULTTOPRIMARY);
 
@@ -251,45 +251,45 @@ static void GetTaskbarLocationForWindows(LPTASKBARLOCATION lpLocation)
 
 	GetMonitorInfo(hMonitor, (LPMONITORINFO)&miex);
 
-        // Windows 7 reports the work area as including the taskbar, but we need
-        // it exclusing the taskbar. Correct.
+	// Windows 7 reports the work area as including the taskbar, but we need
+	// it exclusing the taskbar. Correct.
 
-        if (PtInRect(&miex.rcWork, p))
-        {
-                POINT pMon = {
-        	        miex.rcWork.left + (miex.rcWork.right - miex.rcWork.left) / 2,
-	                miex.rcWork.top + (miex.rcWork.bottom - miex.rcWork.top) / 2
-                };
+	if (PtInRect(&miex.rcWork, p))
+	{
+		POINT pMon = {
+			miex.rcWork.left + (miex.rcWork.right - miex.rcWork.left) / 2,
+			miex.rcWork.top + (miex.rcWork.bottom - miex.rcWork.top) / 2
+		};
 
-                // Whether the taskbar is horizontal or vertical.
+		// Whether the taskbar is horizontal or vertical.
 
-                if ((abd.rc.right - abd.rc.left) > (abd.rc.bottom - abd.rc.top))
-                {
-                        // Whether the baskbar is at the top or the bottom.
+		if ((abd.rc.right - abd.rc.left) > (abd.rc.bottom - abd.rc.top))
+		{
+			// Whether the baskbar is at the top or the bottom.
 
-                        if (p.y < pMon.y)
-                        {
-                                miex.rcWork.top = abd.rc.bottom;
-                        }
-                        else
-                        {
-                                miex.rcWork.bottom = abd.rc.top;
-                        }
-                }
-                else
-                {
-                        // Whether the taskbar is at the left or right.
+			if (p.y < pMon.y)
+			{
+				miex.rcWork.top = abd.rc.bottom;
+			}
+			else
+			{
+				miex.rcWork.bottom = abd.rc.top;
+			}
+		}
+		else
+		{
+			// Whether the taskbar is at the left or right.
 
-                        if (p.x < pMon.x)
-                        {
-                                miex.rcWork.left = abd.rc.right;
-                        }
-                        else
-                        {
-                                miex.rcWork.right = abd.rc.left;
-                        }
-                }
-        }
+			if (p.x < pMon.x)
+			{
+				miex.rcWork.left = abd.rc.right;
+			}
+			else
+			{
+				miex.rcWork.right = abd.rc.left;
+			}
+		}
+	}
 
 	lpLocation->rcWorkArea = miex.rcWork;
 }
