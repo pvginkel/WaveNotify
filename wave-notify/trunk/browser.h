@@ -47,6 +47,9 @@ public:
 private:
 	static wstring GetExecutableFromProgramFiles(wstring szPath);
 	static wstring GetExecutableFromLocalSettings(wstring szPath);
+	static wstring GetExecutableFromStartMenu(wstring szExecutable);
+	static wstring GetExecutableFromStartMenu(CRegKey * lpKey, wstring szExecutable);
+	static wstring GetExecutableFromStartMenuKey(CRegKey * lpKey, wstring szExecutable);
 };
 
 #endif // _INC_BROWSER

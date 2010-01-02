@@ -125,3 +125,47 @@ BOOL CRegKey::SetValue(wstring szName, BOOL fResult)
 {
 	return SetValue(szName, (DWORD)(fResult ? 1 : 0));
 }
+
+BOOL CRegKey::GetSubKeys(TStringVector & vKeys) const
+{
+	DWORD dwLength = 0;
+
+	LSTATUS lStatus = RegQueryInfoKey(
+		m_hKey, NULL, NULL, NULL, NULL, &dwLength, NULL, NULL, NULL, NULL, NULL, NULL
+	);
+	
+	if (lStatus != ERROR_SUCCESS)
+	{
+		return FALSE;
+	}
+
+	LPWSTR szBuffer = (LPWSTR)malloc((dwLength + 1) * sizeof(WCHAR));
+	DWORD dwIndex = 0;
+	BOOL fSuccess = FALSE;
+
+	for (;;)
+	{
+		lStatus = RegEnumKey(m_hKey, dwIndex, szBuffer, dwLength + 1);
+
+		switch (lStatus)
+		{
+		case ERROR_SUCCESS:
+			vKeys.push_back(szBuffer);
+			break;
+
+		case ERROR_NO_MORE_ITEMS:
+			fSuccess = TRUE;
+
+			// Fall through
+		default:
+			goto __end;
+		}
+
+		dwIndex++;
+	}
+
+__end:
+	free(szBuffer);
+
+	return fSuccess;
+}

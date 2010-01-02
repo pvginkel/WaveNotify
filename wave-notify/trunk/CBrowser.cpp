@@ -215,27 +215,72 @@ wstring CBrowser::GetBrowserDescription(wstring szBrowser)
 
 wstring CBrowser::GetChromeExecutable()
 {
-	return GetExecutableFromLocalSettings(L"\\Google\\Chrome\\Application\\chrome.exe");
+	wstring szResult(GetExecutableFromStartMenu(L"chrome.exe"));
+
+	if (szResult.empty())
+	{
+		return szResult;
+	}
+	else
+	{
+		return GetExecutableFromLocalSettings(L"\\Google\\Chrome\\Application\\chrome.exe");
+	}
 }
 
 wstring CBrowser::GetOperaExecutable()
 {
-	return GetExecutableFromProgramFiles(L"\\Opera\\opera.exe");
+	wstring szResult(GetExecutableFromStartMenu(L"opera.exe"));
+
+	if (szResult.empty())
+	{
+		return szResult;
+	}
+	else
+	{
+		return GetExecutableFromProgramFiles(L"\\Opera\\opera.exe");
+	}
 }
 
 wstring CBrowser::GetSafariExecutable()
 {
-	return GetExecutableFromProgramFiles(L"\\Safari\\Safari.exe");
+	wstring szResult(GetExecutableFromStartMenu(L"Safari.exe"));
+
+	if (szResult.empty())
+	{
+		return szResult;
+	}
+	else
+	{
+		return GetExecutableFromProgramFiles(L"\\Safari\\Safari.exe");
+	}
 }
 
 wstring CBrowser::GetInternetExplorerExecutable()
 {
-	return GetExecutableFromProgramFiles(L"\\Internet Explorer\\iexplore.exe");
+	wstring szResult(GetExecutableFromStartMenu(L"iexplore.exe"));
+
+	if (szResult.empty())
+	{
+		return szResult;
+	}
+	else
+	{
+		return GetExecutableFromProgramFiles(L"\\Internet Explorer\\iexplore.exe");
+	}
 }
 
 wstring CBrowser::GetFirefoxExecutable()
 {
-	return GetExecutableFromProgramFiles(L"\\Mozilla Firefox\\firefox.exe");
+	wstring szResult(GetExecutableFromStartMenu(L"firefox.exe"));
+
+	if (szResult.empty())
+	{
+		return szResult;
+	}
+	else
+	{
+		return GetExecutableFromProgramFiles(L"\\Mozilla Firefox\\firefox.exe");
+	}
 }
 
 wstring CBrowser::GetExecutableFromProgramFiles(wstring szRelativePath)
@@ -286,4 +331,99 @@ wstring CBrowser::GetExecutableFromLocalSettings(wstring szRelativePath)
 	}
 
 	return L"";
+}
+
+wstring CBrowser::GetExecutableFromStartMenu(wstring szExecutable)
+{
+	CRegKey * lpKey = CRegKey::OpenKey(HKEY_CURRENT_USER, L"Software\\Clients\\StartMenuInternet");
+
+	if (lpKey != NULL)
+	{
+		wstring szResult(GetExecutableFromStartMenu(lpKey, szExecutable));
+
+		delete lpKey;
+
+		if (!szResult.empty())
+		{
+			return szResult;
+		}
+	}
+
+	lpKey = CRegKey::OpenKey(HKEY_LOCAL_MACHINE, L"Software\\Clients\\StartMenuInternet");
+
+	if (lpKey != NULL)
+	{
+		wstring szResult(GetExecutableFromStartMenu(lpKey, szExecutable));
+
+		delete lpKey;
+
+		if (!szResult.empty())
+		{
+			return szResult;
+		}
+	}
+
+	return L"";
+}
+
+wstring CBrowser::GetExecutableFromStartMenu(CRegKey * lpKey, wstring szExecutable)
+{
+	TStringVector vSubKeys;
+	
+	if (!lpKey->GetSubKeys(vSubKeys))
+	{
+		return L"";
+	}
+
+	for (TStringVectorIter iter = vSubKeys.begin(); iter != vSubKeys.end(); iter++)
+	{
+		CRegKey * lpSubKey = CRegKey::OpenKey(lpKey, *iter);
+
+		if (lpSubKey != NULL)
+		{
+			wstring szResult(GetExecutableFromStartMenuKey(lpSubKey, szExecutable));
+
+			delete lpSubKey;
+
+			if (!szResult.empty())
+			{
+				return szResult;
+			}
+		}
+	}
+
+	return L"";
+}
+
+wstring CBrowser::GetExecutableFromStartMenuKey(CRegKey * lpKey, wstring szExecutable)
+{
+	CRegKey * lpSubKey = CRegKey::OpenKey(lpKey, L"shell\\open\\command");
+	wstring szPath;
+
+	if (lpSubKey != NULL)
+	{
+		if (lpSubKey->GetValue(L"", szPath))
+		{
+			if (szPath[0] == L'"')
+			{
+				UINT nPos = szPath.find(L'"', 1);
+
+				if (nPos != wstring::npos)
+				{
+					szPath = szPath.substr(1, nPos - 1);
+				}
+			}
+		}
+
+		delete lpSubKey;
+	}
+
+	if (!szPath.empty() && _wcsicmp(GetBasename(szPath).c_str(), szExecutable.c_str()) == 0)
+	{
+		return szPath;
+	}
+	else
+	{
+		return L"";
+	}
 }
