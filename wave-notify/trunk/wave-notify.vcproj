@@ -255,6 +255,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Compat.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ConvetString.cpp"
 				>
 			</File>
@@ -506,6 +510,10 @@
 			</File>
 			<File
 				RelativePath=".\browser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\compat.h"
 				>
 			</File>
 			<File

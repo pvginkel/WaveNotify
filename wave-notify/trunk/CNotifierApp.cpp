@@ -21,6 +21,7 @@
 CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
 	: CApp(hInstance, szCmdLine)
 {
+	m_fConnected = TRUE;
 	m_hNotifyIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
 	m_hNotifyIconGray = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TRAYICON_GRAY));
 	m_hNotifyIconGray1 = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TRAYICON_GRAY_1));

@@ -28,6 +28,9 @@ CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
 	m_fManualUpdateCheck = FALSE;
 	m_fReceivedFirstContactUpdates = FALSE;
 	m_lpAvatarRequest = NULL;
+	m_fWasConnected = FALSE;
+	m_fClientSuspended = FALSE;
+	m_fClientLocked = FALSE;
 	
 	m_lpTimers = new CTimerCollection(this);
 
@@ -45,6 +48,10 @@ CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
 	m_lpVersionTimer = new CTimer(TIMER_VERSION_INTERVAL_INITIAL);
 
 	m_lpVersionTimer->Tick += AddressOf<CAppWindow>(this, &CAppWindow::CheckForUpdates);
+
+	m_lpReconnectTimer = new CTimer(TIMER_RECONNECT_INTERVAL);
+
+	m_lpReconnectTimer->Tick += AddressOf<CAppWindow>(this, &CAppWindow::PerformReconnect);
 
 	// TODO: Deserialize the last reported here.
 
@@ -77,6 +84,7 @@ CAppWindow::~CAppWindow()
 
 	delete m_lpWorkingTimer;
 	delete m_lpVersionTimer;
+	delete m_lpReconnectTimer;
 
 	delete m_lpTimers;
 
@@ -136,27 +144,13 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 		return OnVersionState((VERSION_STATE)wParam);
 
 	case WM_CLOSE:
-		m_fQuitting = TRUE;
+		return OnClose();
 
-		CVersion::Instance()->CancelRequests();
+	case WM_WTSSESSION_CHANGE:
+		return OnWTSSessionChange(wParam);
 
-		switch (m_lpSession->GetState())
-		{
-		case WSS_ONLINE:
-		case WSS_RECONNECTING:
-		case WSS_CONNECTING:
-			SignOut(FALSE);
-			return 0;
-
-		case WSS_DISCONNECTING:
-			// Already signing out, let it go and destroy from there.
-			return 0;
-
-		case WSS_OFFLINE:
-			// Already offline, let the DefWndProc destroy the window.
-			break;
-		}
-		break;
+	case WM_POWERBROADCAST:
+		return OnPowerBroadcast(wParam);
 
 	default:
 		if (uMessage == CNotifierApp::Instance()->GetWmTaskbarCreated())
@@ -182,12 +176,86 @@ LRESULT CAppWindow::OnCreate()
 	{
 		PromptForCredentials();
 	}
+
+	Compat_WTSRegisterSessionNotification(GetHandle(), NOTIFY_FOR_THIS_SESSION);
 	
 	m_lpVersionTimer->SetRunning(TRUE);
 
 	CheckApplicationUpdated();
 
 	return 0;
+}
+
+LRESULT CAppWindow::OnClose()
+{
+	m_fQuitting = TRUE;
+
+	m_lpReconnectTimer->SetRunning(FALSE);
+
+	CVersion::Instance()->CancelRequests();
+
+	Compat_WTSUnRegisterSessionNotification(GetHandle());
+
+	switch (m_lpSession->GetState())
+	{
+	case WSS_ONLINE:
+	case WSS_RECONNECTING:
+	case WSS_CONNECTING:
+		SignOut(FALSE);
+		break;
+
+	case WSS_DISCONNECTING:
+		// Already signing out, let it go and destroy from there.
+		break;
+
+	case WSS_OFFLINE:
+		// Already offline, destroy the window
+		DestroyWindow(GetHandle());
+		break;
+	}
+	
+	return 0;
+}
+
+LRESULT CAppWindow::OnWTSSessionChange(WPARAM wParam)
+{
+	switch (wParam)
+	{
+	case WTS_CONSOLE_CONNECT:
+	case WTS_REMOTE_CONNECT:
+	case WTS_SESSION_UNLOCK:
+		m_fClientLocked = FALSE;
+		ClientConnected();
+		break;
+
+	case WTS_CONSOLE_DISCONNECT:
+	case WTS_REMOTE_DISCONNECT:
+	case WTS_SESSION_LOCK:
+		m_fClientLocked = TRUE;
+		ClientDisconnected();
+		break;
+	}
+
+	return 0;
+}
+
+LRESULT CAppWindow::OnPowerBroadcast(WPARAM wParam)
+{
+	switch (wParam)
+	{
+	case PBT_APMSUSPEND:
+		m_fClientSuspended = TRUE;
+		ClientDisconnected();
+		break;
+
+	case PBT_APMRESUMESUSPEND:
+	case PBT_APMRESUMEAUTOMATIC:
+		m_fClientSuspended = FALSE;
+		ClientConnected();
+		break;
+	}
+
+	return TRUE;
 }
 
 LRESULT CAppWindow::OnNotifyIcon(UINT uMessage, UINT uID)
@@ -305,6 +373,8 @@ LRESULT CAppWindow::OnCommand(WORD wID)
 		break;
 
 	case ID_TRAYICON_LOGIN:
+		m_lpReconnectTimer->SetRunning(FALSE);
+
 		PromptForCredentials();
 		break;
 
@@ -969,7 +1039,7 @@ LRESULT CAppWindow::OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
 		!m_lpSession->ProcessCurlResponse(nState, lpCurl) &&
 		!CVersion::Instance()->ProcessCurlResponse(nState, lpCurl)
 	) {
-		LOG("Could not process curl response");
+		//LOG("Could not process curl response");
 
 		CCurl::Destroy(lpCurl);
 	}
@@ -1140,4 +1210,46 @@ void CAppWindow::ProcessAvatarResponse()
 	m_szRequestingAvatar = L"";
 
 	SeedAvatars();
+}
+
+void CAppWindow::ClientDisconnected()
+{
+	if (CNotifierApp::Instance()->GetConnected())
+	{
+		m_lpReconnectTimer->SetRunning(FALSE);
+
+		CNotifierApp::Instance()->SetConnected(FALSE);
+
+		m_fWasConnected = m_lpSession->GetState() == WSS_ONLINE;
+
+		if (m_fWasConnected)
+		{
+			m_lpSession->SignOut();
+		}
+	}
+}
+
+void CAppWindow::ClientConnected()
+{
+	if (!m_fClientSuspended && !m_fClientLocked)
+	{
+		if (!CNotifierApp::Instance()->GetConnected())
+		{
+			CNotifierApp::Instance()->SetConnected(TRUE);
+
+			if (m_fWasConnected)
+			{
+				m_lpReconnectTimer->SetRunning(TRUE);
+			}
+		}
+	}
+}
+
+void CAppWindow::PerformReconnect()
+{
+	m_lpReconnectTimer->SetRunning(FALSE);
+
+	StartWorking();
+
+	m_lpSession->Reconnect();
 }

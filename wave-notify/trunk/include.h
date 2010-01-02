@@ -83,25 +83,20 @@ typedef enum
 	DT_LOGIN
 } DIALOG_TYPE;
 
-typedef enum
-{
-	// Leave this at the bottom for the CTimer class.
-	TIMER_MAX = 1
-} TIMER_ID;
-
 // All timer intervals (in milliseconds).
 
-#define TIMER_QUERY_INTERVAL		(2 * 60 * 1000)
-#define TIMER_VERSION_INTERVAL		(60 * 60 * 1000)
-#define TIMER_VERSION_INTERVAL_INITIAL	(10 * 60 * 1000)
-#define TIMER_WORKING_INTERVAL		900
+#define TIMER_QUERY_INTERVAL			(2 * 60 * 1000)
+#define TIMER_VERSION_INTERVAL			(60 * 60 * 1000)
+#define TIMER_VERSION_INTERVAL_INITIAL		(10 * 60 * 1000)
+#define TIMER_WORKING_INTERVAL			900
+#define TIMER_RECONNECT_INTERVAL		(5 * 1000)
 
-#define TIMER_IDLE_COMPLETE_INTERVAL	(4 * 1000)
+#define TIMER_IDLE_COMPLETE_INTERVAL		(4 * 1000)
 
-#define TIMER_RECONNECT_INITIAL		(5 * 1000)
-#define TIMER_RECONNECT_MAX		(60 * 1000)
+#define TIMER_RECONNECT_INTERVAL_INITIAL	(5 * 1000)
+#define TIMER_RECONNECT_INTERVAL_MAX		(60 * 1000)
 
-#define TIMER_REREPORT_TIMEOUT		(3 * 60 * 1000)
+#define TIMER_REREPORT_TIMEOUT			(3 * 60 * 1000)
 
 // And the actual includes.
 
@@ -109,6 +104,7 @@ typedef enum
 
 // Framework includes.
 
+#include "compat.h"
 #include "types.h"
 #include "thread.h"
 #include "utf8converter.h"

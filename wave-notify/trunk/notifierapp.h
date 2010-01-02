@@ -42,9 +42,13 @@ private:
 	CTimerCollection * m_lpTimers;
 	CTimer * m_lpWorkingTimer;
 	CTimer * m_lpVersionTimer;
+	CTimer * m_lpReconnectTimer;
 	BOOL m_fReceivedFirstContactUpdates;
 	CCurl * m_lpAvatarRequest;
 	wstring m_szRequestingAvatar;
+	BOOL m_fWasConnected;
+	BOOL m_fClientSuspended;
+	BOOL m_fClientLocked;
 
 public:
 	CAppWindow();
@@ -74,6 +78,9 @@ private:
 	LRESULT OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
 	LRESULT OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGIN_ERROR nError);
 	LRESULT OnVersionState(VERSION_STATE nState);
+	LRESULT OnClose();
+	LRESULT OnWTSSessionChange(WPARAM wParam);
+	LRESULT OnPowerBroadcast(WPARAM wParam);
 
 	void ShowFlyout();
 	void ShowContextMenu();
@@ -99,6 +106,9 @@ private:
 	void ReportContactUpdates(CWaveContactStatusCollection * lpStatuses);
 	void SeedAvatars();
 	void ProcessAvatarResponse();
+	void ClientConnected();
+	void ClientDisconnected();
+	void PerformReconnect();
 
 private:
 	friend class CWorkingTimer;
@@ -123,6 +133,7 @@ private:
 	BOOL m_fPlaySoundOnNewWave;
 	wstring m_szBrowser;
 	BOOL m_fNotificationWhenOnline;
+	BOOL m_fConnected;
 
 public:
 	CNotifierApp(HINSTANCE hInstance, wstring szCmdLine);
@@ -157,6 +168,8 @@ public:
 	void OpenUrl(wstring szUrl);
 	void QueueRequest(CCurl * lpRequest);
 	void CancelRequest(CCurl * lpRequest);
+	BOOL GetConnected() const { return m_fConnected; }
+	void SetConnected(BOOL fValue) { m_fConnected = fValue; }
 
 	static CNotifierApp * Instance() { return (CNotifierApp *)CApp::Instance(); }
 	static void Restart();
