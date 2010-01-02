@@ -92,10 +92,10 @@ typedef enum
 typedef enum
 {
 	WMT_UNKNOWN = -1,
-        WMT_GET_CONTACT_DETAILS = 2032,
-        WMT_GET_ALL_CONTACTS = 2033,
-        WMT_START_LISTENING = 2602,
-        WMT_STOP_LISTENING = 2007,
+	WMT_GET_CONTACT_DETAILS = 2032,
+	WMT_GET_ALL_CONTACTS = 2033,
+	WMT_START_LISTENING = 2602,
+	WMT_STOP_LISTENING = 2007,
 	WMT_CONTACT_UPDATES = 2012
 } WAVE_MESSAGE_TYPE;
 
@@ -153,6 +153,7 @@ private:
 	CTimer * m_lpReconnectTimer;
 	INT m_nFlushSuspended;
 	TWaveRequestVector m_vRequestQueue;
+	TCurlVector m_vOwnedRequests;
 
 public:
 	CWaveSession(CWindowHandle * lpTargetWindow);

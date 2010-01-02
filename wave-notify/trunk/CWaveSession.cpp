@@ -87,6 +87,11 @@ BOOL CWaveSession::Reconnect()
 		return FALSE;
 	}
 
+	if (m_lpRequest != NULL)
+	{
+		m_vOwnedRequests.push_back(m_lpRequest);
+	}
+
 	m_lpRequest = new CCurl(WAVE_URL_CLIENTLOGIN, m_lpTargetWindow);
 
 	m_lpRequest->SetUserAgent(USERAGENT);
@@ -150,16 +155,26 @@ void CWaveSession::SignOut()
 		if (m_lpPostRequest != NULL)
 		{
 			CNotifierApp::Instance()->CancelRequest(m_lpPostRequest);
+
+			// We do not need to flush the request queue anymore.
+
+			m_vOwnedRequests.push_back(m_lpPostRequest);
+
+			m_lpPostRequest = NULL;
 		}
 
 		if (m_lpChannelRequest != NULL)
 		{
 			CNotifierApp::Instance()->CancelRequest(m_lpChannelRequest);
+
+			// We do not need to process the channel response anymore.
+
+			m_vOwnedRequests.push_back(m_lpChannelRequest);
+
+			m_lpChannelRequest = NULL;
 		}
-		else
-		{
-			PostSignOutRequest();
-		}
+
+		PostSignOutRequest();
 	}
 }
 
@@ -381,6 +396,20 @@ BOOL CWaveSession::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
 		}
 
 		return TRUE;
+	}
+
+	// Is this an owned request?
+
+	for (TCurlVectorIter iter = m_vOwnedRequests.begin(); iter != m_vOwnedRequests.end(); iter++)
+	{
+		if (*iter == lpCurl)
+		{
+			CCurl::Destroy(lpCurl);
+
+			m_vOwnedRequests.erase(iter);
+
+			return TRUE;
+		}
 	}
 
 	// This is not one of our request.
@@ -618,8 +647,11 @@ void CWaveSession::ProcessChannelResponse()
 	BOOL fSuccess = FALSE;
 
 	fSuccess =
-		m_lpChannelRequest->GetResult() == CURLE_OK ||
-		m_lpChannelRequest->GetResult() == CURLE_OPERATION_TIMEOUTED;
+		m_nState == WSS_ONLINE &&
+		(
+			m_lpChannelRequest->GetResult() == CURLE_OK ||
+			m_lpChannelRequest->GetResult() == CURLE_OPERATION_TIMEOUTED
+		);
 
 	if (fSuccess)
 	{
@@ -634,14 +666,14 @@ void CWaveSession::ProcessChannelResponse()
 
 	if (fSuccess)
 	{
+		// Continue the channel by posting the next request.
+
 		PostChannelRequest();
 	}
-	else if (m_nState == WSS_DISCONNECTING)
+	else if (m_nState == WSS_ONLINE)
 	{
-		PostSignOutRequest();
-	}
-	else
-	{
+		// Only automatically reconnect when we're online.
+
 		InitiateReconnect();
 	}
 }
@@ -799,7 +831,7 @@ BOOL CWaveSession::ParseChannelResponse(wstring szResponse)
 
 void CWaveSession::InitiateReconnect()
 {
-	m_lpReconnectTimer->SetInterval(TIMER_RECONNECT_INITIAL);
+	m_lpReconnectTimer->SetInterval(TIMER_RECONNECT_INTERVAL_INITIAL);
 	m_lpReconnectTimer->SetRunning(TRUE);
 
 	m_nState = WSS_RECONNECTING;
@@ -945,7 +977,7 @@ void CWaveSession::NextReconnect()
 	INT nNextInterval = m_lpReconnectTimer->GetInterval() * 2;
 
 	m_lpReconnectTimer->SetInterval(
-		nNextInterval > TIMER_RECONNECT_MAX ? TIMER_RECONNECT_MAX : nNextInterval
+		nNextInterval > TIMER_RECONNECT_INTERVAL_MAX ? TIMER_RECONNECT_INTERVAL_MAX : nNextInterval
 	);
 
 	m_lpReconnectTimer->SetRunning(TRUE);
