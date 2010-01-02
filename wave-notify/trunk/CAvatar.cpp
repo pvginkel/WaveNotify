@@ -117,11 +117,13 @@ BOOL CAvatar::LoadImage(const TByteVector & vData, wstring szContentType)
 	}
 	else
 	{
+		LOG1("Did not understand avatar content type %S", szContentType.c_str());
 		goto __end;
 	}
 
 	if (lpSource == NULL)
 	{
+		LOG1("Could not load source of content type %S", szContentType.c_str());
 		goto __end;
 	}
 

@@ -1125,6 +1125,12 @@ void CAppWindow::ProcessAvatarResponse()
 				);
 			}
 		}
+		else
+		{
+			LOG2("Could not download avatar %S (%d)",
+				m_lpAvatarRequest->GetUrl().c_str(),
+				(int)m_lpAvatarRequest->GetStatus());
+		}
 	}
 
 	delete lpReader;
