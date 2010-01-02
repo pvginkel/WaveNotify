@@ -804,8 +804,6 @@ void CAppWindow::ProcessConnected()
 
 	m_lpSession->QueueRequest(new CWaveRequestStartListening(L"in:inbox"));
 
-	m_lpSession->QueueRequest(new CWaveRequestStartListening(L"pingto:" + szEmailAddress));
-
 	m_fReceivedFirstContactUpdates = FALSE;
 
 	m_lpSession->QueueRequest(new CWaveRequestContactUpdates());
