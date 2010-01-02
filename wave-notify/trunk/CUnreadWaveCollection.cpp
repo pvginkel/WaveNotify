@@ -192,15 +192,26 @@ WAVE_CHANGED_STATUS CUnreadWaveCollection::GetChangedStatus(CWave * lpReportedWa
 
 		const TWaveMessageVector & vMessages = lpNewWave->GetMessages();
 
+		BOOL fHadOne = FALSE;
+		BOOL fIsSelf = TRUE;
+		BOOL fIsEmpty = lpNewWave->GetSubject().empty();
+
 		for (TWaveMessageVectorConstIter iter = vMessages.begin(); iter != vMessages.end(); iter++)
 		{
+			fHadOne = TRUE;
+
 			if ((*iter)->GetEmailAddress() != szSelf)
 			{
-				return ((*iter)->GetText().empty()) ? WCS_IGNORE : WCS_CHANGED;
+				fIsSelf = FALSE;
+			}
+
+			if (!(*iter)->GetText().empty())
+			{
+				fIsEmpty = FALSE;
 			}
 		}
 
-		return WCS_REFRESH;
+		return fHadOne && fIsSelf ? WCS_REFRESH : ( fIsEmpty ? WCS_IGNORE : WCS_CHANGED );
 	}
 
 	INT nNewMessages = lpNewWave->GetUnreadMessages() - lpReportedWave->GetUnreadMessages();
