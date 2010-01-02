@@ -88,9 +88,9 @@ private:
 	void ProcessResponse(CWaveResponse * lpResponse);
 	void ProcessReconnecting();
 	void ProcessConnected();
-	void SynchronisePopups(CUnreadWaveCollection * lpUnreads);
+	void SynchronisePopups(CUnreadWaveCollection * lpUnreads, BOOL fManual);
 	void TruncateLastReported();
-	void DisplayWavePopups();
+	void DisplayWavePopups(BOOL fManual);
 	void CheckWavesNow();
 	void UpdateWorkingIcon();
 	void CheckApplicationUpdated();

@@ -560,7 +560,7 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 
 			// And display the new popups.
 
-			DisplayWavePopups();
+			DisplayWavePopups(FALSE);
 		}
 
 		if (lpResponse->GetType() == WMT_GET_CONTACT_DETAILS)
@@ -595,7 +595,7 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 	}
 }
 
-void CAppWindow::DisplayWavePopups()
+void CAppWindow::DisplayWavePopups(BOOL fManual)
 {
 	// Create a changelog of the current view and the last
 	// reported view.
@@ -605,7 +605,7 @@ void CAppWindow::DisplayWavePopups()
 
 	// Synchronize the changelog with the queued popups.
 
-	SynchronisePopups(lpUnreads);
+	SynchronisePopups(lpUnreads, fManual);
 
 	// Remove all waves from the last reported that does
 	// not appear in the current view.
@@ -653,7 +653,7 @@ void CAppWindow::TruncateLastReported()
 	m_lpReportedView->RemoveWaves(vRemove);
 }
 
-void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
+void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads, BOOL fManual)
 {
 	BOOL fQueuedNewWaves = FALSE;
 	TPopupVector vMustCancel;
@@ -795,14 +795,28 @@ void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
 		}
 	}
 
-	// Make a sound (when applicable).
-
-	if (fQueuedNewWaves && CNotifierApp::Instance()->GetPlaySoundOnNewWave())
+	if (fManual)
 	{
-		PlaySound(
-			MAKEINTRESOURCE(IDR_NEWWAVE),
-			CNotifierApp::Instance()->GetInstance(),
-			SND_ASYNC | SND_NOSTOP | SND_NOWAIT | SND_RESOURCE);
+		// When the check was queued manually, we will report it when
+		// there were no unread waves to report.
+
+		if (!fQueuedNewWaves)
+		{
+			(new CMessagePopup(L"No unread Waves."))->Show();
+		}
+	}
+	else
+	{
+		// When the check was not done manually, we will play a sound
+		// when there were unread waves to report.
+
+		if (fQueuedNewWaves && CNotifierApp::Instance()->GetPlaySoundOnNewWave())
+		{
+			PlaySound(
+				MAKEINTRESOURCE(IDR_NEWWAVE),
+				CNotifierApp::Instance()->GetInstance(),
+				SND_ASYNC | SND_NOSTOP | SND_NOWAIT | SND_RESOURCE);
+		}
 	}
 }
 
@@ -931,30 +945,7 @@ void CAppWindow::CheckWavesNow()
 
 	m_vReportedTimes.clear();
 
-	DisplayWavePopups();
-
-	BOOL fHadUnreads = FALSE;
-
-	if (CPopupWindow::Instance() != NULL)
-	{
-		TPopupVector vPopups;
-
-		CPopupWindow::Instance()->GetPopups(vPopups);
-
-		for (TPopupVectorIter iter = vPopups.begin(); iter != vPopups.end(); iter++)
-		{
-			if (((CPopupBase *)(*iter))->GetType() == PT_WAVE)
-			{
-				fHadUnreads = TRUE;
-				break;
-			}
-		}
-	}
-
-	if (!fHadUnreads)
-	{
-		(new CMessagePopup(L"No unread Waves."))->Show();
-	}
+	DisplayWavePopups(TRUE);
 }
 
 void CAppWindow::CheckApplicationUpdated()
