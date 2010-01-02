@@ -157,6 +157,9 @@ public:
 	CContactOnlinePopup(CWaveContact * lpContact, BOOL fOnline);
 	~CContactOnlinePopup() { }
 
+	CWaveContact * GetContact() const { return m_lpContact; }
+	BOOL GetOnline() const { return m_fOnline; }
+
 protected:
 	LRESULT WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam);
 

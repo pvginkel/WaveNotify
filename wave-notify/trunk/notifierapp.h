@@ -106,6 +106,7 @@ private:
 	void ProcessAvatarResponse();
 	void ClientConnected(CONNECT_REASON nReason);
 	void ClientDisconnected(CONNECT_REASON nReason);
+	void ReportContactOnline(CWaveContact * lpContact, BOOL fOnline);
 
 private:
 	friend class CWorkingTimer;

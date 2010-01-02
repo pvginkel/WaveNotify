@@ -571,7 +571,9 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 
 			if (CPopupWindow::Instance() != NULL)
 			{
-				TPopupVector & vPopups = CPopupWindow::Instance()->GetPopups();
+				TPopupVector vPopups;
+				
+				CPopupWindow::Instance()->GetPopups(vPopups);
 
 				for (TPopupVectorIter iter = vPopups.begin(); iter != vPopups.end(); iter++)
 				{
@@ -659,7 +661,9 @@ void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
 
 	if (CPopupWindow::Instance() != NULL)
 	{
-		TPopupVector vPopups(CPopupWindow::Instance()->GetPopups());
+		TPopupVector vPopups;
+		
+		CPopupWindow::Instance()->GetPopups(vPopups);
 
 		for (TPopupVectorIter iter = vPopups.begin(); iter != vPopups.end(); iter++)
 		{
@@ -762,7 +766,9 @@ void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads)
 
 	if (CPopupWindow::Instance() != NULL)
 	{
-		TPopupVector vPopups(CPopupWindow::Instance()->GetPopups());
+		TPopupVector vPopups;
+		
+		CPopupWindow::Instance()->GetPopups(vPopups);
 
 		UINT uCount = 0;
 
@@ -927,7 +933,25 @@ void CAppWindow::CheckWavesNow()
 
 	DisplayWavePopups();
 
-	if (CPopupWindow::Instance() == NULL || CPopupWindow::Instance()->GetPopups().size() == 0)
+	BOOL fHadUnreads = FALSE;
+
+	if (CPopupWindow::Instance() != NULL)
+	{
+		TPopupVector vPopups;
+
+		CPopupWindow::Instance()->GetPopups(vPopups);
+
+		for (TPopupVectorIter iter = vPopups.begin(); iter != vPopups.end(); iter++)
+		{
+			if (((CPopupBase *)(*iter))->GetType() == PT_WAVE)
+			{
+				fHadUnreads = TRUE;
+				break;
+			}
+		}
+	}
+
+	if (!fHadUnreads)
 	{
 		(new CMessagePopup(L"No unread Waves."))->Show();
 	}
@@ -1102,16 +1126,66 @@ LRESULT CAppWindow::OnVersionState(VERSION_STATE nState)
 
 void CAppWindow::ReportContactUpdates(CWaveContactStatusCollection * lpStatuses)
 {
+	wstring szSelf(m_lpSession->GetEmailAddress());
+
 	const TWaveContactStatusMap & vStatuses = lpStatuses->GetStatuses();
 
 	for (TWaveContactStatusMapConstIter iter = vStatuses.begin(); iter != vStatuses.end(); iter++)
 	{
 		CWaveContact * lpContact = GetWaveContact(iter->first);
 
-		if (lpContact != NULL && lpContact->GetOnline() != iter->second->GetOnline())
-		{
-			(new CContactOnlinePopup(lpContact, iter->second->GetOnline()))->Show();
+		if (
+			lpContact != NULL &&
+			lpContact->GetEmailAddress() != szSelf &&
+			lpContact->GetOnline() != iter->second->GetOnline()
+		) {
+			ReportContactOnline(lpContact, iter->second->GetOnline());
 		}
+	}
+}
+
+void CAppWindow::ReportContactOnline(CWaveContact * lpContact, BOOL fOnline)
+{
+	CContactOnlinePopup * lpFound = NULL;
+
+	if (CPopupWindow::Instance() != NULL)
+	{
+		TPopupVector vPopups;
+		
+		CPopupWindow::Instance()->GetPopups(vPopups);
+
+		for (TPopupVectorIter iter = vPopups.begin(); iter != vPopups.end(); iter++)
+		{
+			if (((CPopupBase *)(*iter))->GetType() == PT_CONTACT_ONLINE)
+			{
+				CContactOnlinePopup * lpPopup = (CContactOnlinePopup *)*iter;
+
+				if (lpPopup->GetContact()->GetEmailAddress() == lpContact->GetEmailAddress())
+				{
+					lpFound = lpPopup;
+					break;
+				}
+			}
+		}
+	}
+
+	// When there is an online popup of the to be reported contact, we are
+	// not going to queue a new one.
+
+	if (lpFound != NULL)
+	{
+		// When there is an online popup of the same contact and the
+		// reported status is not equal to the to be reported status,
+		// the existing popup is cancelled.
+
+		if (lpFound->GetOnline() != fOnline)
+		{
+			lpFound->Cancel();
+		}
+	}
+	else
+	{
+		(new CContactOnlinePopup(lpContact, fOnline))->Show();
 	}
 }
 
