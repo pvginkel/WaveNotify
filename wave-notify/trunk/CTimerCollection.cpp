@@ -18,6 +18,8 @@
 #include "stdafx.h"
 #include "include.h"
 
+#define TIMERS_OFFSET		100
+
 CTimerCollection * CTimerCollection::m_lpInstance = NULL;
 
 CTimerCollection::CTimerCollection(CWindowHandle * lpTargetWindow)
@@ -27,7 +29,7 @@ CTimerCollection::CTimerCollection(CWindowHandle * lpTargetWindow)
 	m_lpInstance = this;
 
 	m_lpTargetWindow = lpTargetWindow;
-	m_nNextEventId = TIMER_MAX;
+	m_nNextEventId = TIMERS_OFFSET;
 }
 
 CTimerCollection::~CTimerCollection()
@@ -68,7 +70,7 @@ void CTimerCollection::Unregister(CTimer * lpTimer)
 	if (m_vTimers.empty())
 	{
 		m_vFreeEventIds.clear();
-		m_nNextEventId = TIMER_MAX;
+		m_nNextEventId = TIMERS_OFFSET;
 	}
 	else
 	{
