@@ -83,6 +83,12 @@ typedef enum
 	DT_LOGIN
 } DIALOG_TYPE;
 
+typedef enum
+{
+	CR_SUSPEND,
+	CR_LOCK
+} CONNECT_REASON;
+
 // All timer intervals (in milliseconds).
 
 #define TIMER_QUERY_INTERVAL			(2 * 60 * 1000)

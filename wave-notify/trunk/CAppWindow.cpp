@@ -28,7 +28,6 @@ CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
 	m_fManualUpdateCheck = FALSE;
 	m_fReceivedFirstContactUpdates = FALSE;
 	m_lpAvatarRequest = NULL;
-	m_fWasConnected = FALSE;
 	m_fClientSuspended = FALSE;
 	m_fClientLocked = FALSE;
 	
@@ -48,10 +47,6 @@ CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
 	m_lpVersionTimer = new CTimer(TIMER_VERSION_INTERVAL_INITIAL);
 
 	m_lpVersionTimer->Tick += AddressOf<CAppWindow>(this, &CAppWindow::CheckForUpdates);
-
-	m_lpReconnectTimer = new CTimer(TIMER_RECONNECT_INTERVAL);
-
-	m_lpReconnectTimer->Tick += AddressOf<CAppWindow>(this, &CAppWindow::PerformReconnect);
 
 	// TODO: Deserialize the last reported here.
 
@@ -84,7 +79,6 @@ CAppWindow::~CAppWindow()
 
 	delete m_lpWorkingTimer;
 	delete m_lpVersionTimer;
-	delete m_lpReconnectTimer;
 
 	delete m_lpTimers;
 
@@ -190,8 +184,6 @@ LRESULT CAppWindow::OnClose()
 {
 	m_fQuitting = TRUE;
 
-	m_lpReconnectTimer->SetRunning(FALSE);
-
 	CVersion::Instance()->CancelRequests();
 
 	Compat_WTSUnRegisterSessionNotification(GetHandle());
@@ -224,15 +216,13 @@ LRESULT CAppWindow::OnWTSSessionChange(WPARAM wParam)
 	case WTS_CONSOLE_CONNECT:
 	case WTS_REMOTE_CONNECT:
 	case WTS_SESSION_UNLOCK:
-		m_fClientLocked = FALSE;
-		ClientConnected();
+		ClientConnected(CR_LOCK);
 		break;
 
 	case WTS_CONSOLE_DISCONNECT:
 	case WTS_REMOTE_DISCONNECT:
 	case WTS_SESSION_LOCK:
-		m_fClientLocked = TRUE;
-		ClientDisconnected();
+		ClientDisconnected(CR_LOCK);
 		break;
 	}
 
@@ -244,14 +234,12 @@ LRESULT CAppWindow::OnPowerBroadcast(WPARAM wParam)
 	switch (wParam)
 	{
 	case PBT_APMSUSPEND:
-		m_fClientSuspended = TRUE;
-		ClientDisconnected();
+		ClientDisconnected(CR_SUSPEND);
 		break;
 
 	case PBT_APMRESUMESUSPEND:
 	case PBT_APMRESUMEAUTOMATIC:
-		m_fClientSuspended = FALSE;
-		ClientConnected();
+		ClientConnected(CR_SUSPEND);
 		break;
 	}
 
@@ -373,8 +361,6 @@ LRESULT CAppWindow::OnCommand(WORD wID)
 		break;
 
 	case ID_TRAYICON_LOGIN:
-		m_lpReconnectTimer->SetRunning(FALSE);
-
 		PromptForCredentials();
 		break;
 
@@ -1160,7 +1146,6 @@ void CAppWindow::SeedAvatars()
 
 	wstring szAvatarUrl(lpContact->GetAbsoluteAvatarUrl());
 
-
 	m_lpAvatarRequest = new CCurl(szAvatarUrl, this);
 
 	m_lpAvatarRequest->SetUserAgent(USERAGENT);
@@ -1212,44 +1197,47 @@ void CAppWindow::ProcessAvatarResponse()
 	SeedAvatars();
 }
 
-void CAppWindow::ClientDisconnected()
+void CAppWindow::ClientDisconnected(CONNECT_REASON nReason)
 {
+	switch (nReason)
+	{
+	case CR_SUSPEND:
+		m_fClientSuspended = TRUE;
+		break;
+
+	case CR_LOCK:
+		m_fClientLocked = TRUE;
+		break;
+	}
+
 	if (CNotifierApp::Instance()->GetConnected())
 	{
-		m_lpReconnectTimer->SetRunning(FALSE);
-
 		CNotifierApp::Instance()->SetConnected(FALSE);
-
-		m_fWasConnected = m_lpSession->GetState() == WSS_ONLINE;
-
-		if (m_fWasConnected)
-		{
-			m_lpSession->SignOut();
-		}
 	}
 }
 
-void CAppWindow::ClientConnected()
+void CAppWindow::ClientConnected(CONNECT_REASON nReason)
 {
+	switch (nReason)
+	{
+	case CR_SUSPEND:
+		if (m_fClientSuspended)
+		{
+			m_lpSession->ForceReconnect();
+			m_fClientSuspended = FALSE;
+		}
+		break;
+
+	case CR_LOCK:
+		m_fClientLocked = FALSE;
+		break;
+	}
+
 	if (!m_fClientSuspended && !m_fClientLocked)
 	{
 		if (!CNotifierApp::Instance()->GetConnected())
 		{
 			CNotifierApp::Instance()->SetConnected(TRUE);
-
-			if (m_fWasConnected)
-			{
-				m_lpReconnectTimer->SetRunning(TRUE);
-			}
 		}
 	}
-}
-
-void CAppWindow::PerformReconnect()
-{
-	m_lpReconnectTimer->SetRunning(FALSE);
-
-	StartWorking();
-
-	m_lpSession->Reconnect();
 }

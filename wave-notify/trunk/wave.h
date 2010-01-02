@@ -182,6 +182,7 @@ public:
 	void FlushRequestQueue();
 	void SuspendRequestFlush();
 	void ResponseRequestFlush();
+	void ForceReconnect();
 
 private:
 	void ReportReceived(CWaveResponse * lpResponse) {
