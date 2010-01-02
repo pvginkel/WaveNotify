@@ -33,6 +33,12 @@ public:
 
 	static CRegKey * CreateKey(HKEY hBaseKey, wstring szSubKey);
 	static CRegKey * OpenKey(HKEY hBaseKey, wstring szSubKey);
+	static CRegKey * CreateKey(CRegKey * lpKey, wstring szSubKey) {
+		return CreateKey(lpKey->m_hKey, szSubKey);
+	}
+	static CRegKey * OpenKey(CRegKey * lpKey, wstring szSubKey) {
+		return OpenKey(lpKey->m_hKey, szSubKey);
+	}
 
 	operator HKEY() { return (HKEY)m_hKey; }
 
@@ -43,6 +49,7 @@ public:
 	BOOL GetValue(wstring szName, BOOL & fResult) const;
 	BOOL SetValue(wstring szName, BOOL fResult);
 	BOOL DeleteValue(wstring szName);
+	BOOL GetSubKeys(TStringVector & vKeys) const;
 };
 
 #endif // _INC_REGISTRY
