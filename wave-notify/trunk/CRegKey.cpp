@@ -130,7 +130,7 @@ BOOL CRegKey::GetSubKeys(TStringVector & vKeys) const
 {
 	DWORD dwLength = 0;
 
-	LSTATUS lStatus = RegQueryInfoKey(
+	LONG lStatus = RegQueryInfoKey(
 		m_hKey, NULL, NULL, NULL, NULL, &dwLength, NULL, NULL, NULL, NULL, NULL, NULL
 	);
 	
