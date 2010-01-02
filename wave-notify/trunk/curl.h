@@ -105,6 +105,7 @@ public:
 	CCurl(wstring szUrl, CWindowHandle * lpTargetWindow);
 	virtual ~CCurl();
 
+	wstring GetUrl() const { return ConvertToWideChar(m_szUrl); }
 	wstring GetUrlEncodedPostData() const { return m_szPostData == NULL ? L"" : ConvertToWideChar(m_szPostData); }
 	void SetUrlEncodedPostData(wstring szPostData);
 	CCurlCookies * GetCookies() const;
