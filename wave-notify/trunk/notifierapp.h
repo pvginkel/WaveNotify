@@ -42,11 +42,9 @@ private:
 	CTimerCollection * m_lpTimers;
 	CTimer * m_lpWorkingTimer;
 	CTimer * m_lpVersionTimer;
-	CTimer * m_lpReconnectTimer;
 	BOOL m_fReceivedFirstContactUpdates;
 	CCurl * m_lpAvatarRequest;
 	wstring m_szRequestingAvatar;
-	BOOL m_fWasConnected;
 	BOOL m_fClientSuspended;
 	BOOL m_fClientLocked;
 
@@ -106,9 +104,8 @@ private:
 	void ReportContactUpdates(CWaveContactStatusCollection * lpStatuses);
 	void SeedAvatars();
 	void ProcessAvatarResponse();
-	void ClientConnected();
-	void ClientDisconnected();
-	void PerformReconnect();
+	void ClientConnected(CONNECT_REASON nReason);
+	void ClientDisconnected(CONNECT_REASON nReason);
 
 private:
 	friend class CWorkingTimer;

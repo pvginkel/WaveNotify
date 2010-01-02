@@ -1034,3 +1034,11 @@ void CWaveSession::ResponseRequestFlush()
 		FlushRequestQueue();
 	}
 }
+
+void CWaveSession::ForceReconnect()
+{
+	if (m_nState == WSS_ONLINE && m_lpChannelRequest != NULL)
+	{
+		CNotifierApp::Instance()->CancelRequest(m_lpChannelRequest);
+	}
+}
