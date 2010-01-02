@@ -93,7 +93,6 @@ void CWaveContact::Merge(CWaveContact * lpContact)
 	m_fIsSelf = lpContact->m_fIsSelf;
 	m_szStatusMessage = lpContact->m_szStatusMessage;
 	m_fOnline = lpContact->m_fOnline;
-	m_fRequestedAvatar = lpContact->m_fRequestedAvatar;
 
 	for (TWaveNameVectorIter iter = m_vNames.begin(); iter != m_vNames.end(); iter++)
 	{
@@ -115,6 +114,7 @@ void CWaveContact::Merge(CWaveContact * lpContact)
 		}
 
 		m_lpAvatar = lpContact->m_lpAvatar;
+		m_fRequestedAvatar = lpContact->m_fRequestedAvatar;
 
 		lpContact->m_lpAvatar = NULL;
 	}
