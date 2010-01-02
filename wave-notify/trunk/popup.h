@@ -58,7 +58,7 @@ public:
 	void CancelAll();
 	void CancelPopup(CPopup * lpPopup);
 	void ShowNext();
-	TPopupVector GetPopups() const;
+	void GetPopups(TPopupVector & vPopups) const;
 	CPopup * GetCurrent() const { return m_lpCurrent; }
 	POPUP_STATE GetState() const { return m_nState; }
 	void ExtendPopupDuration(INT nDuration);

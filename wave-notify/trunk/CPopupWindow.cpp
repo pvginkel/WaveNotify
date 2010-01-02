@@ -526,21 +526,17 @@ void CPopupWindow::ShowNext()
 	}
 }
 
-TPopupVector CPopupWindow::GetPopups() const
+void CPopupWindow::GetPopups(TPopupVector & vPopups) const
 {
-	TPopupVector vResult;
-
 	if (m_lpCurrent != NULL)
 	{
-		vResult.push_back(m_lpCurrent);
+		vPopups.push_back(m_lpCurrent);
 	}
 
 	for (TPopupVectorConstIter iter = m_vQueue.begin(); iter != m_vQueue.end(); iter++)
 	{
-		vResult.push_back(*iter);
+		vPopups.push_back(*iter);
 	}
-
-	return vResult;
 }
 
 void CPopupWindow::CancelPopup(CPopup * lpPopup)
