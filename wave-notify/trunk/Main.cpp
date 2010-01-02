@@ -38,8 +38,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	CMutex * lpMutex = CMutex::Create(FALSE, GLOBAL_MUTEX);
 
-	// TODO: Check whether this still works with the class.
-
 	if (lpMutex == NULL || GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		return -1;
