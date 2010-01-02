@@ -107,14 +107,17 @@ void CWaveContact::Merge(CWaveContact * lpContact)
 
 	lpContact->m_vNames.clear();
 
-	if (m_lpAvatar != NULL)
+	if (lpContact->m_lpAvatar != NULL)
 	{
-		delete m_lpAvatar;
+		if (m_lpAvatar != NULL)
+		{
+			delete m_lpAvatar;
+		}
+
+		m_lpAvatar = lpContact->m_lpAvatar;
+
+		lpContact->m_lpAvatar = NULL;
 	}
-
-	m_lpAvatar = lpContact->m_lpAvatar;
-
-	lpContact->m_lpAvatar = NULL;
 }
 
 wstring CWaveContact::GetAbsoluteAvatarUrl() const

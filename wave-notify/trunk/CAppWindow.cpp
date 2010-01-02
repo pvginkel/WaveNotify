@@ -835,6 +835,11 @@ void CAppWindow::HaveReportedWave(wstring szWaveID)
 
 CWaveContact * CAppWindow::GetWaveContact(wstring szEmailAddress)
 {
+	if (m_lpView == NULL)
+	{
+		return NULL;
+	}
+
 	CWaveContact * lpContact = m_lpView->GetContacts()->GetContact(szEmailAddress);
 
 	if (lpContact == NULL && m_vRequestedContacts.find(szEmailAddress) == m_vRequestedContacts.end())
@@ -1049,7 +1054,7 @@ void CAppWindow::ReportContactUpdates(CWaveContactStatusCollection * lpStatuses)
 	{
 		CWaveContact * lpContact = GetWaveContact(iter->first);
 
-		if (lpContact->GetOnline() != iter->second->GetOnline())
+		if (lpContact != NULL && lpContact->GetOnline() != iter->second->GetOnline())
 		{
 			(new CContactOnlinePopup(lpContact, iter->second->GetOnline()))->Show();
 		}
@@ -1102,21 +1107,25 @@ void CAppWindow::SeedAvatars()
 void CAppWindow::ProcessAvatarResponse()
 {
 	CCurlBinaryReader * lpReader = (CCurlBinaryReader *)m_lpAvatarRequest->GetReader();
+
 	CWaveContact * lpContact = GetWaveContact(m_szRequestingAvatar);
 
-	lpContact->SetRequestedAvatar(TRUE);
-
-	if (m_lpAvatarRequest->GetResult() == CURLE_OK && m_lpAvatarRequest->GetStatus() == 200)
+	if (lpContact != NULL)
 	{
-		SIZE szSize = { PL_CO_ICON_SIZE, PL_CO_ICON_SIZE };
+		lpContact->SetRequestedAvatar(TRUE);
 
-		wstring szContentType(m_lpAvatarRequest->GetHeader(L"Content-Type"));
-
-		if (!szContentType.empty())
+		if (m_lpAvatarRequest->GetResult() == CURLE_OK && m_lpAvatarRequest->GetStatus() == 200)
 		{
-			lpContact->SetAvatar(
-				CAvatar::Create(lpReader->GetData(), szSize, szContentType)
-			);
+			SIZE szSize = { PL_CO_ICON_SIZE, PL_CO_ICON_SIZE };
+
+			wstring szContentType(m_lpAvatarRequest->GetHeader(L"Content-Type"));
+
+			if (!szContentType.empty())
+			{
+				lpContact->SetAvatar(
+					CAvatar::Create(lpReader->GetData(), szSize, szContentType)
+				);
+			}
 		}
 	}
 
