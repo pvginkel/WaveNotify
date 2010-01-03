@@ -44,10 +44,10 @@ LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CAvatar.obj	\
 	CWaveRequestStartListening.obj CWaveRequestStopListening.obj		\
 	CWaveResponse.obj CWaveSession.obj CWaveView.obj CWindow.obj		\
 	CWindowHandle.obj Encryption.obj Format.obj GetFont.obj			\
-	GetWindowsVersion.obj Json_Reader.obj Json_Value.obj Json_Writer.obj	\
-	Log.obj Main.obj StdAfx.obj SubclassStaticForLink.obj Support.obj	\
-	TaskbarLocation.obj Trim.obj Unzip.obj UrlEncode.obj Wine.obj		\
-	wave-notify.res
+	GetLanguageCode.obj GetWindowsVersion.obj Json_Reader.obj		\
+	Json_Value.obj Json_Writer.obj Log.obj Main.obj StdAfx.obj		\
+	SubclassStaticForLink.obj Support.obj TaskbarLocation.obj Trim.obj	\
+	Unzip.obj UrlEncode.obj Wine.obj wave-notify.res
 
 TARGET_EXTRA=deps\curl-7.15.1\libcurl.dll deps\curl-7.15.1\libeay32.dll		\
 	deps\curl-7.15.1\ssleay32.dll deps\curl-7.15.1\zlib1.dll		\
