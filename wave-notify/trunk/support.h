@@ -77,6 +77,7 @@ HFONT CreateFontIndirectEx(HFONT hFont, LONG lWeight, BOOL fItalic, BOOL fUnderl
 BOOL FontExists(wstring szFontName);
 
 WINDOWS_VERSION GetWindowsVersion();
+LPCWSTR GetLanguageCode();
 
 BOOL RunningWine();
 wstring GetWineVersion();
