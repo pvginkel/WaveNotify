@@ -78,7 +78,7 @@ void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 
 	StringCbPrintfA(szBuffer2, _ARRAYSIZE(szBuffer2), "%s(%u) - %s\r\n%s\r\n", szFile, dwLine, szMsgBuf, szBuffer);
 
-	szBuffer2[_ARRAYSIZE(szBuffer2) - 1] = '\0';
+	strcpy(szBuffer2 + (_ARRAYSIZE(szBuffer2) - 3), "\r\n");
 
 	Log_Append(L"log.txt", szBuffer2);
 
