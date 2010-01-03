@@ -52,6 +52,8 @@ void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 
 	StringCbVPrintfA(szBuffer, _ARRAYSIZE(szBuffer), szFormat, argptr);
 
+	szBuffer[_ARRAYSIZE(szBuffer) - 1] = '\0';
+
 	va_end(argptr);
 
 	/* Trim the whitespaces from the end */
@@ -74,7 +76,9 @@ void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 
 	/* Write the file line */
 
-	StringCbPrintfA(szBuffer2, _ARRAYSIZE(szBuffer), "%s(%u) - %s\r\n%s\r\n", szFile, dwLine, szMsgBuf, szBuffer);
+	StringCbPrintfA(szBuffer2, _ARRAYSIZE(szBuffer2), "%s(%u) - %s\r\n%s\r\n", szFile, dwLine, szMsgBuf, szBuffer);
+
+	szBuffer2[_ARRAYSIZE(szBuffer2) - 1] = '\0';
 
 	Log_Append(L"log.txt", szBuffer2);
 
