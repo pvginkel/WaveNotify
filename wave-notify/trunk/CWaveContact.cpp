@@ -99,6 +99,8 @@ void CWaveContact::Merge(CWaveContact * lpContact)
 		delete *iter;
 	}
 
+	m_vNames.clear();
+
 	for (TWaveNameVectorIter iter1 = lpContact->m_vNames.begin(); iter1 != lpContact->m_vNames.end(); iter1++)
 	{
 		m_vNames.push_back(*iter1);
