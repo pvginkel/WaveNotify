@@ -293,6 +293,13 @@ wstring CVersion::GetRequestUrl()
 
 	if (vSettings.GetCollectStatistics(fCollectStatistics) && fCollectStatistics)
 	{
+		LPCWSTR szLanguageCode = GetLanguageCode();
+
+		if (szLanguageCode != NULL)
+		{
+			szUrl << L"&lang=" << szLanguageCode;
+		}
+
 		wstring szClientVersion;
 
 		if (RunningWine())
