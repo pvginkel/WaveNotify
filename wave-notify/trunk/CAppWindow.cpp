@@ -974,9 +974,18 @@ void CAppWindow::CheckApplicationUpdated()
 
 void CAppWindow::DisplayHelp()
 {
-	wstring szPath(GetDirname(GetModuleFileNameEx()) + L"\\" + CHM_FILENAME);
+	wstringstream szUrl;
 
-	ShellExecute(NULL, L"open", szPath.c_str(), NULL, NULL, SW_SHOW);
+	szUrl << MANUAL_LINK << L"?version=" << UrlEncode(CVersion::GetAppVersion());
+
+	LPCWSTR szLanguageCode = GetLanguageCode();
+
+	if (szLanguageCode != NULL)
+	{
+		szUrl << L"&lang=" << szLanguageCode;
+	}
+	
+	CNotifierApp::Instance()->OpenUrl(szUrl.str());
 }
 
 void CAppWindow::Login(wstring szUsername, wstring szPassword)
