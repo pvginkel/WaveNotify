@@ -22,6 +22,7 @@ CCurlMonitor::CCurlMonitor(CWindowHandle * lpTargetWindow) : CThread(TRUE)
 {
 	m_lpTargetWindow = lpTargetWindow;
 	m_fCancelled = FALSE;
+	m_lpMulti = NULL;
 
 	Resume();
 }
@@ -42,19 +43,19 @@ CCurlMonitor::~CCurlMonitor()
 
 DWORD CCurlMonitor::ThreadProc()
 {
-	CCurlMulti vMulti;
+	m_lpMulti = new CCurlMulti();
 
 	while (!m_fCancelled)
 	{
-		vMulti.Perform();
+		m_lpMulti->Perform();
 
-		ProcessMessages(vMulti);
+		ProcessMessages();
 
 		DWORD dwResult;
 
-		if (vMulti.GetRunning() > 0)
+		if (m_lpMulti->GetRunning() > 0)
 		{
-			CEvent * lpEvent = vMulti.GetEvent();
+			CEvent * lpEvent = m_lpMulti->GetEvent();
 
 			HANDLE vHandles[2] = { m_vEvent.GetHandle(), lpEvent->GetHandle() };
 
@@ -75,21 +76,27 @@ DWORD CCurlMonitor::ThreadProc()
 
 		if (dwResult == WAIT_OBJECT_0)
 		{
-			ProcessEvent(vMulti);
+			ProcessEvent();
 		}
 	}
 
 	CancelAllRequests();
 
+	delete m_lpMulti;
+
+	m_lpMulti = NULL;
+
 	return 0;
 }
 
-void CCurlMonitor::ProcessEvent(CCurlMulti & vMulti)
+void CCurlMonitor::ProcessEvent()
 {
 	TCurlVector vQueueRequests;
 	TCurlVector vCancelRequests;
 
 	m_vLock.Enter();
+
+	// Transport the m_vQueueRequests queue.
 
 	for (TCurlVectorIter iter = m_vQueueRequests.begin(); iter != m_vQueueRequests.end(); iter++)
 	{
@@ -98,23 +105,31 @@ void CCurlMonitor::ProcessEvent(CCurlMulti & vMulti)
 
 	m_vQueueRequests.clear();
 
+	// Transport the m_vCancelRequests queue.
+
 	for (TCurlVectorIter iter1 = m_vCancelRequests.begin(); iter1 != m_vCancelRequests.end(); iter1++)
 	{
-		vCancelRequests.push_back(*iter1);
+		// Verify whether we still have ownership of the requests.
+
+		TCurlVectorIter pos = find(m_vRequests.begin(), m_vRequests.end(), *iter1);
+
+		if (pos != m_vRequests.end())
+		{
+			vCancelRequests.push_back(*pos);
+
+			m_vRequests.erase(pos);
+		}
 	}
 
 	m_vCancelRequests.clear();
 
 	m_vLock.Leave();
 
-	for (TCurlVectorIter iter2 = vCancelRequests.begin(); iter2 != vCancelRequests.end(); iter2++)
-	{
-		vMulti.Remove(*iter2);
-	}
+	// Process both queues.
 
 	CancelRequests(vCancelRequests);
 
-	QueueRequests(vMulti, vQueueRequests);
+	QueueRequests(vQueueRequests);
 }
 
 void CCurlMonitor::CancelAllRequests()
@@ -122,11 +137,11 @@ void CCurlMonitor::CancelAllRequests()
 	CancelRequests(m_vRequests);
 }
 
-void CCurlMonitor::ProcessMessages(CCurlMulti & vMulti)
+void CCurlMonitor::ProcessMessages()
 {
 	CURLMsg * lpMessage;
 
-	while (( lpMessage = vMulti.GetNextMessage() ))
+	while (( lpMessage = m_lpMulti->GetNextMessage() ))
 	{
 		if (lpMessage->msg != CURLMSG_DONE)
 		{
@@ -139,9 +154,9 @@ void CCurlMonitor::ProcessMessages(CCurlMulti & vMulti)
 		CURL * lpCurlHandle = lpMessage->easy_handle;
 		CURLcode nCode = lpMessage->data.result;
 
-		// Remove the handle from the vMulti.
+		// Remove the handle from the CCurlMulti.
 
-		vMulti.Remove(lpCurlHandle);
+		m_lpMulti->Remove(lpCurlHandle);
 
 		// Find the curl object with the message.
 
@@ -175,13 +190,13 @@ void CCurlMonitor::ProcessMessages(CCurlMulti & vMulti)
 	}
 }
 
-void CCurlMonitor::QueueRequests(CCurlMulti & vMulti, TCurlVector & vRequests)
+void CCurlMonitor::QueueRequests(TCurlVector & vRequests)
 {
 	for (TCurlVectorIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
 	{
 		m_vCache.Add(*iter);
 
-		vMulti.Add(*iter);
+		m_lpMulti->Add(*iter);
 
 		m_vRequests.push_back(*iter);
 	}
@@ -189,23 +204,14 @@ void CCurlMonitor::QueueRequests(CCurlMulti & vMulti, TCurlVector & vRequests)
 
 void CCurlMonitor::CancelRequests(TCurlVector & vRequests)
 {
-	TCurlVector vToRemove;
-
 	for (TCurlVectorIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
 	{
+		m_lpMulti->Remove(*iter);
+
 		SignalCompleted(*iter, (CURLcode)-1, 0);
-
-		vToRemove.push_back(*iter);
 	}
 
-	for (TCurlVectorIter iter1 = vToRemove.begin(); iter1 != vToRemove.end(); iter1++)
-	{
-		TCurlVectorIter pos = find(m_vRequests.begin(), m_vRequests.end(), *iter1);
-
-		ASSERT(pos != m_vRequests.end());
-
-		m_vRequests.erase(pos);
-	}
+	vRequests.clear();
 }
 
 void CCurlMonitor::SignalCompleted(CCurl * lpCurl, CURLcode nCode, LONG lStatus)
