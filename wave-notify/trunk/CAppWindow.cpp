@@ -771,16 +771,31 @@ void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads, BOOL fManu
 		CPopupWindow::Instance()->GetPopups(vPopups);
 
 		UINT uCount = 0;
+		UINT uIndex = -1;
 
 		for (TPopupVectorIter iter = vPopups.begin(); iter != vPopups.end(); iter++)
 		{
 			if (((CPopupBase *)(*iter))->GetType() == PT_WAVE)
 			{
+				CUnreadWavePopup * lpPopup = (CUnreadWavePopup *)*iter;
+
 				uCount++;
+
+				if (uIndex == -1)
+				{
+					uIndex = lpPopup->GetIndex();
+				}
 			}
 		}
 
-		UINT uIndex = 1;
+		if (uIndex <= 0)
+		{
+			uIndex = 1;
+		}
+		else
+		{
+			uCount += uIndex - 1;
+		}
 
 		for (TPopupVectorIter iter1 = vPopups.begin(); iter1 != vPopups.end(); iter1++)
 		{
