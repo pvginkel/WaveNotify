@@ -303,6 +303,7 @@ private:
 	TCurlVector m_vRequests;
 	CWindowHandle * m_lpTargetWindow;
 	CCurlCache m_vCache;
+	CCurlMulti * m_lpMulti;
 
 public:
 	CCurlMonitor(CWindowHandle * lpTargetWindow);
@@ -333,10 +334,10 @@ protected:
 	DWORD ThreadProc();
 
 private:
-	void ProcessEvent(CCurlMulti & vMulti);
-	void ProcessMessages(CCurlMulti & vMulti);
+	void ProcessEvent();
+	void ProcessMessages();
 	void CancelAllRequests();
-	void QueueRequests(CCurlMulti & vMulti, TCurlVector & vRequests);
+	void QueueRequests(TCurlVector & vRequests);
 	void CancelRequests(TCurlVector & vRequests);
 	void SignalCompleted(CCurl * lpCurl, CURLcode nCode, LONG lStatus);
 };
