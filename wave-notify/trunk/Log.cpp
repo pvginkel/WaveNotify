@@ -29,26 +29,13 @@ void __declspec(noreturn) Log_AssertFailA(LPCSTR szFile, DWORD dwLine, LPCSTR sz
 
 void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 {
-	CHAR szBuffer[512];
-	CHAR szBuffer2[512];
-	DWORD dwLastError;
-	LPSTR szMsgBuf;
-	LPSTR szTail;
+	DWORD dwLastError = GetLastError();
+
 	va_list argptr;
 
-	dwLastError = GetLastError();
-
-	FormatMessageA(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-		FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		dwLastError,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPSTR)&szMsgBuf,
-		0, NULL);
-
 	va_start(argptr, szFormat);
+
+	CHAR szBuffer[512];
 
 	StringCbVPrintfA(szBuffer, _ARRAYSIZE(szBuffer), szFormat, argptr);
 
@@ -56,33 +43,15 @@ void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 
 	va_end(argptr);
 
-	/* Trim the whitespaces from the end */
-
-	szTail = strrchr(szMsgBuf, '\0');
-
-	szTail--;
-
-	while (szTail > szMsgBuf)
-	{
-		if (isspace(*szTail) || *szTail == '.')
-		{
-			*szTail-- = '\0';
-		}
-		else
-		{
-			break;
-		}
-	}
-
 	/* Write the file line */
 
-	StringCbPrintfA(szBuffer2, _ARRAYSIZE(szBuffer2), "%s(%u) - %s\r\n%s\r\n", szFile, dwLine, szMsgBuf, szBuffer);
+	CHAR szBuffer2[512];
+
+	StringCbPrintfA(szBuffer2, _ARRAYSIZE(szBuffer2), "%s(%u) - %d\r\n%s\r\n", szFile, dwLine, dwLastError, szBuffer);
 
 	strcpy(szBuffer2 + (_ARRAYSIZE(szBuffer2) - 3), "\r\n");
 
 	Log_Append(L"log.txt", szBuffer2);
-
-	LocalFree(szMsgBuf);
 }
 
 void Log_Append(LPCWSTR szFileName, LPCSTR szLine)
