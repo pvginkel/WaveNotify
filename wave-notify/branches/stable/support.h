@@ -97,22 +97,22 @@ BOOL DecryptString(wstring szValue, wstring & szDecrypted);
 INT Rand(INT nMin, INT nMax);
 
 bool isword(char _Ch);
-bool isword(wchar_t _Ch);
+bool iswword(wchar_t _Ch);
 
-bool isalnum(wstring _String);
-bool isalpha(wstring _String);
-bool iscntrl(wstring _String);
-bool isdigit(wstring _String);
-bool isgraph(wstring _String);
-bool islower(wstring _String);
-bool isprint(wstring _String);
-bool ispunct(wstring _String);
-bool isspace(wstring _String);
-bool isupper(wstring _String);
-bool isword(wstring _String);
-bool isxdigit(wstring _String);
-wstring tolower(wstring _String);
-wstring touppoer(wstring _String);
+bool iswalnum(wstring _String);
+bool iswalpha(wstring _String);
+bool iswcntrl(wstring _String);
+bool iswdigit(wstring _String);
+bool iswgraph(wstring _String);
+bool iswlower(wstring _String);
+bool iswprint(wstring _String);
+bool iswpunct(wstring _String);
+bool iswspace(wstring _String);
+bool iswupper(wstring _String);
+bool iswword(wstring _String);
+bool iswxdigit(wstring _String);
+wstring towlower(wstring _String);
+wstring towuppoer(wstring _String);
 
 // Manually set debug breaks in code (better than DebugBreak because this
 // actually breaks at the point DEBUGBREAK is put and not somewhere

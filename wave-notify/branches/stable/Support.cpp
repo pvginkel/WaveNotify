@@ -37,16 +37,16 @@ bool isword(char _Ch)
 	return (_Ch == '_' || isalnum(_Ch));
 }
 
-bool isword(wchar_t _Ch)
+bool iswword(wchar_t _Ch)
 {
-	return (_Ch == L'_' || isalnum(_Ch));
+	return (_Ch == L'_' || iswalnum(_Ch));
 }
 
-bool isalnum(wstring _String)
+bool iswalnum(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isalnum(*iter))
+		if (!iswalnum(*iter))
 		{
 			return false;
 		}
@@ -55,11 +55,11 @@ bool isalnum(wstring _String)
 	return true;
 }
 
-bool isalpha(wstring _String)
+bool isawlpha(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isalpha(*iter))
+		if (!iswalpha(*iter))
 		{
 			return false;
 		}
@@ -68,11 +68,11 @@ bool isalpha(wstring _String)
 	return true;
 }
 
-bool iscntrl(wstring _String)
+bool iswcntrl(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!iscntrl(*iter))
+		if (!iswcntrl(*iter))
 		{
 			return false;
 		}
@@ -81,11 +81,11 @@ bool iscntrl(wstring _String)
 	return true;
 }
 
-bool isdigit(wstring _String)
+bool iswdigit(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isdigit(*iter))
+		if (!iswdigit(*iter))
 		{
 			return false;
 		}
@@ -94,11 +94,11 @@ bool isdigit(wstring _String)
 	return true;
 }
 
-bool isgraph(wstring _String)
+bool iswgraph(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isgraph(*iter))
+		if (!iswgraph(*iter))
 		{
 			return false;
 		}
@@ -107,11 +107,11 @@ bool isgraph(wstring _String)
 	return true;
 }
 
-bool islower(wstring _String)
+bool iswlower(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!islower(*iter))
+		if (!iswlower(*iter))
 		{
 			return false;
 		}
@@ -120,11 +120,11 @@ bool islower(wstring _String)
 	return true;
 }
 
-bool isprint(wstring _String)
+bool iswprint(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isprint(*iter))
+		if (!iswprint(*iter))
 		{
 			return false;
 		}
@@ -133,11 +133,11 @@ bool isprint(wstring _String)
 	return true;
 }
 
-bool ispunct(wstring _String)
+bool iswpunct(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!ispunct(*iter))
+		if (!iswpunct(*iter))
 		{
 			return false;
 		}
@@ -146,11 +146,11 @@ bool ispunct(wstring _String)
 	return true;
 }
 
-bool isspace(wstring _String)
+bool iswspace(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isspace(*iter))
+		if (!iswspace(*iter))
 		{
 			return false;
 		}
@@ -159,11 +159,11 @@ bool isspace(wstring _String)
 	return true;
 }
 
-bool isupper(wstring _String)
+bool iswupper(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isupper(*iter))
+		if (!iswupper(*iter))
 		{
 			return false;
 		}
@@ -172,11 +172,11 @@ bool isupper(wstring _String)
 	return true;
 }
 
-bool isword(wstring _String)
+bool iswword(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isword(*iter))
+		if (!iswword(*iter))
 		{
 			return false;
 		}
@@ -185,11 +185,11 @@ bool isword(wstring _String)
 	return true;
 }
 
-bool isxdigit(wstring _String)
+bool iswxdigit(wstring _String)
 {
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		if (!isxdigit(*iter))
+		if (!iswxdigit(*iter))
 		{
 			return false;
 		}
@@ -198,7 +198,7 @@ bool isxdigit(wstring _String)
 	return true;
 }
 
-wstring tolower(wstring _String)
+wstring towlower(wstring _String)
 {
 	wstring _Result;
 	
@@ -206,13 +206,13 @@ wstring tolower(wstring _String)
 
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		_Result += tolower(*iter);
+		_Result += towlower(*iter);
 	}
 
 	return _Result;
 }
 
-wstring touppoer(wstring _String)
+wstring towuppoer(wstring _String)
 {
 	wstring _Result;
 	
@@ -220,7 +220,7 @@ wstring touppoer(wstring _String)
 
 	for (wstring::const_iterator iter = _String.begin(); iter != _String.end(); iter++)
 	{
-		_Result += toupper(*iter);
+		_Result += towupper(*iter);
 	}
 
 	return _Result;

@@ -277,7 +277,7 @@ wstring CWaveSession::GetKeyFromSessionResponse(wstring szKey, wstring & szRespo
 
 			nOffset += szKey.length() + 1;
 
-			if (!isalnum(cBefore) && cBefore != '_')
+			if (!iswalnum(cBefore) && cBefore != '_')
 			{
 				break;
 			}
