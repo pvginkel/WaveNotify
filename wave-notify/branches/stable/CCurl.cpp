@@ -262,7 +262,7 @@ void CCurl::SignalCompleted(CURLcode nCode, LONG lStatus)
 
 	if (m_nResult != CURLE_OK && m_nResult != -1)
 	{
-		LOG4("cURL error %s (%d) - %d - %s", m_szError, (int)m_nResult, (int)m_lStatus, m_szUrl);
+		LOG4("cURL error: %s (%d) - %d - %s", m_szError, (int)m_nResult, (int)m_lStatus, m_szUrl);
 	}
 
 	m_lpTargetWindow->PostMessage(WM_CURL_RESPONSE, CR_COMPLETED, (LPARAM)this);

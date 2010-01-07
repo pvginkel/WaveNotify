@@ -53,7 +53,7 @@ BOOL CWaveReader::PumpMessage(BOOL & fSuccess)
 
 	wstring szLength = szReceived.substr(0, dwPos);
 
-	if (!isdigit(szLength))
+	if (!iswdigit(szLength))
 	{
 		// The first line was not a number; we cannot read a package.
 
