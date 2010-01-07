@@ -119,6 +119,26 @@ void CCurlMonitor::ProcessEvent()
 
 			m_vRequests.erase(pos);
 		}
+		else
+		{
+			// Check whether they're in our queue list.
+
+			pos = find(vQueueRequests.begin(), vQueueRequests.end(), *iter1);
+
+			if (pos != vQueueRequests.end())
+			{
+				// If we have a request to both queue and cancel, immediately
+				// set it to completed.
+
+				SignalCompleted(*pos, (CURLcode)-1, 0);
+
+				vQueueRequests.erase(pos);
+			}
+
+			// If the cancel request was not in our queue list, and we do
+			// not own it, we have already send a complete for it before the
+			// main thread send the cancel request. Just ignore it.
+		}
 	}
 
 	m_vCancelRequests.clear();
