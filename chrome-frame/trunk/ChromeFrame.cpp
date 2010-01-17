@@ -126,3 +126,29 @@ extern "C" BOOL chromeframe_available()
 
 	return fResult;
 }
+
+extern "C" BOOL chromeframe_set_param(LPCHROMEFRAME handle, LPVOID param)
+{
+	if (handle == NULL)
+	{
+		return FALSE;
+	}
+
+	CChromeFrame * lpControl = (CChromeFrame*)handle;
+
+	lpControl->SetParam(param);
+
+	return TRUE;
+}
+
+extern "C" LPVOID chromeframe_get_param(LPCHROMEFRAME handle)
+{
+	if (handle == NULL)
+	{
+		return NULL;
+	}
+
+	CChromeFrame * lpControl = (CChromeFrame*)handle;
+
+	return lpControl->GetParam();
+}

@@ -500,10 +500,11 @@ private:
 	wstring m_szUrl;
 	CComObject<CChromeFrameWindow> * m_lpView;
 	TStringVector m_vExtensions;
-	LPRECT m_lpRect;
+	RECT m_vRect;
 	URLCALLBACK m_lpUrlCallback;
 	NAVIGATEDCALLBACK m_lpNavigatedCallback;
 	HWND m_hWnd;
+	LPVOID m_lpParam;
 
 public:
 	CChromeFrame(HWND hParent, LPRECT lpRect, LPCWSTR szSrc);
@@ -527,4 +528,6 @@ public:
 		return m_fCreated ? m_hWnd : NULL;
 	}
 	void ReadyStateChanged();
+	LPVOID GetParam() const { return m_lpParam; }
+	void SetParam(LPVOID lpParam) { m_lpParam = lpParam; }
 };

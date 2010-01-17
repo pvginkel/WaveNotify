@@ -126,8 +126,8 @@ LRESULT CChromeFrameWindow::OnEraseBackgrond(UINT uMsg, WPARAM wParam, LPARAM lP
 	return 1;
 }
 
-
-HRESULT CChromeFrameWindow::InstallExtension(const wchar_t * szPath) { 
+HRESULT CChromeFrameWindow::InstallExtension(const wchar_t * szPath)
+{
 	BSTR bstrPath = SysAllocString(szPath);
 
 	if (bstrPath == NULL)
@@ -141,7 +141,9 @@ HRESULT CChromeFrameWindow::InstallExtension(const wchar_t * szPath) {
 
 	return hr;
 }
-HRESULT CChromeFrameWindow::PutSrc(const wchar_t * szUrl) {
+
+HRESULT CChromeFrameWindow::PutSrc(const wchar_t * szUrl)
+{
 	BSTR bstrUrl = SysAllocString(szUrl);
 
 	if (bstrUrl == NULL)
