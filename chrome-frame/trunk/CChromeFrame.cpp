@@ -22,11 +22,11 @@ CChromeFrame::CChromeFrame(HWND hParent, LPRECT lpRect, LPCWSTR szSrc) :
 	m_fCreated(FALSE),
 	m_hParent(hParent),
 	m_szUrl(szSrc),
-	m_lpRect(lpRect),
 	m_lpUrlCallback(NULL),
 	m_lpNavigatedCallback(NULL),
 	m_hWnd(NULL)
 {
+	memcpy(&m_vRect, lpRect, sizeof(RECT));
 }
 
 HWND CChromeFrame::Create()
@@ -41,7 +41,7 @@ HWND CChromeFrame::Create()
 	m_lpView->AddRef();
 	m_lpView->SetFrame(this);
 
-	HWND hWnd = m_lpView->Create(m_hParent, *m_lpRect, CHROME_FRAME_PROGID);
+	HWND hWnd = m_lpView->Create(m_hParent, m_vRect, CHROME_FRAME_PROGID);
 
 	if (hWnd != NULL)
 	{

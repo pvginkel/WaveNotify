@@ -41,6 +41,8 @@ DLLFUNC BOOL chromeframe_add_extension(LPCHROMEFRAME handle, LPCWSTR extension_p
 DLLFUNC HWND chromeframe_create_handle(LPCHROMEFRAME handle);
 DLLFUNC BOOL chromeframe_destroy(LPCHROMEFRAME handle);
 DLLFUNC BOOL chromeframe_available();
+DLLFUNC BOOL chromeframe_set_param(LPCHROMEFRAME handle, LPVOID param);
+DLLFUNC LPVOID chromeframe_get_param(LPCHROMEFRAME handle);
 
 #ifdef __cplusplus
 };
