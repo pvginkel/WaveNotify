@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include "version.h"
+#include "wave.h"
+
 typedef map<wstring, CDateTime> TStringDateTimeMap;
 typedef TStringDateTimeMap::iterator TStringDateTimeMapIter;
 typedef TStringDateTimeMap::const_iterator TStringDateTimeMapConstIter;

@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "notifierapp.h"
+
 class CLoginThread;
 
 class CLoginDialog : public CDialog

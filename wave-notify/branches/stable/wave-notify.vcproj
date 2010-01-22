@@ -601,6 +601,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\layout.h"
+				>
+			</File>
+			<File
 				RelativePath=".\lock.h"
 				>
 			</File>

@@ -17,6 +17,9 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "popups.h"
+#include "layout.h"
 
 void CPopupBase::PaintBackground(CDC & dc)
 {

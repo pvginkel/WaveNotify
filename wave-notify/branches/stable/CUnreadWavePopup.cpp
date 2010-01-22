@@ -17,6 +17,9 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "popups.h"
+#include "notifierapp.h"
+#include "layout.h"
 
 CUnreadWavePopup::CUnreadWavePopup(CUnreadWave * lpWave, UINT uIndex, UINT uCount) : CPopupBase(PT_WAVE)
 {

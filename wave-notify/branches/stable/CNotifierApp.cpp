@@ -17,6 +17,11 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "notifierapp.h"
+#include "layout.h"
+#include "settings.h"
+#include "browser.h"
 
 CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
 	: CApp(hInstance, szCmdLine)

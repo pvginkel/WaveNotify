@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "settings.h"
 
 const wstring CSettings::RegBaseKey(L"Software\\WaveNotify");
 const wstring CSettings::RegGoogleUsername(L"Username");

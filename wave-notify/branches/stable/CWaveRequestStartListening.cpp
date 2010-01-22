@@ -17,6 +17,8 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "wave.h"
+#include "notifierapp.h"
 
 CWaveRequestStartListening::CWaveRequestStartListening(wstring szSearchString)
 	: CWaveRequest(WMT_START_LISTENING)

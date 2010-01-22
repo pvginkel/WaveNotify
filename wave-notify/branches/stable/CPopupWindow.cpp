@@ -119,7 +119,7 @@ void CPopupWindow::Show(CPopup * lpPopup)
 ATOM CPopupWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 {
 	lpWndClass->style = CS_HREDRAW | CS_VREDRAW;
-	lpWndClass->hCursor = CNotifierApp::Instance()->GetCursorArrow();
+	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
 
 	return CWindow::CreateClass(lpWndClass);
 }

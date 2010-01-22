@@ -17,6 +17,10 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "migration.h"
+#include "settings.h"
+#include "version.h"
+#include "browser.h"
 
 #define REG_PASSWORD_OLD	L"Password"
 

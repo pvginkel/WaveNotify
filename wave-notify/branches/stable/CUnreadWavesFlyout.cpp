@@ -17,6 +17,10 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "flyouts.h"
+#include "wave.h"
+#include "notifierapp.h"
+#include "layout.h"
 
 CUnreadWavesFlyout::CUnreadWavesFlyout(CUnreadWaveCollection * lpWaves)
 {

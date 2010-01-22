@@ -30,7 +30,7 @@ ATOM CFlyout::CreateClass(LPWNDCLASSEX lpWndClass)
 {
 	lpWndClass->style = CS_HREDRAW | CS_VREDRAW;
 	lpWndClass->hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	lpWndClass->hCursor = CNotifierApp::Instance()->GetCursorArrow();
+	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
 
 	return CWindow::CreateClass(lpWndClass);
 }

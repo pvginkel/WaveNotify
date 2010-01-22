@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "settings.h"
 
 #define GENERIC_UNICODE_FONT		L"Microsoft Sans Serif"
 #define WINE_GENERIC_UNICODE_FONT	L"DejaVu Sans"

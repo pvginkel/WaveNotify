@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "browser.h"
 
 const wstring CBrowser::BrowserDefault(L"default");
 const wstring CBrowser::BrowserChrome(L"chrome");

@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "wave.h"
 
 CWaveMessage::CWaveMessage(Json::Value & vRoot, UINT uOrder)
 {
