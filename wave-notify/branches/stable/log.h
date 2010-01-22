@@ -20,6 +20,16 @@
 
 #pragma once
 
+#ifdef _DEBUG
+
+#define DEBUGBREAK __asm { int 3 }
+
+#else // !_DEBUG
+
+#define DEBUGBREAK
+
+#endif
+
 #if defined(_DEBUG) && defined(BREAK_ON_LOG)
 
 #define LOG(_Mesg)			{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ) ); }
@@ -61,6 +71,7 @@
 #define DASSERT(_Cond)			ASSERT(_Cond)
 #define DFAIL(_Mesg)			FAIL(_Mesg)
 #define ASSERT(_Cond)			do { if ( !(_Cond) ) { DEBUGBREAK; Log_AssertFailA( __FILE__, __LINE__, ( # _Cond ) ); } } while (0)
+#define ASSERT_MSG(_Cond, _Mesg)	do { if ( !(_Cond) ) { DEBUGBREAK; Log_AssertFailA( __FILE__, __LINE__, ( _Mesg ) ); } } while (0)
 #define FAIL(_Mesg)			do { DEBUGBREAK; Log_AssertFailA( __FILE__, __LINE__, ( _Mesg ) ); } while (0)
 
 #else
