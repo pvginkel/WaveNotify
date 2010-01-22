@@ -41,7 +41,11 @@
 
 #define USERAGENT 		L"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 (.NET CLR 3.5.30729)"
 
+#if _DEBUG
+#define GLOBAL_MUTEX		L"Local\\{67992639-4CA3-4f3c-B0D0-5DE370D71C80}"
+#else
 #define GLOBAL_MUTEX		L"Local\\{A6A3BA8F-CDFF-48f6-B894-B869E59F2EA0}"
+#endif
 
 #define HOMEPAGE_LINK		L"http://wave-notify.sourceforge.net/index.php?from=client"
 #define CHANGELOG_LINK		L"http://wave-notify.sourceforge.net/changelog.php?from=client"
