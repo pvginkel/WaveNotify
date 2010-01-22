@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "avatar.h"
 
 CAvatar::CAvatar(SIZE szSize)
 {

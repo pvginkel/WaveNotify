@@ -17,6 +17,9 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "migration.h"
+#include "version.h"
+#include "notifierapp.h"
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {

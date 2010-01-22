@@ -17,6 +17,10 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "wave.h"
+#include "popups.h"
+#include "notifierapp.h"
+#include "layout.h"
 
 CContactOnlinePopup::CContactOnlinePopup(CWaveContact * lpContact, BOOL fOnline) : CPopupBase(PT_CONTACT_ONLINE)
 {

@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "notifierapp.h"
 
 static LRESULT CALLBACK SubclassStaticForLink_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void SubclassStaticForLink_Paint(HWND hWnd);

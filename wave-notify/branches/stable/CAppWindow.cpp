@@ -17,6 +17,16 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "notifierapp.h"
+#include "flyouts.h"
+#include "aboutdialog.h"
+#include "optionssheet.h"
+#include "settings.h"
+#include "wave.h"
+#include "popups.h"
+#include "logindialog.h"
+#include "layout.h"
 
 CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
 {

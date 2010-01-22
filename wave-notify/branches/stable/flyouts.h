@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "wave.h"
+
 class CUnreadWavesFlyout : public CFlyout
 {
 public:

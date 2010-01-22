@@ -17,6 +17,11 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "optionssheet.h"
+#include "notifierapp.h"
+#include "browser.h"
+#include "settings.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // COptionsGeneralPage /////////////////////////////////////////////////////////

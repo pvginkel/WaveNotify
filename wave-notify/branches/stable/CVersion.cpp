@@ -17,6 +17,9 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "version.h"
+#include "notifierapp.h"
+#include "settings.h"
 
 #define UPDATE_FILENAME		L"update.zip"
 #define UPDATE_PATH		L"update-tmp"

@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "wave.h"
 
 CWaveName::CWaveName(Json::Value & vRoot)
 {

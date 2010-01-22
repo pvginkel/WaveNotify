@@ -107,16 +107,11 @@ typedef enum
 
 #define TIMER_REREPORT_TIMEOUT			(3 * 60 * 1000)
 
-// And the actual includes.
-
-#include "resource.h"
-
-// Framework includes.
-
 #include "compat.h"
 #include "types.h"
 #include "thread.h"
 #include "utf8converter.h"
+#include "windowhandle.h"
 #include "gdi.h"
 #include "lock.h"
 #include "registry.h"
@@ -125,7 +120,6 @@ typedef enum
 #include "delegate.h"
 #include "event.h"
 #include "mutex.h"
-#include "windowhandle.h"
 #include "curl.h"
 #include "window.h"
 #include "dialog.h"
@@ -137,23 +131,5 @@ typedef enum
 #include "app.h"
 #include "datetime.h"
 #include "unzip.h"
-
-// Application includes.
-
-#include "avatar.h"
-#include "version.h"
-#include "settings.h"
-#include "browser.h"
-#include "wave.h"
-#include "waverequest.h"
-#include "waveresponse.h"
-#include "unreadwave.h"
-#include "notifierapp.h"
-#include "logindialog.h"
-#include "popups.h"
-#include "flyouts.h"
-#include "aboutdialog.h"
-#include "optionssheet.h"
-#include "migration.h"
 
 #endif // _INC_INCLUDE

@@ -17,6 +17,10 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "notifierapp.h"
+#include "aboutdialog.h"
+#include "layout.h"
 
 INT_PTR CAboutDialog::DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 {

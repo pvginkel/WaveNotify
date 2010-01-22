@@ -17,6 +17,9 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "popups.h"
+#include "notifierapp.h"
+#include "layout.h"
 
 CMessagePopup::CMessagePopup(wstring szMessage) : CPopupBase(PT_MESSAGE)
 {
