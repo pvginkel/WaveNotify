@@ -18,6 +18,8 @@
 #include "stdafx.h"
 #include "include.h"
 
+static CHAR g_szAppVersion[64];
+
 void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...);
 
 void __declspec(noreturn) Log_AssertFailA(LPCSTR szFile, DWORD dwLine, LPCSTR szCond)
@@ -47,7 +49,15 @@ void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 
 	CHAR szBuffer2[512];
 
-	StringCbPrintfA(szBuffer2, _ARRAYSIZE(szBuffer2), "%s(%u) - %d\r\n%s\r\n", szFile, dwLine, dwLastError, szBuffer);
+	SYSTEMTIME st;
+
+	GetSystemTime(&st);
+
+	StringCbPrintfA(szBuffer2, _ARRAYSIZE(szBuffer2), "%s(%u) - %d - %s - %d-%d-%d %d:%02d:%02d\r\n%s\r\n",
+		szFile, dwLine,
+		dwLastError, ( g_szAppVersion == NULL ? "(unknown)" : g_szAppVersion ),
+		(int)st.wYear, (int)st.wMonth, (int)st.wDay, (int)st.wHour, (int)st.wMinute, (int)st.wSecond,
+		szBuffer);
 
 	strcpy(szBuffer2 + (_ARRAYSIZE(szBuffer2) - 3), "\r\n");
 
@@ -75,4 +85,10 @@ void Log_Append(LPCWSTR szFileName, LPCSTR szLine)
 
 		CloseHandle(hFile);
 	}
+}
+
+void Log_SetAppVersion(LPCSTR szAppVersion)
+{
+	strncpy(g_szAppVersion, szAppVersion, _ARRAYSIZE(g_szAppVersion) - 1);
+	g_szAppVersion[_ARRAYSIZE(g_szAppVersion) - 1] = '\0';
 }

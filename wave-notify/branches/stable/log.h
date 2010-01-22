@@ -22,69 +22,51 @@
 
 #ifdef _DEBUG
 
-#define DEBUGBREAK __asm { int 3 }
+#define DEBUGBREAK	__asm { int 3 }
+
+#ifdef BREAK_ON_LOG
+#define LOGBREAK	DEBUGBREAK
+#else
+#define LOGBREAK
+#endif // !BREAK_ON_LOG
 
 #else // !_DEBUG
 
 #define DEBUGBREAK
+#define LOGBREAK
 
 #endif
 
-#if defined(_DEBUG) && defined(BREAK_ON_LOG)
-
-#define LOG(_Mesg)			{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ) ); }
-#define LOG1(_Mesg, _1)			{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ) ); }
-#define LOG2(_Mesg, _1, _2)		{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ) ); }
-#define LOG3(_Mesg, _1, _2, _3)		{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ) ); }
-#define LOG4(_Mesg, _1, _2, _3, _4)	{ DEBUGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ), ( _4 ) ); }
-
-#else
-
-#define LOG(_Mesg)			Log_WriteA( __FILE__, __LINE__, ( _Mesg ) )
-#define LOG1(_Mesg, _1)			Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ) )
-#define LOG2(_Mesg, _1, _2)		Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ) )
-#define LOG3(_Mesg, _1, _2, _3)		Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ) )
-#define LOG4(_Mesg, _1, _2, _3, _4)	Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ), ( _4 ) )
-
-#endif
+#define LOG(_Mesg)			do { LOGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ) ); } while (0)
+#define LOG1(_Mesg, _1)			do { LOGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ) ); } } while (0)
+#define LOG2(_Mesg, _1, _2)		do { LOGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ) ); } } while (0)
+#define LOG3(_Mesg, _1, _2, _3)		do { LOGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ) ); } } while (0)
+#define LOG4(_Mesg, _1, _2, _3, _4)	do { LOGBREAK; Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ), ( _4 ) ); } while (0)
 
 #ifdef _DEBUG
 
-#define DLOG(_Mesg)			Log_WriteA( __FILE__, __LINE__, ( _Mesg ) )
-#define DLOG1(_Mesg, _1)		Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ) )
-#define DLOG2(_Mesg, _1, _2)		Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ) )
-#define DLOG3(_Mesg, _1, _2, _3)	Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ) )
-#define DLOG4(_Mesg, _1, _2, _3, _4)	Log_WriteA( __FILE__, __LINE__, ( _Mesg ), ( _1 ), ( _2 ), ( _3 ), ( _4 ) )
-
-#else // !_DEBUG
-
-#define DLOG(_Mesg)
-#define DLOG1(_Mesg, _1)
-#define DLOG2(_Mesg, _1, _2)
-#define DLOG3(_Mesg, _1, _2, _3)
-#define DLOG4(_Mesg, _1, _2, _3, _4)
-
-#endif // _DEBUG
-
-#ifdef _DEBUG
-
-#define DASSERT(_Cond)			ASSERT(_Cond)
-#define DFAIL(_Mesg)			FAIL(_Mesg)
 #define ASSERT(_Cond)			do { if ( !(_Cond) ) { DEBUGBREAK; Log_AssertFailA( __FILE__, __LINE__, ( # _Cond ) ); } } while (0)
 #define ASSERT_MSG(_Cond, _Mesg)	do { if ( !(_Cond) ) { DEBUGBREAK; Log_AssertFailA( __FILE__, __LINE__, ( _Mesg ) ); } } while (0)
 #define FAIL(_Mesg)			do { DEBUGBREAK; Log_AssertFailA( __FILE__, __LINE__, ( _Mesg ) ); } while (0)
 
 #else
 
-#define DASSERT(_Cond)
-#define DFAIL(_Mesg)
 #define ASSERT(_Cond)			(void) ( ( !!(_Cond) ) || ( Log_AssertFailA( __FILE__, __LINE__, ( # _Cond ) ), 1 ) )
-#define FAIL(_Mesg)			Log_AssertFailA( __FILE__, __LINE__, ( _Mesg ) )
+#define ASSERT_MSG(_Cond, _Mesg)	(void) ( ( !!(_Cond) ) || ( Log_AssertFailA( __FILE__, __LINE__, ( # _Mesg ) ), 1 ) )
+#define FAIL(_Mesg)			(void) ( Log_AssertFailA( __FILE__, __LINE__, ( _Mesg ) ) )
 
 #endif
 
 void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...);
 void __declspec(noreturn) Log_AssertFailA(LPCSTR szFile, DWORD dwLine, LPCSTR szCond);
 void Log_Append(LPCWSTR szFileName, LPCSTR szLine);
+void Log_SetAppVersion(LPCSTR szAppVersion);
+
+#define __CHECK_PREFIX			"CHECK: "
+
+#define	CHECK(_Cond)			do { if ( !(_Cond) ) { LOG(__CHECK_PREFIX "Condition failed: " # _Cond ); } } while (0)
+#define CHECK_PTR(_Ptr)			do { if ( IS_INTRESOURCE(_Ptr) ) { LOG(__CHECK_PREFIX "Illegal pointer or NULL: " # _Ptr ); } } while (0)
+#define CHECK_PTR_NULL(_Ptr)		do { if ( ( _Ptr ) == NULL || IS_INTRESOURCE(_Ptr) { LOG(__CHECK_PREFIX "Illegal pointer: " # _Ptr ); } } while (0)
+#define CHECK_ENUM(_Value, _Max)	do { if ( (_Value) < 0 || (_Value) >= (_Max) ) { LOG(__CHECK_PREFIX "Illegal enum value: " # _Value ); } } while (0)
 
 #endif // _INC_LOG
