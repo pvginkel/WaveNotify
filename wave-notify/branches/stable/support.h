@@ -120,16 +120,6 @@ wstring towuppoer(wstring _String);
 
 #ifdef _DEBUG
 
-#define DEBUGBREAK __asm { int 3 }
-
-#else // !_DEBUG
-
-#define DEBUGBREAK
-
-#endif
-
-#ifdef _DEBUG
-
 #define new				new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define malloc(_Size)			_malloc_dbg((_Size), _NORMAL_BLOCK, __FILE__, __LINE__)
 #define realloc(_Memory, _Size)		_realloc_dbg((void *)(_Memory), (_Size), _NORMAL_BLOCK, __FILE__, __LINE__)
