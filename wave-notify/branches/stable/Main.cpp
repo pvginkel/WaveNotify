@@ -33,6 +33,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	_CrtMemCheckpoint(&vMemState);
 
 #endif
+	
+	// Set the application version for logging purposes.
+
+	Log_SetAppVersion(ConvertToMultiByte(CVersion::GetAppVersion()).c_str());
+
 	CoInitialize(NULL);
 
 	//
