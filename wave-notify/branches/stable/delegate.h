@@ -154,11 +154,7 @@ public:
 
 private:
 	TDelegateVectorIter FindDelegate(Delegate vDelegate) {
-		for (TDelegateVectorIter iter = m_vDelegates.begin(); iter != m_vDelegates.end(); iter++) {
-			if (*iter == vDelegate)
-				return iter;
-		}
-		return m_vDelegates.end();
+		return find(m_vDelegates.begin(), m_vDelegates.end(), vDelegate);
 	}
 
 };
