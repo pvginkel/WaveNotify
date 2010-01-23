@@ -223,7 +223,20 @@ size_t CCurl::WriteData(void * lpData, size_t dwSize, size_t dwBlocks)
 	{
 		ASSERT(lpData != NULL);
 
-		if (!m_lpReader->Read((LPBYTE)lpData, (DWORD)(dwSize * dwBlocks)))
+		CURL_DATA_RECEIVED cdr;
+
+		memset(&cdr, 0, sizeof(CURL_DATA_RECEIVED));
+
+		cdr.lpReader = m_lpReader;
+		cdr.lpData = (LPBYTE)lpData;
+		cdr.cbData = (DWORD)(dwSize * dwBlocks);
+
+		BOOL fResult = m_lpTargetWindow->SendMessage(
+			WM_CURL_RESPONSE,
+			CR_DATA_RECEIVED,
+			(LPARAM)&cdr);
+
+		if (!fResult)
 		{
 			return 0;
 		}

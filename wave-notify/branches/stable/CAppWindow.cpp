@@ -150,7 +150,7 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_CURL_RESPONSE:
-		return OnCurlResponse((CURL_RESPONSE)wParam, (CCurl *)lParam);
+		return OnCurlResponse((CURL_RESPONSE)wParam, lParam);
 
 	case WM_VERSION_STATE:
 		return OnVersionState((VERSION_STATE)wParam);
@@ -1071,10 +1071,33 @@ void CAppWindow::CancelRequest(CCurl * lpRequest)
 	m_lpMonitor->CancelRequest(lpRequest);
 }
 
-LRESULT CAppWindow::OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
+LRESULT CAppWindow::OnCurlResponse(CURL_RESPONSE nState, LPARAM lParam)
 {
 	CHECK_ENUM(nState, CR_MAX);
 
+	switch (nState)
+	{
+	case CR_DATA_RECEIVED:
+		return ProcessCurlDataReceived((LPCURL_DATA_RECEIVED)lParam);
+
+	case CR_COMPLETED:
+		return ProcessCurlCompleted((CCurl *)lParam);
+
+	default:
+		LOG1("Unknown CURL_RESPONSE state %d", nState);
+		return 0;
+	}
+}
+
+LRESULT CAppWindow::ProcessCurlDataReceived(LPCURL_DATA_RECEIVED lpParam)
+{
+	ASSERT(lpParam != NULL);
+
+	return lpParam->lpReader->Read(lpParam->lpData, lpParam->cbData);
+}
+
+LRESULT CAppWindow::ProcessCurlCompleted(CCurl * lpCurl)
+{
 	ASSERT(lpCurl != NULL);
 
 	if (m_lpAvatarRequest != NULL && m_lpAvatarRequest == lpCurl)
@@ -1082,8 +1105,8 @@ LRESULT CAppWindow::OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
 		ProcessAvatarResponse();
 	}
 	else if (
-		!m_lpSession->ProcessCurlResponse(nState, lpCurl) &&
-		!CVersion::Instance()->ProcessCurlResponse(nState, lpCurl)
+		!m_lpSession->ProcessCurlResponse(lpCurl) &&
+		!CVersion::Instance()->ProcessCurlResponse(lpCurl)
 	) {
 		//LOG("Could not process curl response");
 

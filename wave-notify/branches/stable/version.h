@@ -55,7 +55,7 @@ public:
 
 	BOOL CheckVersion();
 	BOOL PerformUpdate();
-	BOOL ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
+	BOOL ProcessCurlResponse(CCurl * lpCurl);
 	void SetTargetWindow(CWindowHandle * lpTargetWindow) {
 		m_lpTargetWindow = lpTargetWindow;
 	}

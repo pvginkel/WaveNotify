@@ -357,11 +357,11 @@ void CWaveSession::RemoveProgressTarget(CWindowHandle * lpSignalWindow)
 	}
 }
 
-BOOL CWaveSession::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
+BOOL CWaveSession::ProcessCurlResponse(CCurl * lpCurl)
 {
 	// Do we understand the response?
 
-	if (nState != CR_COMPLETED || lpCurl == NULL)
+	if (lpCurl == NULL)
 	{
 		return FALSE;
 	}

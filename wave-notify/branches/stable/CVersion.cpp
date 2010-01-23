@@ -46,11 +46,11 @@ CVersion::~CVersion()
 	m_lpInstance = NULL;
 }
 
-BOOL CVersion::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
+BOOL CVersion::ProcessCurlResponse(CCurl * lpCurl)
 {
 	// Do we understand the response?
 
-	if (nState != CR_COMPLETED || lpCurl == NULL)
+	if (lpCurl == NULL)
 	{
 		return FALSE;
 	}
