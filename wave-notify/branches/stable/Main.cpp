@@ -20,6 +20,10 @@
 #include "migration.h"
 #include "version.h"
 #include "notifierapp.h"
+#include "settings.h"
+
+static void CheckCleanShutdown();
+static void SetCleanShutdown();
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -37,6 +41,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	// Set the application version for logging purposes.
 
 	Log_SetAppVersion(ConvertToMultiByte(CVersion::GetAppVersion()).c_str());
+
+	//
+	// Check for unclean shutdown.
+	//
+
+	CheckCleanShutdown();
+
+	//
+	// Initialize COM.
+	//
 
 	CoInitialize(NULL);
 
@@ -114,6 +128,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	CoUninitialize();
 
+	SetCleanShutdown();
+
 #ifdef _DEBUG
 
 	_CrtMemState vNewMemState;
@@ -138,4 +154,23 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
+}
+
+static void CheckCleanShutdown()
+{
+	CSettings vSettings(TRUE);
+
+	BOOL fRunning;
+
+	if (vSettings.GetApplicationRunning(fRunning) && fRunning)
+	{
+		LOG("Detected unclean shutdown");
+	}
+
+	vSettings.SetApplicationRunning(TRUE);
+}
+
+static void SetCleanShutdown()
+{
+	CSettings(TRUE).SetApplicationRunning(FALSE);
 }
