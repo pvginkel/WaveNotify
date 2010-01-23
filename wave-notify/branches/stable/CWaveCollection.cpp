@@ -31,24 +31,27 @@ CWaveCollection * CWaveCollection::CreateFromJson(Json::Value & vRoot)
 {
 	CWaveCollection * lpResult = new CWaveCollection();
 
-	if (!vRoot.isArray())
+	// (( scope ))
 	{
-		goto __failure;
-	}
-
-	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
-	{
-		CWave * lpWave = CWave::CreateFromJson(*iter);
-
-		if (lpWave == NULL)
+		if (!vRoot.isArray())
 		{
 			goto __failure;
 		}
 
-		lpResult->m_vWaves[lpWave->GetID()] = lpWave;
-	}
+		for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
+		{
+			CWave * lpWave = CWave::CreateFromJson(*iter);
 
-	return lpResult;
+			if (lpWave == NULL)
+			{
+				goto __failure;
+			}
+
+			lpResult->m_vWaves[lpWave->GetID()] = lpWave;
+		}
+
+		return lpResult;
+	}
 
 __failure:
 	LOG("Could not parse json");
