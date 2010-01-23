@@ -160,9 +160,9 @@ static void CheckCleanShutdown()
 {
 	CSettings vSettings(TRUE);
 
-	BOOL fRunning;
-
 #ifndef _DEBUG
+
+	BOOL fRunning;
 
 	if (vSettings.GetApplicationRunning(fRunning) && fRunning)
 	{
