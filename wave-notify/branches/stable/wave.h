@@ -238,9 +238,13 @@ private:
 	BOOL m_fRequestedAvatar;
 	CAvatar * m_lpAvatar;
 
+private:
+	CWaveContact();
+
 public:
-	CWaveContact(Json::Value & vRoot);
 	virtual ~CWaveContact();
+
+	static CWaveContact * CreateFromJson(Json::Value & vRoot);
 
 	wstring GetEmailAddress() const { return m_szEmailAddress; }
 	wstring GetName() const { return m_szName; }
@@ -268,8 +272,9 @@ private:
 
 public:
 	CWaveContactCollection() { }
-	CWaveContactCollection(Json::Value & vRoot);
 	virtual ~CWaveContactCollection();
+
+	static CWaveContactCollection * CreateFromJson(Json::Value & vRoot);
 
 	const TWaveContactMap & GetContacts() const { return m_vContacts; }
 	CWaveContact * GetContact(wstring szEmailAddress) const {
@@ -289,9 +294,13 @@ private:
 	BOOL m_fOnline;
 	wstring m_szStatusMessage;
 
+private:
+	CWaveContactStatus();
+
 public:
-	CWaveContactStatus(Json::Value & vRoot);
 	virtual ~CWaveContactStatus();
+
+	static CWaveContactStatus * CreateFromJson(Json::Value & vRoot);
 
 	wstring GetEmailAddress() const { return m_szEmailAddress; }
 	BOOL GetOnline() const { return m_fOnline; }
@@ -303,18 +312,23 @@ class CWaveContactStatusCollection
 private:
 	TWaveContactStatusMap m_vStatuses;
 
+private:
+	CWaveContactStatusCollection();
 public:
-	CWaveContactStatusCollection(Json::Value & vRoot);
 	virtual ~CWaveContactStatusCollection();
+
+	static CWaveContactStatusCollection * CreateFromJson(Json::Value & vRoot);
 
 	const TWaveContactStatusMap & GetStatuses() const { return m_vStatuses; }
 };
 
 typedef enum
 {
+	WNT_UNKNOWN,
 	WNT_FULL = 1,
 	WNT_SHORT = 2,
-	WNT_SELF = 3
+	WNT_SELF = 3,
+	WNT_MAX
 } WAVE_NAME_TYPE;
 
 class CWaveName
@@ -323,8 +337,11 @@ private:
 	WAVE_NAME_TYPE m_nType;
 	wstring m_szName;
 
+private:
+	CWaveName();
+
 public:
-	CWaveName(Json::Value & vRoot);
+	static CWaveName * CreateFromJson(Json::Value & vRoot);
 
 	wstring GetName() const { return m_szName; }
 	WAVE_NAME_TYPE GetType() const { return m_nType; }
@@ -338,10 +355,14 @@ private:
 	UINT m_uContactId;
 	UINT m_uOrder;
 
+private:
+	CWaveMessage();
+
 public:
 	CWaveMessage(const CWaveMessage & _Other);
-	CWaveMessage(Json::Value & vRoot, UINT uOrder);
 	virtual ~CWaveMessage() { }
+
+	static CWaveMessage * CreateFromJson(Json::Value & vRoot, UINT uOrder);
 
 	void ResolveContact(CWave * lpWave);
 
@@ -374,10 +395,13 @@ private:
 	wstring m_szEmailAddress;
 	CDateTime m_dtTime;
 
+private:
+	CWave();
 public:
 	CWave(const CWave & _Other);
-	CWave(Json::Value & vRoot);
 	virtual ~CWave();
+
+	static CWave * CreateFromJson(Json::Value & vRoot);
 
 	wstring GetID() const { return m_szID; }
 	UINT GetTotalMessages() const { return m_uMessages; }
@@ -388,8 +412,17 @@ public:
 	wstring GetEmailAddress() const { return m_szEmailAddress; }
 	CDateTime GetTime() const { return m_dtTime; }
 
-	static CDateTime CreateDateTime(Json::Value & vRoot) {
-		return CreateDateTime(vRoot[1].asInt(), vRoot[0u].asInt());
+	static BOOL CreateDateTime(Json::Value & vRoot, CDateTime & dtResult) {
+		Json::Value & vMajor = vRoot[1];
+		Json::Value & vMinor = vRoot[0u];
+
+		if (vMajor.isIntegral() && vMinor.isIntegral()) {
+			dtResult = CreateDateTime(vMajor.asInt(), vMinor.asInt());
+			return TRUE;
+		} else {
+			LOG("Could not parse json");
+			return FALSE;
+		}
 	}
 	static CDateTime CreateDateTime(DWORD dwMajor, DWORD dwMinor) {
 		SYSTEMTIME vOffsetSystemTime = { 1970, 1, 0, 1, 0 };
@@ -400,8 +433,8 @@ public:
 	}
 
 private:
-	void AddContacts(Json::Value & vRoot);
-	void AddMessages(Json::Value & vRoot);
+	BOOL AddContacts(Json::Value & vRoot);
+	BOOL AddMessages(Json::Value & vRoot);
 
 };
 
@@ -412,8 +445,9 @@ private:
 
 public:
 	CWaveCollection() { }
-	CWaveCollection(Json::Value & vRoot);
 	~CWaveCollection();
+
+	static CWaveCollection * CreateFromJson(Json::Value & vRoot);
 
 	void Merge(CWaveCollection * lpWaves);
 	void RemoveWaves(const TStringVector & vRemovedWaves);

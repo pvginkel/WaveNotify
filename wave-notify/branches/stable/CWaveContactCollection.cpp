@@ -19,34 +19,55 @@
 #include "include.h"
 #include "wave.h"
 
-CWaveContactCollection::CWaveContactCollection(Json::Value & vRoot)
-{
-	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
-	{
-		// Detect whether we're reading the "all contacts" list or the "get contact
-		// details" list.
-
-		CWaveContact * lpContact;
-
-		if ((*iter)[L"8"].type() == Json::stringValue)
-		{
-			lpContact = new CWaveContact(*iter);
-		}
-		else
-		{
-			lpContact = new CWaveContact((*iter)[L"6"]);
-		}
-
-		m_vContacts[lpContact->GetEmailAddress()] = lpContact;
-	}
-}
-
 CWaveContactCollection::~CWaveContactCollection()
 {
 	for (TWaveContactMapIter iter = m_vContacts.begin(); iter != m_vContacts.end(); iter++)
 	{
 		delete iter->second;
 	}
+}
+
+CWaveContactCollection * CWaveContactCollection::CreateFromJson(Json::Value & vRoot)
+{
+	CWaveContactCollection * lpResult = new CWaveContactCollection();
+
+	if (!vRoot.isArray())
+	{
+		goto __failure;
+	}
+
+	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
+	{
+		if (!(*iter).isObject())
+		{
+			goto __failure;
+		}
+
+		// Detect whether we're reading the "all contacts" list or the "get contact
+		// details" list.
+
+		CWaveContact * lpContact;
+
+		if ((*iter)[L"8"].isString())
+		{
+			lpContact = CWaveContact::CreateFromJson(*iter);
+		}
+		else
+		{
+			lpContact = CWaveContact::CreateFromJson((*iter)[L"6"]);
+		}
+
+		lpResult->m_vContacts[lpContact->GetEmailAddress()] = lpContact;
+	}
+
+	return lpResult;
+
+__failure:
+	LOG("Could not parse json");
+
+	delete lpResult;
+
+	return NULL;
 }
 
 void CWaveContactCollection::Merge(CWaveContactCollection * lpContacts)

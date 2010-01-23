@@ -20,51 +20,12 @@
 #include "wave.h"
 #include "notifierapp.h"
 
-CWaveContact::CWaveContact(Json::Value & vRoot)
+CWaveContact::CWaveContact() :
+	m_fIsSelf(FALSE),
+	m_fOnline(FALSE),
+	m_fRequestedAvatar(FALSE),
+	m_lpAvatar(NULL)
 {
-	m_szEmailAddress = vRoot[L"8"].asString();
-	m_szName = vRoot[L"1"].type() == Json::nullValue ? m_szEmailAddress : vRoot[L"1"].asString();
-	m_szAvatarUrl = vRoot[L"2"].asString();
-	m_fIsSelf = m_szEmailAddress == CNotifierApp::Instance()->GetSession()->GetEmailAddress();
-	m_fRequestedAvatar = m_szAvatarUrl.empty();
-	m_lpAvatar = NULL;
-
-	if (!m_fIsSelf)
-	{
-		m_szDisplayName = m_szName;
-	}
-
-	Json::Value & vNames = vRoot[L"7"];
-
-	TStringBoolMap vNamesRead;
-
-	for (Json::Value::iterator iter = vNames.begin(); iter != vNames.end(); iter++)
-	{
-		CWaveName * lpName = new CWaveName(*iter);
-
-		if (vNamesRead.find(lpName->GetName()) == vNamesRead.end())
-		{
-			m_vNames.push_back(lpName);
-
-			vNamesRead[lpName->GetName()] = TRUE;
-
-			if (m_fIsSelf && m_szDisplayName.empty() && lpName->GetType() == WNT_SELF)
-			{
-				m_szDisplayName = lpName->GetName();
-			}
-		}
-		else
-		{
-			delete lpName;
-		}
-	}
-
-	if (m_szDisplayName.empty())
-	{
-		m_szDisplayName = m_szEmailAddress;
-	}
-
-	m_szDisplayName[0] = towupper(m_szDisplayName[0]);
 }
 
 CWaveContact::~CWaveContact()
@@ -78,6 +39,90 @@ CWaveContact::~CWaveContact()
 	{
 		delete m_lpAvatar;
 	}
+}
+
+CWaveContact * CWaveContact::CreateFromJson(Json::Value & vRoot)
+{
+	CWaveContact * lpResult = new CWaveContact();
+
+	TStringBoolMap vNamesRead;
+
+	if (!vRoot.isObject())
+	{
+		goto __failure;
+	}
+
+	Json::Value & vEmailAddress = vRoot[L"8"];
+	Json::Value & vName = vRoot[L"1"];
+	Json::Value & vAvatarUrl = vRoot[L"2"];
+	Json::Value & vNames = vRoot[L"7"];
+
+	if (
+		!vEmailAddress.isString() ||
+		!(vName.isNull() || vName.isString()) ||
+		!(vAvatarUrl.isNull() || vAvatarUrl.isString()) ||
+		!vNames.isArray()
+	) {
+		goto __failure;
+	}
+
+	lpResult->m_szEmailAddress = vEmailAddress.asString();
+	lpResult->m_szName = vName.type() == Json::nullValue ? lpResult->m_szEmailAddress : vName.asString();
+	lpResult->m_szAvatarUrl = vAvatarUrl.asString();
+	lpResult->m_fIsSelf =
+		(lpResult->m_szEmailAddress == CNotifierApp::Instance()->GetSession()->GetEmailAddress());
+	lpResult->m_fRequestedAvatar = lpResult->m_szAvatarUrl.empty();
+	lpResult->m_lpAvatar = NULL;
+
+	if (!lpResult->m_fIsSelf)
+	{
+		lpResult->m_szDisplayName = lpResult->m_szName;
+	}
+
+	for (Json::Value::iterator iter = vNames.begin(); iter != vNames.end(); iter++)
+	{
+		CWaveName * lpName = CWaveName::CreateFromJson(*iter);
+
+		if (lpName == NULL)
+		{
+			goto __failure;
+		}
+
+		if (vNamesRead.find(lpName->GetName()) == vNamesRead.end())
+		{
+			lpResult->m_vNames.push_back(lpName);
+
+			vNamesRead[lpName->GetName()] = TRUE;
+
+			if (
+				lpResult->m_fIsSelf &&
+				lpResult->m_szDisplayName.empty() &&
+				lpName->GetType() == WNT_SELF)
+			{
+				lpResult->m_szDisplayName = lpName->GetName();
+			}
+		}
+		else
+		{
+			delete lpName;
+		}
+	}
+
+	if (lpResult->m_szDisplayName.empty())
+	{
+		lpResult->m_szDisplayName = lpResult->m_szEmailAddress;
+	}
+
+	lpResult->m_szDisplayName[0] = towupper(lpResult->m_szDisplayName[0]);
+
+	return lpResult;
+
+__failure:
+	LOG("Could not parse json");
+
+	delete lpResult;
+
+	return NULL;
 }
 
 void CWaveContact::Merge(CWaveContactStatus * lpStatus)

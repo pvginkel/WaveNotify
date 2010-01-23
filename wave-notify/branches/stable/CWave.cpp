@@ -19,17 +19,10 @@
 #include "include.h"
 #include "wave.h"
 
-CWave::CWave(Json::Value & vRoot)
+CWave::CWave() :
+	m_uMessages(0),
+	m_uUnreadMessages(0)
 {
-	m_szID = vRoot[L"1"].asString();
-	m_szEmailAddress = vRoot[L"4"].asString();
-	m_uMessages = vRoot[L"6"].asUInt();
-	m_uUnreadMessages = vRoot[L"7"].asUInt();
-	m_szSubject = vRoot[L"9"][L"1"].asString();
-	m_dtTime = CWave::CreateDateTime(vRoot[L"8"]);
-
-	AddContacts(vRoot[L"5"]);
-	AddMessages(vRoot[L"10"]);
 }
 
 CWave::CWave(const CWave & _Other)
@@ -60,21 +53,102 @@ CWave::~CWave()
 	}
 }
 
-void CWave::AddContacts(Json::Value & vRoot)
+CWave * CWave::CreateFromJson(Json::Value & vRoot)
 {
-	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
+	CWave * lpResult = new CWave();
+
+	if (!vRoot.isObject())
 	{
-		m_vContacts.push_back((*iter).asString());
+		goto __failure;
 	}
+
+	Json::Value & vID = vRoot[L"1"];
+	Json::Value & vEmailAddress = vRoot[L"4"];
+	Json::Value & vMessages = vRoot[L"6"];
+	Json::Value & vUnreadMessages = vRoot[L"7"];
+	Json::Value & vItem9 = vRoot[L"9"];
+
+	if (
+		!vID.isString() ||
+		!vEmailAddress.isString() ||
+		!vMessages.isIntegral() ||
+		!vItem9.isObject()
+	) {
+		goto __failure;
+	}
+
+	Json::Value & vSubject = vItem9[L"1"];
+
+	if (!vSubject.isString())
+	{
+		goto __failure;
+	}
+
+	lpResult->m_szID = vID.asString();
+	lpResult->m_szEmailAddress = vEmailAddress.asString();
+	lpResult->m_uMessages = vMessages.asUInt();
+	lpResult->m_uUnreadMessages = vUnreadMessages.asUInt();
+	lpResult->m_szSubject = vSubject.asString();
+	
+	if (!CWave::CreateDateTime(vRoot[L"8"], lpResult->m_dtTime))
+	{
+		goto __failure;
+	}
+
+	if (
+		!lpResult->AddContacts(vRoot[L"5"]) ||
+		!lpResult->AddMessages(vRoot[L"10"])
+	) {
+		goto __failure;
+	}
+
+	return lpResult;
+
+__failure:
+	LOG("Could not parse json");
+
+	delete lpResult;
+
+	return NULL;
 }
 
-void CWave::AddMessages(Json::Value & vRoot)
+BOOL CWave::AddContacts(Json::Value & vRoot)
 {
+	if (!vRoot.isArray())
+	{
+		return FALSE;
+	}
+
+	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
+	{
+		if (!(*iter).isString())
+		{
+			return FALSE;
+		}
+
+		m_vContacts.push_back((*iter).asString());
+	}
+
+	return TRUE;
+}
+
+BOOL CWave::AddMessages(Json::Value & vRoot)
+{
+	if (!vRoot.isArray())
+	{
+		return FALSE;
+	}
+
 	UINT uOrder = 0;
 
 	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
 	{
-		CWaveMessage * lpMessage = new CWaveMessage(*iter, uOrder);
+		CWaveMessage * lpMessage = CWaveMessage::CreateFromJson(*iter, uOrder);
+
+		if (lpMessage == NULL)
+		{
+			return FALSE;
+		}
 
 		lpMessage->ResolveContact(this);
 
@@ -82,4 +156,6 @@ void CWave::AddMessages(Json::Value & vRoot)
 
 		uOrder++;
 	}
+
+	return TRUE;
 }
