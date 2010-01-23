@@ -62,6 +62,7 @@ private:
 	static const wstring RegPlaySoundOnNewWave;
 	static const wstring RegBrowser;
 	static const wstring RegNotificationWhenOnline;
+	static const wstring RegApplicationRunning;
 
 	CRegKey * m_lpKey;
 
@@ -95,6 +96,7 @@ public:
 	SETTINGS_VALUE(BOOL, PlaySoundOnNewWave);
 	SETTINGS_VALUE(wstring, Browser);
 	SETTINGS_VALUE(BOOL, NotificationWhenOnline);
+	SETTINGS_VALUE(BOOL, ApplicationRunning);
 
 	BOOL GetValue(wstring szName, wstring & szValue) const {
 		ASSERT(!szName.empty());

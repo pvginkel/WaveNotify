@@ -38,3 +38,4 @@ const wstring CSettings::RegUseGenericUnicodeFont(L"UseGenericUnicodeFont");
 const wstring CSettings::RegPlaySoundOnNewWave(L"PlaySoundOnNewWave");
 const wstring CSettings::RegBrowser(L"Browser");
 const wstring CSettings::RegNotificationWhenOnline(L"NotificationWhenOnline");
+const wstring CSettings::RegApplicationRunning(L"ApplicationRunning");
