@@ -47,8 +47,7 @@ public: // overridden from ValueArrayAllocator
       if ( minNewIndexCount > newIndexCount )
          newIndexCount = minNewIndexCount;
       void *newIndexes = realloc( indexes, sizeof(Value*) * newIndexCount );
-      if ( !newIndexes )
-         throw std::bad_alloc();
+      ASSERT(newIndexes);
       indexCount = newIndexCount;
       indexes = static_cast<Value **>( newIndexes );
    }
@@ -111,8 +110,7 @@ public: // overridden from ValueArrayAllocator
       if ( minNewIndexCount > newIndexCount )
          newIndexCount = minNewIndexCount;
       void *newIndexes = realloc( indexes, sizeof(Value*) * newIndexCount );
-      if ( !newIndexes )
-         throw std::bad_alloc();
+      ASSERT(newIndexes);
       indexCount = newIndexCount;
       indexes = static_cast<Value **>( newIndexes );
    }
@@ -169,7 +167,7 @@ ValueInternalArray::equals( const IteratorState &x,
 void 
 ValueInternalArray::increment( IteratorState &it )
 {
-   JSON_ASSERT_MESSAGE( it.array_  &&
+   ASSERT_MSG( it.array_  &&
       (it.currentPageIndex_ - it.array_->pages_)*itemsPerPage + it.currentItemIndex_
       != it.array_->size_,
       "ValueInternalArray::increment(): moving iterator beyond end" );
@@ -185,7 +183,7 @@ ValueInternalArray::increment( IteratorState &it )
 void 
 ValueInternalArray::decrement( IteratorState &it )
 {
-   JSON_ASSERT_MESSAGE( it.array_  &&  it.currentPageIndex_ == it.array_->pages_ 
+   ASSERT_MSG( it.array_  &&  it.currentPageIndex_ == it.array_->pages_ 
                         &&  it.currentItemIndex_ == 0,
       "ValueInternalArray::decrement(): moving iterator beyond end" );
    if ( it.currentItemIndex_ == 0 )
@@ -210,7 +208,7 @@ ValueInternalArray::unsafeDereference( const IteratorState &it )
 Value &
 ValueInternalArray::dereference( const IteratorState &it )
 {
-   JSON_ASSERT_MESSAGE( it.array_  &&
+   ASSERT_MSG( it.array_  &&
       (it.currentPageIndex_ - it.array_->pages_)*itemsPerPage + it.currentItemIndex_
       < it.array_->size_,
       "ValueInternalArray::dereference(): dereferencing invalid iterator" );
@@ -257,7 +255,7 @@ ValueInternalArray::ValueInternalArray( const ValueInternalArray &other )
 {
    PageIndex minNewPages = other.size_ / itemsPerPage;
    arrayAllocator()->reallocateArrayPageIndex( pages_, pageCount_, minNewPages );
-   JSON_ASSERT_MESSAGE( pageCount_ >= minNewPages, 
+   ASSERT_MSG( pageCount_ >= minNewPages, 
                         "ValueInternalArray::reserve(): bad reallocation" );
    IteratorState itOther;
    other.makeBeginIterator( itOther );
@@ -362,7 +360,7 @@ ValueInternalArray::makeIndexValid( ArrayIndex index )
    {
       PageIndex minNewPages = (index + 1) / itemsPerPage;
       arrayAllocator()->reallocateArrayPageIndex( pages_, pageCount_, minNewPages );
-      JSON_ASSERT_MESSAGE( pageCount_ >= minNewPages, "ValueInternalArray::reserve(): bad reallocation" );
+      ASSERT_MSG( pageCount_ >= minNewPages, "ValueInternalArray::reserve(): bad reallocation" );
    }
 
    // Need to allocate new pages ?

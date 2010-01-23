@@ -1,7 +1,7 @@
 #include "stdafx.h"
+#include "log.h"
 #include "json/json_writer.h"
 #include <utility>
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
@@ -34,7 +34,7 @@ std::wstring valueToString( Value::Int value )
    uintToString( Value::UInt(value), current );
    if ( isNegative )
       *--current = L'-';
-   assert( current >= buffer );
+   CHECK( current >= buffer );
    std::wstring result(current);
    return result;
 }
@@ -45,7 +45,7 @@ std::wstring valueToString( Value::UInt value )
    wchar_t buffer[32];
    wchar_t *current = buffer + sizeof(buffer);
    uintToString( value, current );
-   assert( current >= buffer );
+   CHECK( current >= buffer );
    std::wstring result(current);
    return result;
 }
@@ -364,7 +364,7 @@ StyledWriter::writeArrayValue( const Value &value )
       }
       else // output on a single line
       {
-         assert( childValues_.size() == size );
+         CHECK( childValues_.size() == size );
          document_ += L"[ ";
          for ( unsigned index =0; index < size; ++index )
          {
@@ -452,7 +452,7 @@ StyledWriter::indent()
 void 
 StyledWriter::unindent()
 {
-   assert( int(indentString_.size()) >= indentSize_ );
+   CHECK( int(indentString_.size()) >= indentSize_ );
    indentString_.resize( indentString_.size() - indentSize_ );
 }
 
@@ -640,7 +640,7 @@ StyledStreamWriter::writeArrayValue( const Value &value )
       }
       else // output on a single line
       {
-         assert( childValues_.size() == size );
+         CHECK( childValues_.size() == size );
          *document_ << L"[ ";
          for ( unsigned index =0; index < size; ++index )
          {
@@ -732,7 +732,7 @@ StyledStreamWriter::indent()
 void 
 StyledStreamWriter::unindent()
 {
-   assert( indentString_.size() >= indentation_.size() );
+   CHECK( indentString_.size() >= indentation_.size() );
    indentString_.resize( indentString_.size() - indentation_.size() );
 }
 

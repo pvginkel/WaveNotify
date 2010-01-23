@@ -1,12 +1,11 @@
 #include "stdafx.h"
+#include "log.h"
 #include "json/json_reader.h"
 #include "json/json_value.h"
 #include <utility>
 #include <cstdio>
-#include <cassert>
 #include <cstring>
 #include <iostream>
-#include <stdexcept>
 
 #if _MSC_VER >= 1400 // VC++ 8.0
 #pragma warning( disable : 4996 )   // disable warning about strdup being deprecated.
@@ -309,10 +308,10 @@ Reader::addComment( Location begin,
                     Location end, 
                     CommentPlacement placement )
 {
-   assert( collectComments_ );
+   CHECK( collectComments_ );
    if ( placement == commentAfterOnSameLine )
    {
-      assert( lastValue_ != 0 );
+      CHECK( lastValue_ != 0 );
       lastValue_->setComment( std::wstring( begin, end ), placement );
    }
    else
@@ -745,7 +744,7 @@ std::istream& operator>>( std::istream &sin, Value &root )
 {
     Json::Reader reader;
     bool ok = reader.parse(sin, root, true);
-    //JSON_ASSERT( ok );
+    //ASSERT( ok );
     if (!ok) {
         std::wstring wideMessage(reader.getFormatedErrorMessages());
         std::string shortMessage = "";
@@ -763,7 +762,7 @@ std::istream& operator>>( std::istream &sin, Value &root )
 	    delete buffer;
 	}
 
-        throw std::runtime_error(shortMessage);
+	ASSERT_MSG(shortMessage);
     }
 
     return sin;
