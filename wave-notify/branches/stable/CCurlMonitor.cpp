@@ -20,6 +20,8 @@
 
 CCurlMonitor::CCurlMonitor(CWindowHandle * lpTargetWindow) : CThread(TRUE)
 {
+	ASSERT(lpTargetWindow != NULL);
+
 	m_lpTargetWindow = lpTargetWindow;
 	m_fCancelled = FALSE;
 	m_lpMulti = NULL;
@@ -67,6 +69,12 @@ DWORD CCurlMonitor::ThreadProc()
 		else
 		{
 			dwResult = WaitForSingleObject(m_vEvent.GetHandle(), CURL_WAIT_TIMEOUT);
+		}
+
+		if (dwResult == WAIT_FAILED)
+		{
+			LOG("Wait failed");
+			m_fCancelled = TRUE;
 		}
 
 		if (m_fCancelled)
@@ -174,6 +182,8 @@ void CCurlMonitor::ProcessMessages()
 		CURL * lpCurlHandle = lpMessage->easy_handle;
 		CURLcode nCode = lpMessage->data.result;
 
+		ASSERT(lpCurlHandle != NULL);
+
 		// Remove the handle from the CCurlMulti.
 
 		m_lpMulti->Remove(lpCurlHandle);
@@ -202,7 +212,9 @@ void CCurlMonitor::ProcessMessages()
 
 		long lStatus;
 
-		curl_easy_getinfo(lpCurlHandle, CURLINFO_RESPONSE_CODE, &lStatus);
+		nCode = curl_easy_getinfo(lpCurlHandle, CURLINFO_RESPONSE_CODE, &lStatus);
+
+		CHECK(nCode == CURLE_OK);
 
 		// Process the result from the message.
 
@@ -214,6 +226,8 @@ void CCurlMonitor::QueueRequests(TCurlVector & vRequests)
 {
 	for (TCurlVectorIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
 	{
+		ASSERT(*iter != NULL);
+
 		m_vCache.Add(*iter);
 
 		m_lpMulti->Add(*iter);
@@ -226,6 +240,8 @@ void CCurlMonitor::CancelRequests(TCurlVector & vRequests)
 {
 	for (TCurlVectorIter iter = vRequests.begin(); iter != vRequests.end(); iter++)
 	{
+		ASSERT(*iter != NULL);
+
 		m_lpMulti->Remove(*iter);
 
 		SignalCompleted(*iter, (CURLcode)-1, 0);
@@ -236,6 +252,8 @@ void CCurlMonitor::CancelRequests(TCurlVector & vRequests)
 
 void CCurlMonitor::SignalCompleted(CCurl * lpCurl, CURLcode nCode, LONG lStatus)
 {
+	ASSERT(lpCurl != NULL);
+
 	m_vCache.Remove(lpCurl);
 	
 	lpCurl->SignalCompleted(nCode, lStatus);

@@ -49,6 +49,8 @@ CWSAEvent * CCurlMulti::GetEvent()
 
 	for (TSocketMapIter iter = vSockets.begin(); iter != vSockets.end(); iter++)
 	{
+		ASSERT(iter->first != NULL);
+
 		lpEvent->EventSelect(iter->first, iter->second);
 	}
 

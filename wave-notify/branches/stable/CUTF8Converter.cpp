@@ -74,6 +74,8 @@ wstring CUTF8Converter::Parse(TByteVector & vData)
 
 wstring CUTF8Converter::Parse(LPBYTE lpBytes, size_t cbBytes)
 {
+	ASSERT(lpBytes != NULL);
+
 	TUTF16Vector vResult;
 
 	for (size_t cbOffset = 0; cbOffset < cbBytes; cbOffset++)

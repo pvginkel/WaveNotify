@@ -20,6 +20,8 @@
 
 CRegKey::CRegKey(HKEY hKey)
 {
+	ASSERT(hKey != NULL);
+
 	m_hKey = hKey;
 }
 
@@ -30,6 +32,8 @@ CRegKey::~CRegKey()
 
 CRegKey * CRegKey::CreateKey(HKEY hBaseKey, wstring szSubKey)
 {
+	ASSERT(hBaseKey != NULL && !szSubKey.empty());
+
 	HKEY hKey;
 
 	if (RegCreateKeyEx(hBaseKey, szSubKey.c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
@@ -42,6 +46,8 @@ CRegKey * CRegKey::CreateKey(HKEY hBaseKey, wstring szSubKey)
 
 CRegKey * CRegKey::OpenKey(HKEY hBaseKey, wstring szSubKey)
 {
+	ASSERT(hBaseKey != NULL && !szSubKey.empty());
+
 	HKEY hKey;
 	
 	if (RegOpenKeyEx(hBaseKey, szSubKey.c_str(), 0, KEY_READ, &hKey) != ERROR_SUCCESS)
@@ -105,6 +111,8 @@ BOOL CRegKey::SetValue(wstring szName, DWORD dwValue)
 
 BOOL CRegKey::DeleteValue(wstring szName)
 {
+	ASSERT(!szName.empty());
+
 	return RegDeleteValue(m_hKey, szName.c_str()) == ERROR_SUCCESS;
 }
 
@@ -142,6 +150,8 @@ BOOL CRegKey::GetSubKeys(TStringVector & vKeys) const
 	LPWSTR szBuffer = (LPWSTR)malloc((dwLength + 1) * sizeof(WCHAR));
 	DWORD dwIndex = 0;
 	BOOL fSuccess = FALSE;
+
+	vKeys.clear();
 
 	for (;;)
 	{

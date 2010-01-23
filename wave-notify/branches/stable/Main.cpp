@@ -78,6 +78,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!lpApp->Initialise())
 	{
 		delete lpApp;
+		delete lpVersion;
 
 		return -1;
 	}

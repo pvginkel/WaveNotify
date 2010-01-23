@@ -71,7 +71,10 @@ CWaveContact::~CWaveContact()
 {
 	for (TWaveNameVectorIter iter = m_vNames.begin(); iter != m_vNames.end(); iter++)
 	{
-		delete *iter;
+		if (*iter != NULL)
+		{
+			delete *iter;
+		}
 	}
 
 	if (m_lpAvatar != NULL)
@@ -82,12 +85,16 @@ CWaveContact::~CWaveContact()
 
 void CWaveContact::Merge(CWaveContactStatus * lpStatus)
 {
+	ASSERT(lpStatus != NULL);
+
 	m_fOnline = lpStatus->GetOnline();
 	m_szStatusMessage = lpStatus->GetStatusMessage();
 }
 
 void CWaveContact::Merge(CWaveContact * lpContact)
 {
+	ASSERT(lpContact != NULL);
+
 	m_szEmailAddress = lpContact->m_szEmailAddress;
 	m_szName = lpContact->m_szName;
 	m_szDisplayName = lpContact->m_szDisplayName;

@@ -36,6 +36,8 @@ CWaveMessage::CWaveMessage(const CWaveMessage & _Other)
 
 void CWaveMessage::ResolveContact(CWave * lpWave)
 {
+	ASSERT(lpWave != NULL);
+
 	const TStringVector & vContacts = lpWave->GetContacts();
 
 	if (m_uContactId < vContacts.size())

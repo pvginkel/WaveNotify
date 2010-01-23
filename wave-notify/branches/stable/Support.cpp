@@ -228,6 +228,8 @@ wstring towuppoer(wstring _String)
 
 INT Rand(INT nMin, INT nMax)
 {
+	ASSERT(nMin <= nMax);
+
 	static BOOL fInitialised = FALSE;
 
 	if (!fInitialised)
@@ -316,6 +318,8 @@ BOOL ParseStringMap(const wstring & szInput, TStringStringMap & vMap)
 
 BOOL RemoveDirectory(wstring szPath, BOOL fRecurse)
 {
+	ASSERT(!szPath.empty());
+
 	if (GetFileAttributes(szPath.c_str()) != FILE_ATTRIBUTE_DIRECTORY)
 	{
 		return FALSE;

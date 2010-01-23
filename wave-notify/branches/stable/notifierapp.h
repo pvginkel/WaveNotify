@@ -152,18 +152,25 @@ public:
 	UINT GetWmTaskbarCreated() const { return m_uWmTaskbarCreated; }
 	HCURSOR GetCursorArrow() const { return m_hCursorArrow; }
 	HCURSOR GetCursorHand() const { return m_hCursorHand; }
-	CWaveSession * GetSession() const { return m_lpWindow->GetSession(); }
+	CWaveSession * GetSession() const { return GetAppWindow()->GetSession(); }
 	wstring GetShortcutTargetPath() const { return m_szShortcutTargetPath; }
-	CAppWindow * GetAppWindow() const { return m_lpWindow; }
+	CAppWindow * GetAppWindow() const {
+		ASSERT(m_lpWindow != NULL);
+		return m_lpWindow;
+	}
 	BOOL Initialise();
-	CWaveContact * GetWaveContact(wstring szEmailAddress) const { return m_lpWindow->GetWaveContact(szEmailAddress); }
+	CWaveContact * GetWaveContact(wstring szEmailAddress) const {
+		return GetAppWindow()->GetWaveContact(szEmailAddress);
+	}
 	void SetStartWithWindows(BOOL fValue);
 	void SetPlaySoundOnNewWave(BOOL fValue) { m_fPlaySoundOnNewWave = fValue; }
 	BOOL GetPlaySoundOnNewWave() const { return m_fPlaySoundOnNewWave; }
 	void SetNotificationWhenOnline(BOOL fValue) { m_fNotificationWhenOnline = fValue; }
 	BOOL GetNotificationWhenOnline() const { return m_fNotificationWhenOnline; }
 	wstring GetBrowser() const { return m_szBrowser; }
-	void SetBrowser(wstring szBrowser) { m_szBrowser = szBrowser; }
+	void SetBrowser(wstring szBrowser) {
+		m_szBrowser = szBrowser;
+	}
 	void SyncProxySettings();
 	void DetectStartWithWindowsSetting();
 	void OpenUrl(wstring szUrl);

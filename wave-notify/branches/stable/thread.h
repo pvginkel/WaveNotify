@@ -29,6 +29,9 @@ private:
 public:
 	CThread(BOOL fSuspended = FALSE) {
 		m_hThread = CreateThread(NULL, 0, CThread::ThreadProcCallback, this, fSuspended ? CREATE_SUSPENDED : 0, &m_dwThreadId);
+		
+		if (m_hThread == NULL)
+			FAIL("Call to CreateThread failed");
 	}
 	virtual ~CThread() {
 		Join();

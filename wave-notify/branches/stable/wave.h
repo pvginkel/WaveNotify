@@ -88,7 +88,8 @@ typedef enum
 	WCS_FAILED,
 	WCS_RECEIVED,
 	WCS_BEGIN_SIGNOUT,
-	WCS_SIGNED_OUT
+	WCS_SIGNED_OUT,
+	WCS_MAX
 } WAVE_CONNECTION_STATE;
 
 typedef enum
@@ -105,7 +106,8 @@ typedef enum
 {
 	WLE_SUCCESS,
 	WLE_AUTHENTICATE,
-	WLE_NETWORK
+	WLE_NETWORK,
+	WLE_MAX
 } WAVE_LOGIN_ERROR;
 
 typedef enum
@@ -116,7 +118,8 @@ typedef enum
 	WSR_SESSION_DETAILS,
 	WSR_SID,
 	WSR_CHANNEL,
-	WSR_SIGN_OUT
+	WSR_SIGN_OUT,
+	WSR_MAX
 } WAVE_SESSION_REQUESTING;
 
 typedef enum
@@ -125,7 +128,8 @@ typedef enum
 	WSS_CONNECTING,
 	WSS_ONLINE,
 	WSS_DISCONNECTING,
-	WSS_RECONNECTING
+	WSS_RECONNECTING,
+	WSS_MAX
 } WAVE_SESSION_STATE;
 
 class CWaveSession
@@ -183,7 +187,7 @@ public:
 	void QueueRequest(CWaveRequest * lpRequest);
 	void FlushRequestQueue();
 	void SuspendRequestFlush();
-	void ResponseRequestFlush();
+	void ReleaseRequestFlush();
 	void ForceReconnect();
 
 private:
@@ -269,6 +273,8 @@ public:
 
 	const TWaveContactMap & GetContacts() const { return m_vContacts; }
 	CWaveContact * GetContact(wstring szEmailAddress) const {
+		CHECK_NOT_EMPTY(szEmailAddress);
+
 		TWaveContactMapConstIter pos = m_vContacts.find(szEmailAddress);
 		return pos == m_vContacts.end() ? NULL : pos->second;
 	}
@@ -424,6 +430,9 @@ private:
 
 public:
 	CWaveListener(wstring szID, wstring szSearchString) {
+		ASSERT(!szID.empty());
+		CHECK_NOT_EMPTY(szSearchString);
+
 		m_szID = szID;
 		m_szSearchString = szSearchString;
 	}
@@ -465,7 +474,11 @@ private:
 	CWaveSession * m_lpSession;
 
 public:
-	CWaveReader(CWaveSession * lpSession) { m_lpSession = lpSession; }
+	CWaveReader(CWaveSession * lpSession) {
+		ASSERT(lpSession != NULL);
+
+		m_lpSession = lpSession;
+	}
 	BOOL Read(LPBYTE lpData, DWORD cbData);
 	
 private:

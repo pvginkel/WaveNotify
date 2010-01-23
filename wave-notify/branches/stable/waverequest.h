@@ -70,7 +70,11 @@ private:
 public:
 	CWaveRequestGetContactDetails() : CWaveRequest(WMT_GET_CONTACT_DETAILS) { }
 
-	void AddEmailAddress(wstring szEmailAddress) { m_vEmailAddresses.push_back(szEmailAddress); }
+	void AddEmailAddress(wstring szEmailAddress) {
+		ASSERT(!szEmailAddress.empty());
+
+		m_vEmailAddresses.push_back(szEmailAddress);
+	}
 	void CreateRequest(Json::Value & vRoot);
 };
 
@@ -81,6 +85,8 @@ private:
 
 public:
 	CWaveRequestStopListening(wstring szID) : CWaveRequest(WMT_STOP_LISTENING) {
+		ASSERT(!szID.empty());
+
 		m_szID = szID;
 	}
 

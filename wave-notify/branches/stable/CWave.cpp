@@ -56,7 +56,10 @@ CWave::~CWave()
 {
 	for (TWaveMessageVectorIter iter = m_vMessages.begin(); iter != m_vMessages.end(); iter++)
 	{
-		delete *iter;
+		if (*iter != NULL)
+		{
+			delete *iter;
+		}
 	}
 }
 

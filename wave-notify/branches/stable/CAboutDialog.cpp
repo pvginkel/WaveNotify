@@ -123,6 +123,8 @@ INT_PTR CAboutDialog::OnCommand(WORD wCommand, WORD wNotifyMessage)
 
 void CAboutDialog::ExplodeVersions(TStringStringMap & vVersions, wstring szVersion)
 {
+	ASSERT(!szVersion.empty());
+
 	UINT uOffset = 0;
 
 	for (;;)
@@ -137,6 +139,8 @@ void CAboutDialog::ExplodeVersions(TStringStringMap & vVersions, wstring szVersi
 		wstring szPart = szVersion.substr(uOffset, uEnd - uOffset);
 
 		UINT uSeparator = szPart.find(L'/');
+
+		ASSERT(uSeparator != szPart.npos);
 
 		vVersions[szPart.substr(0, uSeparator)] = szPart.substr(uSeparator + 1);
 

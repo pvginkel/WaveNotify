@@ -51,6 +51,8 @@ CWaveContactCollection::~CWaveContactCollection()
 
 void CWaveContactCollection::Merge(CWaveContactCollection * lpContacts)
 {
+	ASSERT(lpContacts != NULL);
+
 	for (TWaveContactMapIter iter = lpContacts->m_vContacts.begin(); iter != lpContacts->m_vContacts.end(); iter++)
 	{
 		TWaveContactMapIter pos = m_vContacts.find(iter->first);
@@ -75,6 +77,8 @@ void CWaveContactCollection::Merge(CWaveContactCollection * lpContacts)
 
 void CWaveContactCollection::Merge(CWaveContactStatusCollection * lpStatuses)
 {
+	ASSERT(lpStatuses != NULL);
+
 	const TWaveContactStatusMap & vStatuses = lpStatuses->GetStatuses();
 
 	for (TWaveContactStatusMapConstIter iter = vStatuses.begin(); iter != vStatuses.end(); iter++)

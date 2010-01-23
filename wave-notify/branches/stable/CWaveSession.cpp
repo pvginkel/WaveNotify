@@ -22,6 +22,8 @@
 
 CWaveSession::CWaveSession(CWindowHandle * lpTargetWindow)
 {
+	ASSERT(lpTargetWindow != NULL);
+
 	m_lpTargetWindow = lpTargetWindow;
 	m_szUsername = L"";
 	m_szPassword = L"";
@@ -60,6 +62,8 @@ CWaveSession::~CWaveSession()
 
 BOOL CWaveSession::Login(wstring szUsername, wstring szPassword)
 {
+	ASSERT(!szUsername.empty() && !szPassword.empty());
+
 	if (m_nState != WSS_OFFLINE)
 	{
 		LOG("Not offline");
@@ -140,7 +144,6 @@ wstring CWaveSession::GetAuthKeyFromRequest(wstring & szResponse) const
 	}
 }
 
-
 void CWaveSession::SignOut()
 {
 	if (m_nState == WSS_RECONNECTING)
@@ -149,7 +152,6 @@ void CWaveSession::SignOut()
 	}
 	else if (m_nState == WSS_ONLINE)
 	{
-
 		m_nState = WSS_DISCONNECTING;
 
 		SignalProgress(WCS_BEGIN_SIGNOUT);
@@ -182,6 +184,11 @@ void CWaveSession::SignOut()
 
 void CWaveSession::PostSignOutRequest()
 {
+	if (m_lpRequest != NULL)
+	{
+		m_vOwnedRequests.push_back(m_lpRequest);
+	}
+
 	m_lpRequest = new CCurl(WAVE_URL_LOGOUT, m_lpTargetWindow);
 
 	m_lpRequest->SetUserAgent(USERAGENT);
@@ -194,9 +201,12 @@ void CWaveSession::PostSignOutRequest()
 
 	CNotifierApp::Instance()->QueueRequest(m_lpRequest);
 
-	delete m_lpCookies;
+	if (m_lpCookies != NULL)
+	{
+		delete m_lpCookies;
 
-	m_lpCookies = NULL;
+		m_lpCookies = NULL;
+	}
 }
 
 wstring CWaveSession::GetSessionData(wstring & szResponse) const
@@ -242,6 +252,8 @@ wstring CWaveSession::GetSessionData(wstring & szResponse) const
 
 			INT nSessionEnd = szResponse.find(L'\n', nSessionBegin);
 
+			ASSERT(nSessionEnd != wstring::npos);
+
 			// Return the session block
 
 			return szResponse.substr(nSessionBegin, nSessionEnd - nSessionBegin);
@@ -262,11 +274,17 @@ wstring CWaveSession::GetInboxUrl() const
 
 wstring CWaveSession::GetWaveUrl(wstring szWaveId) const
 {
+	ASSERT(!szWaveId.empty());
+
 	return Format(WAVE_URL_WAVE, UrlEncode(m_szAuthKey).c_str(), UrlEncode(UrlEncode(szWaveId)).c_str());
 }
 
 wstring CWaveSession::GetKeyFromSessionResponse(wstring szKey, wstring & szResponse) const
 {
+	// TODO: Extend the Json library to include this functionality.
+
+	ASSERT(!szKey.empty());
+
 	INT nOffset = 0;
 
 	while (nOffset != string::npos)
@@ -306,6 +324,8 @@ wstring CWaveSession::GetKeyFromSessionResponse(wstring szKey, wstring & szRespo
 
 void CWaveSession::SetCookies(CCurlCookies * lpCookies)
 {
+	CHECK_PTR(lpCookies);
+
 	if (m_lpCookies != NULL)
 	{
 		delete m_lpCookies;
@@ -316,11 +336,15 @@ void CWaveSession::SetCookies(CCurlCookies * lpCookies)
 
 void CWaveSession::AddProgressTarget(CWindowHandle * lpSignalWindow)
 {
+	ASSERT(lpSignalWindow != NULL);
+
 	m_vSignalWindows.push_back(lpSignalWindow);
 }
 
 void CWaveSession::RemoveProgressTarget(CWindowHandle * lpSignalWindow)
 {
+	ASSERT(lpSignalWindow != NULL);
+
 	TWindowHandleVectorIter pos = find(m_vSignalWindows.begin(), m_vSignalWindows.end(), lpSignalWindow);
 
 	if (pos == m_vSignalWindows.end())
@@ -402,16 +426,15 @@ BOOL CWaveSession::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
 
 	// Is this an owned request?
 
-	for (TCurlVectorIter iter = m_vOwnedRequests.begin(); iter != m_vOwnedRequests.end(); iter++)
+	TCurlVectorIter pos = find(m_vOwnedRequests.begin(), m_vOwnedRequests.end(), lpCurl);
+
+	if (pos != m_vOwnedRequests.end())
 	{
-		if (*iter == lpCurl)
-		{
-			CCurl::Destroy(lpCurl);
+		CCurl::Destroy(lpCurl);
 
-			m_vOwnedRequests.erase(iter);
+		m_vOwnedRequests.erase(pos);
 
-			return TRUE;
-		}
+		return TRUE;
 	}
 
 	// This is not one of our request.
@@ -421,7 +444,11 @@ BOOL CWaveSession::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
 
 void CWaveSession::ProcessAuthKeyResponse()
 {
+	ASSERT(m_lpRequest != NULL);
+
 	CCurlUTF8StringReader * lpReader = (CCurlUTF8StringReader *)m_lpRequest->GetReader();
+
+	ASSERT(lpReader != NULL);
 
 	if (m_lpRequest->GetResult() != CURLE_OK)
 	{
@@ -460,6 +487,8 @@ void CWaveSession::ProcessAuthKeyResponse()
 
 void CWaveSession::ProcessCookieResponse()
 {
+	ASSERT(m_lpRequest != NULL);
+
 	if (m_lpRequest->GetResult() != CURLE_OK)
 	{
 		m_nLoginError = WLE_NETWORK;
@@ -496,7 +525,11 @@ void CWaveSession::ProcessCookieResponse()
 
 void CWaveSession::ProcessSessionDetailsResponse()
 {
+	ASSERT(m_lpRequest != NULL);
+
 	CCurlUTF8StringReader * lpReader = (CCurlUTF8StringReader *)m_lpRequest->GetReader();
+
+	ASSERT(lpReader != NULL);
 
 	if (m_lpRequest->GetResult() != CURLE_OK)
 	{
@@ -561,7 +594,11 @@ void CWaveSession::ProcessSessionDetailsResponse()
 
 void CWaveSession::ProcessSIDResponse()
 {
+	ASSERT(m_lpRequest != NULL);
+
 	CCurlUTF8StringReader * lpReader = (CCurlUTF8StringReader *)m_lpRequest->GetReader();
+
+	ASSERT(lpReader != NULL);
 	
 	BOOL fSuccess = FALSE;
 
@@ -603,7 +640,7 @@ wstring CWaveSession::ExtractChannelResponse(wstring szResponse)
 	{
 		DWORD dwPos = szResponse.find(L'\n');
 
-		if (dwPos != wstring::npos)
+		if (dwPos != wstring::npos && dwPos > 0)
 		{
 			DWORD dwLength = _wtol(szResponse.substr(0, dwPos).c_str());
 
@@ -623,9 +660,14 @@ void CWaveSession::ProcessSignOutResponse()
 
 	SignalProgress(WCS_SIGNED_OUT);
 
-	delete m_lpCookies;
+	if (m_lpCookies != NULL)
+	{
+		delete m_lpCookies;
+	}
 
 	m_lpCookies = NULL;
+
+	ASSERT(m_lpRequest != NULL);
 
 	delete m_lpRequest;
 
@@ -635,6 +677,8 @@ void CWaveSession::ProcessSignOutResponse()
 
 void CWaveSession::ProcessPostResponse()
 {
+	ASSERT(m_lpPostRequest != NULL);
+
 	delete m_lpPostRequest;
 	
 	m_lpPostRequest = NULL;
@@ -644,7 +688,11 @@ void CWaveSession::ProcessPostResponse()
 
 void CWaveSession::ProcessChannelResponse()
 {
+	ASSERT(m_lpChannelRequest != NULL);
+
 	CWaveReader * lpReader = (CWaveReader *)m_lpChannelRequest->GetReader();
+
+	ASSERT(lpReader != NULL);
 	
 	BOOL fSuccess = FALSE;
 
@@ -682,14 +730,23 @@ void CWaveSession::ProcessChannelResponse()
 
 void CWaveSession::SignalProgress(WAVE_CONNECTION_STATE nStatus)
 {
+	CHECK_ENUM(nStatus, WCS_MAX);
+
 	for (TWindowHandleVectorIter iter = m_vSignalWindows.begin(); iter != m_vSignalWindows.end(); iter++)
 	{
+		ASSERT(*iter != NULL);
+
 		(*iter)->PostMessage(WM_WAVE_CONNECTION_STATE, nStatus, m_nLoginError);
 	}
 }
 
 void CWaveSession::PostAuthCookieRequest()
 {
+	if (m_lpRequest != NULL)
+	{
+		m_vOwnedRequests.push_back(m_lpRequest);
+	}
+
 	m_lpRequest = new CCurl(
 		Format(WAVE_URL_AUTH, UrlEncode(m_szAuthKey).c_str()),
 		m_lpTargetWindow
@@ -706,6 +763,11 @@ void CWaveSession::PostAuthCookieRequest()
 
 void CWaveSession::PostSessionDetailsRequest()
 {
+	if (m_lpRequest != NULL)
+	{
+		m_vOwnedRequests.push_back(m_lpRequest);
+	}
+
 	m_lpRequest = new CCurl(WAVE_URL_WAVES, m_lpTargetWindow);
 
 	m_lpRequest->SetUserAgent(USERAGENT);
@@ -721,6 +783,11 @@ void CWaveSession::PostSessionDetailsRequest()
 
 void CWaveSession::PostSIDRequest()
 {
+	if (m_lpRequest != NULL)
+	{
+		m_vOwnedRequests.push_back(m_lpRequest);
+	}
+
 	m_lpRequest = new CCurl(
 		Format(WAVE_URL_SESSIONID, m_nRID++, BuildHash().c_str()),
 		m_lpTargetWindow
@@ -741,7 +808,10 @@ void CWaveSession::PostSIDRequest()
 
 void CWaveSession::PostChannelRequest()
 {
-	ASSERT(m_lpChannelRequest == NULL);
+	if (m_lpRequest != NULL)
+	{
+		m_vOwnedRequests.push_back(m_lpChannelRequest);
+	}
 
 	m_lpChannelRequest = new CCurl(
 		Format(WAVE_URL_CHANNEL, m_szSID.c_str(), m_nAID, BuildHash().c_str()),
@@ -880,6 +950,8 @@ void CWaveSession::PostRequests()
 
 	wstringstream szPostData;
 
+	ASSERT(m_vRequestQueue.size() > 0);
+
 	szPostData << L"count=" << m_vRequestQueue.size();
 
 	INT nOffset = 0;
@@ -895,6 +967,11 @@ void CWaveSession::PostRequests()
 
 	wstring szUrl = Format(WAVE_URL_CHANNEL_POST, m_szSID.c_str(), m_nRID++, BuildHash().c_str());
 
+	if (m_lpPostRequest != NULL)
+	{
+		m_vOwnedRequests.push_back(m_lpPostRequest);
+	}
+
 	m_lpPostRequest = new CCurl(szUrl, m_lpTargetWindow);
 
 	m_lpPostRequest->SetUserAgent(USERAGENT);
@@ -908,6 +985,8 @@ void CWaveSession::PostRequests()
 
 	for (TWaveRequestVectorIter iter1 = m_vRequestQueue.begin(); iter1 != m_vRequestQueue.end(); iter1++)
 	{
+		ASSERT(*iter1 != NULL);
+
 		(*iter1)->RequestCompleted();
 
 		delete *iter1;
@@ -918,6 +997,8 @@ void CWaveSession::PostRequests()
 
 wstring CWaveSession::SerializeRequest(CWaveRequest * lpRequest)
 {
+	ASSERT(lpRequest != NULL);
+
 	// Prepare the request basics.
 
 	Json::Value vRoot(Json::objectValue);
@@ -940,11 +1021,15 @@ wstring CWaveSession::SerializeRequest(CWaveRequest * lpRequest)
 
 void CWaveSession::AddListener(CWaveListener * lpListener)
 {
+	ASSERT(lpListener != NULL);
+
 	m_vListeners[lpListener->GetID()] = lpListener;
 }
 
 CWaveListener * CWaveSession::CreateListener(wstring szSearchString)
 {
+	ASSERT(!szSearchString.empty());
+
 	return new CWaveListener(
 		Format(L"%s%d", GetSessionID().c_str(), m_nNextListenerID++),
 		szSearchString
@@ -953,6 +1038,8 @@ CWaveListener * CWaveSession::CreateListener(wstring szSearchString)
 
 BOOL CWaveSession::RemoveListener(wstring szID)
 {
+	ASSERT(!szID.empty());
+
 	TWaveListenerMapIter pos = m_vListeners.find(szID);
 
 	BOOL fResult = pos != m_vListeners.end();
@@ -993,7 +1080,10 @@ void CWaveSession::StopReconnecting()
 	}
 	else
 	{
-		delete m_lpCookies;
+		if (m_lpCookies != NULL)
+		{
+			delete m_lpCookies;
+		}
 
 		m_lpCookies = NULL;
 
@@ -1027,9 +1117,11 @@ void CWaveSession::SuspendRequestFlush()
 	m_nFlushSuspended++;
 }
 
-void CWaveSession::ResponseRequestFlush()
+void CWaveSession::ReleaseRequestFlush()
 {
 	m_nFlushSuspended--;
+
+	ASSERT(m_nFlushSuspended >= 0);
 
 	if (m_nFlushSuspended == 0)
 	{

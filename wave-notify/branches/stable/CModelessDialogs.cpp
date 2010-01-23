@@ -22,8 +22,12 @@ CModelessDialogs::THandlesMap CModelessDialogs::m_vDialogs;
 
 BOOL CModelessDialogs::IsDialogMessage(LPMSG lpMsg)
 {
+	ASSERT(lpMsg != NULL);
+
 	for (THandlesMapIter iter = m_vDialogs.begin(); iter != m_vDialogs.end(); iter++)
 	{
+		ASSERT(iter->second != NULL);
+
 		if (::IsDialogMessage(iter->second->GetHandle(), lpMsg))
 		{
 			return TRUE;
@@ -35,6 +39,8 @@ BOOL CModelessDialogs::IsDialogMessage(LPMSG lpMsg)
 
 void CModelessDialogs::RegisterDialog(INT nType, CDialog * lpDialog)
 {
+	ASSERT(lpDialog != NULL);
+
 	if (ContainsType(nType))
 	{
 		FAIL("Dialog of type already registered");
@@ -50,6 +56,8 @@ void CModelessDialogs::UnregisterDialog(INT nType)
 
 void CModelessDialogs::UnregisterDialog(CDialog * lpDialog)
 {
+	ASSERT(lpDialog != NULL);
+
 	for (THandlesMapIter iter = m_vDialogs.begin(); iter != m_vDialogs.end(); iter++)
 	{
 		if (iter->second == lpDialog)

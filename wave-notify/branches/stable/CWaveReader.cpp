@@ -21,6 +21,8 @@
 
 BOOL CWaveReader::Read(LPBYTE lpData, DWORD cbData)
 {
+	ASSERT(lpData != NULL && cbData > 0);
+
 	m_szBuffer << m_vConverter.Parse(lpData, cbData);
 
 	return PumpResponseBuffer();

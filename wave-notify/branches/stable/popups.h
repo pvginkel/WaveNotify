@@ -26,7 +26,8 @@ typedef enum
 {
 	PT_MESSAGE,
 	PT_WAVE,
-	PT_CONTACT_ONLINE
+	PT_CONTACT_ONLINE,
+	PT_MAX
 } POPUP_TYPE;
 
 class CPopupBase : public CPopup
@@ -39,6 +40,8 @@ private:
 
 protected:
 	CPopupBase(POPUP_TYPE nType) {
+		CHECK_ENUM(nType, PT_MAX);
+
 		m_nType = nType;
 		m_fEnableCloseButton = TRUE;
 		m_fPaintIcon = TRUE;
@@ -93,6 +96,7 @@ public:
 	void SetCountIndex(UINT uIndex, UINT uCount) {
 		m_uIndex = uIndex;
 		m_uCount = uCount;
+
 		InvalidateRect(GetHandle(), NULL, FALSE);
 	}
 

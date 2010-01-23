@@ -24,7 +24,7 @@ CTimerCollection * CTimerCollection::m_lpInstance = NULL;
 
 CTimerCollection::CTimerCollection(CWindowHandle * lpTargetWindow)
 {
-	ASSERT(m_lpInstance == NULL);
+	ASSERT(m_lpInstance == NULL && lpTargetWindow != NULL);
 
 	m_lpInstance = this;
 
@@ -41,6 +41,8 @@ CTimerCollection::~CTimerCollection()
 
 void CTimerCollection::Register(CTimer * lpTimer)
 {
+	ASSERT(lpTimer != NULL);
+
 	UINT_PTR nEventId;
 
 	if (m_vFreeEventIds.empty())
@@ -61,6 +63,8 @@ void CTimerCollection::Register(CTimer * lpTimer)
 
 void CTimerCollection::Unregister(CTimer * lpTimer)
 {
+	ASSERT(lpTimer != NULL);
+
 	TTimerMapIter pos = m_vTimers.find(lpTimer->m_nEventId);
 
 	ASSERT(pos != m_vTimers.end());

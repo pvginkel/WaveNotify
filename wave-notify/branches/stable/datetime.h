@@ -155,7 +155,9 @@ public:
 private:
 	void Initialize(const ULONGLONG & vTime) {
 		memcpy(&m_uTime, &vTime, sizeof(ULONGLONG));
-		FileTimeToSystemTime((LPFILETIME)&m_uTime, &m_vSystemTime);
+		BOOL fResult = FileTimeToSystemTime((LPFILETIME)&m_uTime, &m_vSystemTime);
+		if (!fResult)
+			FAIL("Could not convert filetime to system time");
 	}
 	void Initialize(const SYSTEMTIME & vSystemTime) {
 		memcpy(&m_vSystemTime, &vSystemTime, sizeof(SYSTEMTIME));
