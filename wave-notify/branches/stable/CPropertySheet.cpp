@@ -31,10 +31,7 @@ CPropertySheet::~CPropertySheet()
 {
 	for (TPropertySheetPagesVectorIter iter = m_vPages.begin(); iter != m_vPages.end(); iter++)
 	{
-		if (*iter != NULL)
-		{
-			delete *iter;
-		}
+		delete *iter;
 	}
 
 	if (m_lpSheet != NULL)
