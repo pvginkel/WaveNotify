@@ -31,36 +31,39 @@ CWaveContactCollection * CWaveContactCollection::CreateFromJson(Json::Value & vR
 {
 	CWaveContactCollection * lpResult = new CWaveContactCollection();
 
-	if (!vRoot.isArray())
+	// (( scope ))
 	{
-		goto __failure;
-	}
-
-	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
-	{
-		if (!(*iter).isObject())
+		if (!vRoot.isArray())
 		{
 			goto __failure;
 		}
 
-		// Detect whether we're reading the "all contacts" list or the "get contact
-		// details" list.
-
-		CWaveContact * lpContact;
-
-		if ((*iter)[L"8"].isString())
+		for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
 		{
-			lpContact = CWaveContact::CreateFromJson(*iter);
-		}
-		else
-		{
-			lpContact = CWaveContact::CreateFromJson((*iter)[L"6"]);
+			if (!(*iter).isObject())
+			{
+				goto __failure;
+			}
+
+			// Detect whether we're reading the "all contacts" list or the "get contact
+			// details" list.
+
+			CWaveContact * lpContact;
+
+			if ((*iter)[L"8"].isString())
+			{
+				lpContact = CWaveContact::CreateFromJson(*iter);
+			}
+			else
+			{
+				lpContact = CWaveContact::CreateFromJson((*iter)[L"6"]);
+			}
+
+			lpResult->m_vContacts[lpContact->GetEmailAddress()] = lpContact;
 		}
 
-		lpResult->m_vContacts[lpContact->GetEmailAddress()] = lpContact;
+		return lpResult;
 	}
-
-	return lpResult;
 
 __failure:
 	LOG("Could not parse json");
