@@ -162,10 +162,14 @@ static void CheckCleanShutdown()
 
 	BOOL fRunning;
 
+#ifndef _DEBUG
+
 	if (vSettings.GetApplicationRunning(fRunning) && fRunning)
 	{
 		LOG("Detected unclean shutdown");
 	}
+
+#endif
 
 	vSettings.SetApplicationRunning(TRUE);
 }
