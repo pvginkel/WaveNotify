@@ -33,7 +33,10 @@ CWaveCollection::~CWaveCollection()
 {
 	for (TWaveMapIter iter = m_vWaves.begin(); iter != m_vWaves.end(); iter++)
 	{
-		delete iter->second;
+		if (iter->second != NULL)
+		{
+			delete iter->second;
+		}
 	}
 }
 
@@ -47,7 +50,10 @@ void CWaveCollection::Merge(CWaveCollection * lpWaves)
 
 		if (pos != m_vWaves.end())
 		{
-			delete pos->second;
+			if (pos->second != NULL)
+			{
+				delete pos->second;
+			}
 
 			m_vWaves.erase(pos);
 		}
@@ -71,7 +77,10 @@ void CWaveCollection::RemoveWaves(const TStringVector & vRemovedWaves)
 
 		if (pos != m_vWaves.end())
 		{
-			delete pos->second;
+			if (pos->second != NULL)
+			{
+				delete pos->second;
+			}
 
 			m_vWaves.erase(pos);
 		}
@@ -84,7 +93,10 @@ void CWaveCollection::AddWave(CWave * lpWave)
 
 	if (pos != m_vWaves.end())
 	{
-		delete pos->second;
+		if (pos->second != NULL)
+		{
+			delete pos->second;
+		}
 
 		m_vWaves.erase(pos);
 	}

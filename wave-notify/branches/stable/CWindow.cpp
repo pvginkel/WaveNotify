@@ -34,6 +34,8 @@ CWindow::~CWindow()
 
 ATOM CWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 {
+	ASSERT(lpWndClass != NULL);
+
 	// These cannot be overridden
 
 	lpWndClass->cbSize = sizeof(WNDCLASSEX);
@@ -106,7 +108,7 @@ BOOL CWindow::Create()
 
 	CreateHandle(0, L"", 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL);
 
-	return GetHandle() != NULL && IsWindow(GetHandle());
+	return GetHandle() != NULL && IsWindow();
 }
 
 LRESULT CALLBACK CWindow::WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
@@ -116,6 +118,8 @@ LRESULT CALLBACK CWindow::WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wPara
 	if (uMessage == WM_CREATE)
 	{
 		LPCREATESTRUCT lpCreateStruct = (LPCREATESTRUCT)lParam;
+
+		ASSERT(lpCreateStruct != NULL && lpCreateStruct->lpCreateParams != NULL);
 
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (INT_PTR)lpCreateStruct->lpCreateParams);
 
@@ -139,8 +143,6 @@ LRESULT CALLBACK CWindow::WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wPara
 			ASSERT(!lpWindow->m_fDisposing);
 
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
-
-			lpWindow->SetHandle(NULL);
 
 			lpWindow->m_fDisposing = TRUE;
 

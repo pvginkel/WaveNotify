@@ -22,9 +22,10 @@
 
 typedef enum
 {
-	WCS_REFRESH,
-	WCS_IGNORE,
-	WCS_CHANGED
+	WCHS_REFRESH,
+	WCHS_IGNORE,
+	WCHS_CHANGED,
+	WCSH_MAX
 } WAVE_CHANGED_STATUS;
 
 class CUnreadWave;
@@ -78,10 +79,17 @@ public:
 
 	const TUnreadWaveVector & GetChanges() const { return m_vUnreadsVector; }
 	CUnreadWave * GetChange(wstring szId) const {
+		CHECK_NOT_EMPTY(szId);
+
 		TUnreadWaveMapConstIter pos = m_vUnreadsMap.find(szId);
+
 		return pos == m_vUnreadsMap.end() ? NULL : pos->second;
 	}
-	CUnreadWave * GetChange(INT nId) const { return m_vUnreadsVector[nId]; }
+	CUnreadWave * GetChange(DWORD dwId) const {
+		ASSERT(dwId < m_vUnreadsVector.size());
+
+		return m_vUnreadsVector[dwId];
+	}
 	INT Find(CUnreadWave * lpUnread) const;
 	void DetachAll() {
 		m_vUnreadsMap.clear();

@@ -31,6 +31,8 @@ private:
 public:
 	CUrlControlData(wstring szUrl, WNDPROC lpOldProc)
 	{
+		ASSERT(!szUrl.empty() && lpOldProc != NULL);
+
 		m_szUrl = szUrl;
 		m_lpOldProc = lpOldProc;
 	}
@@ -41,6 +43,8 @@ public:
 
 void SubclassStaticForLink(HWND hWnd, wstring szUrl)
 {
+	ASSERT(hWnd != NULL);
+
 	if (szUrl.empty())
 	{
 		INT nLength = GetWindowTextLength(hWnd) + 1;
@@ -64,8 +68,13 @@ void SubclassStaticForLink(HWND hWnd, wstring szUrl)
 static LRESULT CALLBACK SubclassStaticForLink_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static HCURSOR hCursor = LoadCursor(NULL, IDC_HAND);
+
+	CHECK_HANDLE(hCursor);
 	
 	CUrlControlData * lpData = (CUrlControlData *)GetWindowLong(hWnd, GWLP_USERDATA);
+
+	ASSERT(lpData != NULL);
+
 	WNDPROC lpOldWndProc = lpData->GetOldWndProc();
 
 	switch(message)
@@ -134,6 +143,8 @@ static void SubclassStaticForLink_Paint(HWND hWnd)
 			FW_NORMAL,
 			FALSE,
 			TRUE);
+
+		CHECK_HANDLE(hFont);
 	}
 
 	//

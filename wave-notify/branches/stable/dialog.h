@@ -38,7 +38,10 @@ public:
 	static void UnregisterDialog(INT nType);
 	static void UnregisterDialog(CDialog * lpDialog);
 	static BOOL ContainsType(INT nType);
-	static CDialog * GetDialog(INT nType) { return m_vDialogs[nType]; }
+	static CDialog * GetDialog(INT nType) {
+		ASSERT(m_vDialogs.find(nType) != m_vDialogs.end());
+		return m_vDialogs[nType];
+	}
 };
 
 class CDialog : public CWindowHandle

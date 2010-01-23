@@ -22,6 +22,8 @@ CCurlProxySettings * CCurl::m_lpProxySettings = NULL;
 
 CCurl::CCurl(wstring szUrl, CWindowHandle * lpTargetWindow)
 {
+	ASSERT(!szUrl.empty() && lpTargetWindow != NULL);
+
 	m_lpTargetWindow = lpTargetWindow;
 
 	m_nResult = CURLE_OK;
@@ -29,6 +31,8 @@ CCurl::CCurl(wstring szUrl, CWindowHandle * lpTargetWindow)
 	/* Initialize CURL */
 
 	m_lpCurl = curl_easy_init();
+
+	ASSERT(m_lpCurl != NULL);
 
 	curl_easy_setopt(m_lpCurl, CURLOPT_NOPROGRESS, 1);
 
@@ -217,6 +221,8 @@ size_t CCurl::WriteData(void * lpData, size_t dwSize, size_t dwBlocks)
 
 	if (m_lpReader != NULL && dwSize * dwBlocks > 0)
 	{
+		ASSERT(lpData != NULL);
+
 		if (!m_lpReader->Read((LPBYTE)lpData, (DWORD)(dwSize * dwBlocks)))
 		{
 			return 0;
@@ -228,17 +234,22 @@ size_t CCurl::WriteData(void * lpData, size_t dwSize, size_t dwBlocks)
 
 size_t CCurl::WriteHeader(void * lpData, size_t dwSize, size_t dwBlocks)
 {
-	string szData((char *)lpData, dwSize * dwBlocks);
-	size_t nOffset = szData.find(L':');
-
-	if (nOffset != string::npos)
+	if (dwSize * dwBlocks > 0)
 	{
-		wstring szName = Trim(ConvertToWideChar(szData.substr(0, nOffset)));
-		wstring szValue = Trim(ConvertToWideChar(szData.substr(nOffset + 1)));
-		
-		if (!szName.empty() && !szValue.empty())
+		ASSERT(lpData != NULL);
+
+		string szData((char *)lpData, dwSize * dwBlocks);
+		size_t nOffset = szData.find(L':');
+
+		if (nOffset != string::npos)
 		{
-			m_vHeaders[szName] = szValue;
+			wstring szName = Trim(ConvertToWideChar(szData.substr(0, nOffset)));
+			wstring szValue = Trim(ConvertToWideChar(szData.substr(nOffset + 1)));
+			
+			if (!szName.empty() && !szValue.empty())
+			{
+				m_vHeaders[szName] = szValue;
+			}
 		}
 	}
 
@@ -287,15 +298,18 @@ size_t CCurl::WriteHeaderCallback(void * lpData, size_t dwSize, size_t dwBlocks,
 
 INT CCurl::DebugCallback(CURL * lpCurl, curl_infotype nInfoType, LPCSTR szMessage, size_t cbMessage, LPVOID lpParam)
 {
-	LPSTR szBuffer = (LPSTR)malloc(cbMessage + 1);
+	if (szMessage != NULL && cbMessage > 0)
+	{
+		LPSTR szBuffer = (LPSTR)malloc(cbMessage + 1);
 
-	memcpy(szBuffer, szMessage, cbMessage);
+		memcpy(szBuffer, szMessage, cbMessage);
 
-	szBuffer[cbMessage] = '\0';
+		szBuffer[cbMessage] = '\0';
 
-	Log_Append(L"curl-log.txt", szMessage);
+		Log_Append(L"curl-log.txt", szMessage);
 
-	free(szBuffer);
+		free(szBuffer);
+	}
 
 	return 0;
 }

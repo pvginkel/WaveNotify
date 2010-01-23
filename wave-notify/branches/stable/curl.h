@@ -52,20 +52,15 @@ private:
 	wstring m_szPassword;
 
 public:
-	CCurlProxySettings(wstring szHost, DWORD dwPort) {
-		m_szHost = szHost;
-		m_dwPort = dwPort;
-		m_fAuthenticated = FALSE;
-		m_szUsername = L"";
-		m_szPassword = L"";
-	};
+	CCurlProxySettings(wstring szHost, DWORD dwPort, wstring szUsername = L"", wstring szPassword = L"") {
+		ASSERT(!szHost.empty());
+		ASSERT(dwPort > 0);
 
-	CCurlProxySettings(wstring szHost, DWORD dwPort, wstring szUsername, wstring szPassword) {
 		m_szHost = szHost;
 		m_dwPort = dwPort;
-		m_fAuthenticated = TRUE;
-		m_szUsername = szUsername;
-		m_szPassword = szPassword;
+		m_fAuthenticated = !szUsername.empty();
+		m_szUsername = m_fAuthenticated ? szUsername : L"";
+		m_szPassword = m_fAuthenticated ? szPassword : L"";
 	};
 
 	virtual ~CCurlProxySettings() { }
@@ -135,13 +130,17 @@ public:
 		m_lpProxySettings = lpProxySettings;
 	};
 	static void Destroy(CCurl * lpCurl) {
+		ASSERT(lpCurl != NULL);
+
 		if (lpCurl->m_lpReader != NULL)
 			delete lpCurl->m_lpReader;
+
 		delete lpCurl;
 	}
 
 	static void GlobalInitialise() {
 		CURLcode nResult = curl_global_init(CURL_GLOBAL_ALL);
+
 		ASSERT(nResult == CURLE_OK);
 	}
 	static void GlobalCleanup() {
@@ -163,7 +162,11 @@ private:
 	curl_slist * m_lpCookies;
 
 public:
-	CCurlCookies(curl_slist * lpCookies) { m_lpCookies = lpCookies; }
+	CCurlCookies(curl_slist * lpCookies) {
+		ASSERT(lpCookies != NULL);
+
+		m_lpCookies = lpCookies;
+	}
 	virtual ~CCurlCookies() { curl_slist_free_all(m_lpCookies); }
 
 	curl_slist * GetCookies() const { return m_lpCookies; }
@@ -177,6 +180,7 @@ private:
 
 public:
 	BOOL Read(LPBYTE lpData, DWORD cbData) {
+		ASSERT(lpData != NULL && cbData > 0);
 		m_szResult << m_vConverter.Parse(lpData, cbData);
 		return TRUE;
 	}
@@ -190,6 +194,7 @@ private:
 
 public:
 	BOOL Read(LPBYTE lpData, DWORD cbData) {
+		ASSERT(lpData != NULL && cbData > 0);
 		m_vResult.insert(m_vResult.end(), lpData, lpData + cbData);
 		return TRUE;
 	}
@@ -217,9 +222,13 @@ private:
 	HANDLE m_hFile;
 
 public:
-	CCurlFileReader(HANDLE hFile) { m_hFile = hFile; }
+	CCurlFileReader(HANDLE hFile) {
+		ASSERT(hFile != NULL);
+		m_hFile = hFile;
+	}
 
 	BOOL Read(LPBYTE lpData, DWORD cbData) {
+		ASSERT(lpData != NULL && cbData > 0);
 		DWORD dwWritten;
 		return WriteFile(m_hFile, lpData, cbData, &dwWritten, NULL) && dwWritten == cbData;
 	}
@@ -315,16 +324,26 @@ public:
 	}
 
 	void QueueRequest(CCurl * lpRequest) {
+		ASSERT(lpRequest != NULL);
+
 		m_vLock.Enter();
+
+		ASSERT(find(m_vQueueRequests.begin(), m_vQueueRequests.end(), lpRequest) == m_vQueueRequests.end());
 		m_vQueueRequests.push_back(lpRequest);
+
 		m_vLock.Leave();
 
 		m_vEvent.Set();
 	}
 
 	void CancelRequest(CCurl * lpRequest) {
+		ASSERT(lpRequest != NULL);
+
 		m_vLock.Enter();
+
+		ASSERT(find(m_vCancelRequests.begin(), m_vCancelRequests.end(), lpRequest) == m_vCancelRequests.end());
 		m_vCancelRequests.push_back(lpRequest);
+
 		m_vLock.Leave();
 
 		m_vEvent.Set();

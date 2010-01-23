@@ -31,6 +31,8 @@ void __declspec(noreturn) Log_AssertFailA(LPCSTR szFile, DWORD dwLine, LPCSTR sz
 
 void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 {
+	ASSERT(szFile != NULL && szFormat != NULL);
+
 	DWORD dwLastError = GetLastError();
 
 	va_list argptr;
@@ -66,6 +68,8 @@ void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 
 void Log_Append(LPCWSTR szFileName, LPCSTR szLine)
 {
+	ASSERT(szFileName != NULL && szLine != NULL);
+
 	HANDLE hFile = CreateFile(
 		szFileName,
 		GENERIC_WRITE,
@@ -89,6 +93,9 @@ void Log_Append(LPCWSTR szFileName, LPCSTR szLine)
 
 void Log_SetAppVersion(LPCSTR szAppVersion)
 {
+	ASSERT(szAppVersion != NULL);
+
 	strncpy(g_szAppVersion, szAppVersion, _ARRAYSIZE(g_szAppVersion) - 1);
+
 	g_szAppVersion[_ARRAYSIZE(g_szAppVersion) - 1] = '\0';
 }

@@ -23,6 +23,8 @@ static void GetTaskbarLocationForWindows(LPTASKBARLOCATION lpLocation);
 
 void GetTaskbarLocation(LPTASKBARLOCATION lpLocation)
 {
+	ASSERT(lpLocation != NULL);
+
 	POINT pBar;
 
 	memset(lpLocation, 0, sizeof(TASKBARLOCATION));
@@ -63,6 +65,8 @@ void GetTaskbarLocation(LPTASKBARLOCATION lpLocation)
 
 BOOL GetTaskbarPopupLocation(SIZE sSize, SIZE sOffset, LPRECT lpLocation)
 {
+	ASSERT(lpLocation != NULL);
+
 	TASKBARLOCATION tl;
 
 	GetTaskbarLocation(&tl);
@@ -109,6 +113,8 @@ BOOL GetTaskbarPopupLocation(SIZE sSize, SIZE sOffset, LPRECT lpLocation)
 
 void SnapTaskbarPopupLocation(LPRECT lpLocation, POINT pt)
 {
+	ASSERT(lpLocation != NULL);
+
 	TASKBARLOCATION tl;
 	RECT rc;
 	SIZE sz;
@@ -170,6 +176,8 @@ void SnapTaskbarPopupLocation(LPRECT lpLocation, POINT pt)
 
 static void GetTaskbarLocationForWine(LPTASKBARLOCATION lpLocation)
 {
+	ASSERT(lpLocation != NULL);
+
 	HMONITOR hMonitor;
 	MONITORINFOEX miex;
 	POINT p;
@@ -183,7 +191,9 @@ static void GetTaskbarLocationForWine(LPTASKBARLOCATION lpLocation)
 
 	miex.cbSize = sizeof(MONITORINFOEX);
 
-	GetMonitorInfo(hMonitor, (LPMONITORINFO)&miex);
+	BOOL fResult = GetMonitorInfo(hMonitor, (LPMONITORINFO)&miex);
+
+	ASSERT(fResult);
 
 	if (
 		miex.rcMonitor.left == miex.rcWork.left &&
@@ -226,6 +236,8 @@ static void GetTaskbarLocationForWine(LPTASKBARLOCATION lpLocation)
 
 static void GetTaskbarLocationForWindows(LPTASKBARLOCATION lpLocation)
 {
+	ASSERT(lpLocation != NULL);
+
 	APPBARDATA abd;
 	HMONITOR hMonitor;
 	MONITORINFOEX miex;
@@ -249,7 +261,9 @@ static void GetTaskbarLocationForWindows(LPTASKBARLOCATION lpLocation)
 
 	miex.cbSize = sizeof(MONITORINFOEX);
 
-	GetMonitorInfo(hMonitor, (LPMONITORINFO)&miex);
+	BOOL fResult = GetMonitorInfo(hMonitor, (LPMONITORINFO)&miex);
+
+	ASSERT(fResult);
 
 	// Windows 7 reports the work area as including the taskbar, but we need
 	// it exclusing the taskbar. Correct.

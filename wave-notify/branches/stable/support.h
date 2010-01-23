@@ -25,7 +25,8 @@ typedef enum
 	TLE_LEFT,
 	TLE_TOP,
 	TLE_RIGHT,
-	TLE_BOTTOM
+	TLE_BOTTOM,
+	TLE_MAX
 } TASKBAR_LOCATION_EDGE;
 
 typedef struct tagTASKBARLOCATION
@@ -37,12 +38,14 @@ typedef struct tagTASKBARLOCATION
 
 typedef enum
 {
+	WV_WINDOWS_UNKNOWN,
 	WV_WINDOWS_OLDER,
 	WV_WINDOWS_2000,
 	WV_WINDOWS_XP,
 	WV_WINDOWS_VISTA,
 	WV_WINDOWS_7,
-	WV_WINDOWS_NEWER
+	WV_WINDOWS_NEWER,
+	WV_MAX
 } WINDOWS_VERSION;
 
 #if _MSC_VER <= 1200
@@ -88,8 +91,8 @@ BOOL RunningRemoteDesktop();
 BOOL DegradeVisualPerformance();
 void SubclassStaticForLink(HWND hWnd, wstring szUrl = L"");
 
-wstring Base64Encode(TByteVector vData);
-TByteVector Base64Decode(wstring szData);
+wstring Base64Encode(TByteVector & vData);
+void Base64Decode(wstring szData, TByteVector & vResult);
 
 BOOL EncryptString(wstring szValue, wstring & szEncrypted);
 BOOL DecryptString(wstring szValue, wstring & szDecrypted);
@@ -113,10 +116,6 @@ bool iswword(wstring _String);
 bool iswxdigit(wstring _String);
 wstring towlower(wstring _String);
 wstring towuppoer(wstring _String);
-
-// Manually set debug breaks in code (better than DebugBreak because this
-// actually breaks at the point DEBUGBREAK is put and not somewhere
-// in a DLL, where there simply is an { int 3 } anyway).
 
 #ifdef _DEBUG
 
@@ -153,41 +152,6 @@ wstring towuppoer(wstring _String);
 
 #endif // _DEBUG
 
-#ifdef _DEBUG
-
-// Use this for verbose debugging
-
-#define _VALIDATE_RETURN_VOID(expr, errorcode)					\
-{										\
-        int _result = !!(expr);							\
-										\
-        _ASSERT_EXPR(_result, _CRT_WIDE(#expr));				\
-										\
-	if (!_result) {								\
-		errno = errorcode;						\
-		return;								\
-        }									\
-}										\
-
-#define _VALIDATE_RETURN(expr, errorcode, retexpr)				\
-{										\
-        int _result = !!(expr);							\
-										\
-        _ASSERT_EXPR(_result, _CRT_WIDE(#expr));				\
-										\
-	if (!_result) {								\
-		errno = errorcode;						\
-		return (retexpr);						\
-        }									\
-}										\
-
-#else // NDEBUG
-
-#define _VALIDATE_RETURN_VOID(expr, errorcode)
-#define _VALIDATE_RETURN(expr, errorcode, retexpr)
-
-#endif
-
 #ifndef _ERRCODE_DEFINED
 #define _ERRCODE_DEFINED
 typedef int errno_t;
@@ -208,5 +172,13 @@ typedef int errno_t;
 #define DISTANCE(p1, p2) ((long)(_W64 unsigned long)(p2) - (long)(_W64 unsigned long)(p1))
 
 #endif // _WIN64
+
+#ifndef GET_X_LPARAM
+#define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
+#endif
+
+#ifndef GET_Y_LPARAM
+#define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
+#endif
 
 #endif // _INC_SUPPORT

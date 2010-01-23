@@ -22,9 +22,13 @@ CModelessPropertySheets::THandlesMap CModelessPropertySheets::m_vSheets;
 
 BOOL CModelessPropertySheets::IsDialogMessage(LPMSG lpMsg)
 {
+	ASSERT(lpMsg != NULL);
+
 	for (THandlesMapIter iter = m_vSheets.begin(); iter != m_vSheets.end(); iter++)
 	{
 		CPropertySheet * lpSheet = iter->second;
+
+		ASSERT(lpSheet != NULL);
 
 		HWND hWnd = lpSheet->GetHandle();
 
@@ -48,6 +52,8 @@ BOOL CModelessPropertySheets::IsDialogMessage(LPMSG lpMsg)
 
 void CModelessPropertySheets::RegisterSheet(INT nType, CPropertySheet * lpSheet)
 {
+	ASSERT(lpSheet != NULL);
+
 	if (ContainsType(nType))
 	{
 		FAIL("Dialog of type already registered");
@@ -63,6 +69,8 @@ void CModelessPropertySheets::UnregisterSheet(INT nType)
 
 void CModelessPropertySheets::UnregisterSheet(CPropertySheet * lpSheet)
 {
+	ASSERT(lpSheet != NULL);
+
 	for (THandlesMapIter iter = m_vSheets.begin(); iter != m_vSheets.end(); iter++)
 	{
 		if (iter->second == lpSheet)

@@ -50,6 +50,8 @@ namespace Internal {
 
 	public:
 		CTypedDelegate(T * lpInstance, void (T::*lpMethod)()) {
+			ASSERT(lpInstance != NULL);
+
 			m_lpInstance = lpInstance;
 			m_lpMethod = lpMethod;
 		}
@@ -59,6 +61,8 @@ namespace Internal {
 
 	protected:
 		BOOL Equals(CDelegate * lpOther) {
+			ASSERT(lpOther != NULL);
+
 			return (
 				m_lpInstance == ((CTypedDelegate<T> *)lpOther)->m_lpInstance &&
 				m_lpMethod == ((CTypedDelegate<T> *)lpOther)->m_lpMethod
@@ -78,6 +82,8 @@ private:
 
 public:
 	Delegate(Internal::CDelegate * lpDelegate) {
+		ASSERT(lpDelegate != NULL);
+
 		m_lpDelegate = lpDelegate;
 	}
 	Delegate(const Delegate & vDelegate) {
@@ -92,8 +98,12 @@ public:
 	void Invoke() { m_lpDelegate->Invoke(); }
 
 	void operator()() { Invoke(); }
-	bool operator==(const Delegate & _Other) const { return m_lpDelegate->Equals(_Other.m_lpDelegate) != FALSE; }
-	bool operator!=(const Delegate & _Other) const { return !(*this == _Other); }
+	bool operator==(const Delegate & _Other) const {
+		return m_lpDelegate->Equals(_Other.m_lpDelegate) != FALSE;
+	}
+	bool operator!=(const Delegate & _Other) const {
+		return !(*this == _Other);
+	}
 	Delegate & operator=(const Delegate & _Other) {
 		m_lpDelegate->RemoveRef();
 		m_lpDelegate = _Other.m_lpDelegate;
@@ -155,6 +165,8 @@ private:
 
 template<typename T>
 Delegate AddressOf(T * lpInstance, void (T::*lpMethod)()) {
+	ASSERT(lpInstance != NULL);
+
 	return Delegate(new Internal::CTypedDelegate<T>(lpInstance, lpMethod));
 }
 

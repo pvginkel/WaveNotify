@@ -24,7 +24,8 @@ typedef enum
 {
 	VR_NONE,
 	VR_VERSION,
-	VR_DOWNLOAD
+	VR_DOWNLOAD,
+	VT_MAX
 } VERSION_REQUESTING;
 
 typedef enum
@@ -33,6 +34,7 @@ typedef enum
 	VS_CHECKING,
 	VS_DOWNLOADING,
 	VS_AVAILABLE,
+	VS_MAX
 } VERSION_STATE;
 
 class CVersion
@@ -54,12 +56,18 @@ public:
 	BOOL CheckVersion();
 	BOOL PerformUpdate();
 	BOOL ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
-	void SetTargetWindow(CWindowHandle * lpTargetWindow) { m_lpTargetWindow = lpTargetWindow; }
+	void SetTargetWindow(CWindowHandle * lpTargetWindow) {
+		m_lpTargetWindow = lpTargetWindow;
+	}
 	CWindowHandle * GetTargetWindow() const { return m_lpTargetWindow; }
 	VERSION_STATE GetState() const { return m_nState; }
 	void CancelRequests();
 
-	static CVersion * Instance() { return m_lpInstance; }
+	static CVersion * Instance() {
+		ASSERT(m_lpInstance != NULL);
+
+		return m_lpInstance;
+	}
 	static wstring GetAppVersion();
 
 private:
@@ -82,6 +90,8 @@ private:
 		return GetDirname(GetModuleFileNameEx()) + L"\\";
 	}
 	void SetState(VERSION_STATE nState) {
+		CHECK_ENUM(nState, VS_MAX);
+
 		m_nState = nState;
 		m_lpTargetWindow->PostMessage(WM_VERSION_STATE, m_nState);
 	}

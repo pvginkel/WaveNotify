@@ -26,7 +26,10 @@ WINDOWS_VERSION GetWindowsVersion()
 
 	ovi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 
-	GetVersionEx(&ovi);
+	if (!GetVersionEx(&ovi))
+	{
+		return WV_WINDOWS_UNKNOWN;
+	}
 
 	if (ovi.dwMajorVersion < 5)
 	{

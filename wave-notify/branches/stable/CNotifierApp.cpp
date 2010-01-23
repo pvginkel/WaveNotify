@@ -92,7 +92,7 @@ BOOL CNotifierApp::Initialise()
 
 INT CNotifierApp::Execute()
 {
-	m_lpWindow->Create();
+	GetAppWindow()->Create();
 
 	return CApp::Execute();
 }
@@ -114,7 +114,7 @@ void CNotifierApp::SetStartWithWindows(BOOL fValue)
 
 void CNotifierApp::SyncProxySettings()
 {
-	CSettings settings(FALSE);
+	CSettings vSettings(FALSE);
 	CCurlProxySettings * lpProxySettings = NULL;
 
 	BOOL fHaveSettings;
@@ -125,12 +125,12 @@ void CNotifierApp::SyncProxySettings()
 	wstring szPassword;
 
 	BOOL fSuccess =
-		settings.GetProxyHaveSettings(fHaveSettings) &&
-		settings.GetProxyHost(szHost) &&
-		settings.GetProxyPort(dwPort) &&
-		settings.GetProxyAuthenticated(fAuthenticated) &&
-		settings.GetProxyUsername(szUsername) &&
-		settings.GetProxyPassword(szPassword);
+		vSettings.GetProxyHaveSettings(fHaveSettings) &&
+		vSettings.GetProxyHost(szHost) &&
+		vSettings.GetProxyPort(dwPort) &&
+		vSettings.GetProxyAuthenticated(fAuthenticated) &&
+		vSettings.GetProxyUsername(szUsername) &&
+		vSettings.GetProxyPassword(szPassword);
 
 	if (fSuccess && fHaveSettings)
 	{
@@ -163,7 +163,7 @@ void CNotifierApp::Restart()
 
 	wcscpy(szMutableCommandLine, szPath.c_str());
 
-	BOOL fSuccess = CreateProcess(
+	CreateProcess(
 		szPath.c_str(),
 		szMutableCommandLine,
 		NULL,
@@ -247,6 +247,8 @@ BOOL CNotifierApp::DetectShortcut(const wstring & szModulePath, const wstring & 
 		goto __end;
 	}
 
+	ASSERT(lpShellLink != NULL);
+
 	hr = lpShellLink->QueryInterface(
 		IID_IPersistFile,
 		reinterpret_cast<void**>(&lpPersistFile)
@@ -257,12 +259,24 @@ BOOL CNotifierApp::DetectShortcut(const wstring & szModulePath, const wstring & 
 		goto __end;
 	}
 
-	lpPersistFile->Load(szFilename.c_str(), STGM_READ | STGM_SHARE_DENY_NONE);
+	ASSERT(lpPersistFile != NULL);
+
+	hr = lpPersistFile->Load(szFilename.c_str(), STGM_READ | STGM_SHARE_DENY_NONE);
+
+	if (!SUCCEEDED(hr))
+	{
+		goto __end;
+	}
 
 	WCHAR szTargetPath[MAX_PATH];
 	WIN32_FIND_DATA wfd;
 
-	lpShellLink->GetPath(szTargetPath, MAX_PATH, &wfd, 0);
+	hr = lpShellLink->GetPath(szTargetPath, MAX_PATH, &wfd, 0);
+
+	if (!SUCCEEDED(hr))
+	{
+		goto __end;
+	}
 
 	szLongTargetPath = ExpandEnvironmentStrings(GetLongPathName(szTargetPath));
 
@@ -313,6 +327,8 @@ void CNotifierApp::CreateShortcut()
 		goto __end;
 	}
 
+	ASSERT(lpShellLink != NULL);
+
 	lpShellLink->SetIconLocation(szModuleFilename.c_str(), 0);
 	lpShellLink->SetPath(szModuleFilename.c_str());
 	lpShellLink->SetWorkingDirectory(szModulePath.c_str());
@@ -326,6 +342,10 @@ void CNotifierApp::CreateShortcut()
 	{
 		goto __end;
 	}
+
+	ASSERT(lpPersistFile != NULL);
+
+	// hr not checked because we can't do anything about it.
 
 	lpPersistFile->Save(szTargetPath.c_str(), FALSE);
 
@@ -348,10 +368,10 @@ void CNotifierApp::OpenUrl(wstring szUrl)
 
 void CNotifierApp::QueueRequest(CCurl * lpRequest)
 {
-	m_lpWindow->QueueRequest(lpRequest);
+	GetAppWindow()->QueueRequest(lpRequest);
 }
 
 void CNotifierApp::CancelRequest(CCurl * lpRequest)
 {
-	m_lpWindow->CancelRequest(lpRequest);
+	GetAppWindow()->CancelRequest(lpRequest);
 }

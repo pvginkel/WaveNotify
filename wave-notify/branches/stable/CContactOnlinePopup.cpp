@@ -24,6 +24,8 @@
 
 CContactOnlinePopup::CContactOnlinePopup(CWaveContact * lpContact, BOOL fOnline) : CPopupBase(PT_CONTACT_ONLINE)
 {
+	ASSERT(lpContact != NULL);
+
 	m_lpContact = lpContact;
 	m_fOnline = fOnline;
 
@@ -43,7 +45,7 @@ LRESULT CContactOnlinePopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam
 		return OnLeftButtonUp(lParam);
 
 	case WM_POPUP_OPENING:
-		CPopupWindow::Instance()->SetCursor(CNotifierApp::Instance()->GetCursorArrow());
+		GetWindow()->SetCursor(CNotifierApp::Instance()->GetCursorArrow());
 		return 0;
 
 	default:
@@ -56,6 +58,8 @@ LRESULT CContactOnlinePopup::OnPaint()
 	static HFONT hFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_BOLD, FALSE, FALSE);
 
 	PAINTSTRUCT ps;
+
+	// TODO: Replace with specialized CDC class.
 
 	CDC dc(BeginPaint(GetHandle(), &ps));
 

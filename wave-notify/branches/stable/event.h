@@ -36,7 +36,10 @@ private:
 	HANDLE m_hEvent;
 
 protected:
-	CWindowsEvent(HANDLE hEvent) { m_hEvent = hEvent; }
+	CWindowsEvent(HANDLE hEvent) {
+		ASSERT(hEvent != NULL);
+		m_hEvent = hEvent;
+	}
 
 public:
 	~CWindowsEvent() { CloseHandle(m_hEvent); }
@@ -71,7 +74,12 @@ private:
 	TSocketVector m_vSockets;
 
 public:
-	CWSAEvent() { m_hEvent = WSACreateEvent(); }
+	CWSAEvent() {
+		m_hEvent = WSACreateEvent();
+		
+		if (m_hEvent == WSA_INVALID_EVENT)
+			FAIL("Call to WSACreateEvent failed");
+	}
 	~CWSAEvent() {
 		for (TSocketVectorIter iter = m_vSockets.begin(); iter != m_vSockets.end(); iter++)
 			WSAEventSelect(*iter, m_hEvent, 0);
@@ -82,8 +90,14 @@ public:
 	void Set() { WSASetEvent(m_hEvent); }
 	void Reset() { WSAResetEvent(m_hEvent); }
 	void EventSelect(SOCKET hSocket, INT nEventType) {
+		CHECK_HANDLE(hSocket);
+		CHECK_GT_0(nEventType);
+
 		m_vSockets.push_back(hSocket);
-		WSAEventSelect(hSocket, m_hEvent, nEventType);
+		int nResult = WSAEventSelect(hSocket, m_hEvent, nEventType);
+
+		if (nResult == SOCKET_ERROR)
+			FAIL("Call to WSAEventSelect failed");
 	}
 };
 
