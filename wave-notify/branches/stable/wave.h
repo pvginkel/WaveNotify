@@ -180,7 +180,7 @@ public:
 	WAVE_LOGIN_ERROR GetLoginError() { return m_nLoginError; }
 	void AddProgressTarget(CWindowHandle * lpSignalWindow);
 	void RemoveProgressTarget(CWindowHandle * lpSignalWindow);
-	BOOL ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
+	BOOL ProcessCurlResponse(CCurl * lpCurl);
 	BOOL ParseChannelResponse(wstring szResponse);
 	WAVE_SESSION_STATE GetState() const { return m_nState; }
 	void StopReconnecting();

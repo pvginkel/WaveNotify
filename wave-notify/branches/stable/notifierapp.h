@@ -76,7 +76,7 @@ private:
 	LRESULT OnNotifyIcon(UINT uMessage, UINT uID);
 	LRESULT OnCommand(WORD wID);
 	LRESULT OnWaveConnectionState(WAVE_CONNECTION_STATE nStatus, LPARAM lParam);
-	LRESULT OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
+	LRESULT OnCurlResponse(CURL_RESPONSE nState, LPARAM lParam);
 	LRESULT OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGIN_ERROR nError);
 	LRESULT OnVersionState(VERSION_STATE nState);
 	LRESULT OnClose();
@@ -110,6 +110,8 @@ private:
 	void ClientConnected(CONNECT_REASON nReason);
 	void ClientDisconnected(CONNECT_REASON nReason);
 	void ReportContactOnline(CWaveContact * lpContact, BOOL fOnline);
+	LRESULT ProcessCurlDataReceived(LPCURL_DATA_RECEIVED lpParam);
+	LRESULT ProcessCurlCompleted(CCurl * lpCurl);
 
 private:
 	friend class CWorkingTimer;

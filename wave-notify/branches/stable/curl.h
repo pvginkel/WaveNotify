@@ -22,6 +22,7 @@
 
 #define MAX_AUTO_REDIRECT	30
 
+class CCurlReader;
 class CCurlCookies;
 class CCurl;
 
@@ -31,8 +32,16 @@ typedef TCurlVector::const_iterator TCurlVectorConstIter;
 
 typedef enum
 {
-	CR_COMPLETED
+	CR_COMPLETED,
+	CR_DATA_RECEIVED
 } CURL_RESPONSE;
+
+typedef struct tagCURL_DATA_RECEIVED
+{
+	CCurlReader * lpReader;
+	DWORD cbData;
+	LPBYTE lpData;
+} CURL_DATA_RECEIVED, * LPCURL_DATA_RECEIVED;
 
 class CCurlReader
 {
