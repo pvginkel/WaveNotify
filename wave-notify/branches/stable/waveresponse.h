@@ -43,9 +43,9 @@ public:
 	static CWaveResponse * Parse(Json::Value & vRoot);
 
 protected:
-	virtual void AssignJson(Json::Value & vRoot) = 0;
+	virtual BOOL AssignJson(Json::Value & vRoot) = 0;
 
-	void ReadStringArray(TStringVector & vStrings, Json::Value & vRoot);
+	BOOL ReadStringArray(TStringVector & vStrings, Json::Value & vRoot);
 };
 
 class CWaveResponseGetAllContacts : public CWaveResponse
@@ -64,8 +64,13 @@ public:
 	CWaveContactCollection * GetContacts() const { return m_lpContacts; }
 
 protected:
-	void AssignJson(Json::Value & vRoot) {
-		m_lpContacts = new CWaveContactCollection(vRoot[L"2"]);
+	BOOL AssignJson(Json::Value & vRoot) {
+		if (vRoot.isObject())
+			m_lpContacts = CWaveContactCollection::CreateFromJson(vRoot[L"2"]);
+		else
+			LOG("Could not parse json");
+
+		return m_lpContacts != NULL;
 	}
 };
 
@@ -91,9 +96,16 @@ public:
 	}
 
 protected:
-	void AssignJson(Json::Value & vRoot) {
-		m_lpWaves = new CWaveCollection(vRoot[L"1"]);
-		ReadStringArray(m_vRemovedWaves, vRoot[L"3"]);
+	BOOL AssignJson(Json::Value & vRoot) {
+		if (vRoot.isObject()) {
+			if (!ReadStringArray(m_vRemovedWaves, vRoot[L"3"]))
+				return FALSE;
+			m_lpWaves = CWaveCollection::CreateFromJson(vRoot[L"1"]);
+		} else {
+			LOG("Could not parse json");
+		}
+
+		return m_lpWaves != NULL;
 	}
 };
 
@@ -113,8 +125,13 @@ public:
 	CWaveContactCollection * GetContacts() const { return m_lpContacts; }
 
 protected:
-	void AssignJson(Json::Value & vRoot) {
-		m_lpContacts = new CWaveContactCollection(vRoot[L"2"]);
+	BOOL AssignJson(Json::Value & vRoot) {
+		if (vRoot.isObject())
+			m_lpContacts = CWaveContactCollection::CreateFromJson(vRoot[L"2"]);
+		else
+			LOG("Could not parse json");
+
+		return m_lpContacts != NULL;
 	}
 };
 
@@ -124,8 +141,9 @@ public:
 	CWaveResponseStopListening() : CWaveResponse(WMT_STOP_LISTENING) { }
 
 protected:
-	void AssignJson(Json::Value & vRoot) {
+	BOOL AssignJson(Json::Value & vRoot) {
 		// Ignore any incoming details, no feedback is required
+		return TRUE;
 	}
 };
 
@@ -145,8 +163,13 @@ public:
 	CWaveContactStatusCollection * GetStatuses() const { return m_lpStatuses; }
 
 protected:
-	void AssignJson(Json::Value & vRoot) {
-		m_lpStatuses = new CWaveContactStatusCollection(vRoot[L"1"]);
+	BOOL AssignJson(Json::Value & vRoot) {
+		if (vRoot.isObject())
+			m_lpStatuses = CWaveContactStatusCollection::CreateFromJson(vRoot[L"1"]);
+		else
+			LOG("Could not assign json");
+
+		return m_lpStatuses != NULL;
 	}
 };
 

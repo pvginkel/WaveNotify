@@ -841,8 +841,12 @@ BOOL CWaveSession::ParseChannelResponse(wstring szResponse)
 	Json::Reader vReader;
 	Json::Value vRoot;
 
-	if (!vReader.parse(szResponse, vRoot))
-	{
+	if (
+		!vReader.parse(szResponse, vRoot) &&
+		!vRoot.isArray()
+	) {
+		LOG("Could not parse json");
+
 		return FALSE;
 	}
 
@@ -850,33 +854,78 @@ BOOL CWaveSession::ParseChannelResponse(wstring szResponse)
 
 	for (DWORD i = 0; i < vRoot.size(); i++)
 	{
-		Json::Value vItem(vRoot[i]);
-		INT nAID = vItem[0u].asInt();
-
-		Json::Value vContent(vItem[1]);
-
-		wstring szType = vContent[0u].asString();
-
 		fSuccess = FALSE;
+
+		Json::Value & vItem = vRoot[i];
+
+		if (!vItem.isArray())
+		{
+			LOG("Could not parse json");
+
+			break;
+		}
+
+		Json::Value & vAID = vItem[0u];
+		Json::Value & vContent = vItem[1];
+
+		if (
+			!vAID.isIntegral() ||
+			!vContent.isArray()
+		) {
+			LOG("Could not parse json");
+
+			break;
+		}
+
+		Json::Value & vType = vContent[0u];
+
+		if (!vType.isString())
+		{
+			LOG("Could not parse json");
+
+			break;
+		}
+
+		INT nAID = vAID.asInt();
+		wstring szType = vType.asString();
 
 		if (szType == L"c")
 		{
 			if (vContent.size() > 1)
 			{
-				m_szSID = vContent[1].asString();
+				Json::Value & vSID = vContent[1];
 
-				fSuccess = TRUE;
+				if (vSID.isString())
+				{
+					m_szSID = vSID.asString();
+
+					fSuccess = TRUE;
+				}
+				else
+				{
+					LOG("Could not parse json");
+				}
 			}
 		}
 		else if (szType == L"wfe")
 		{
 			if (vContent.size() > 1)
 			{
-				CWaveResponse * lpResponse = ParseWfeResponse(vContent[1].asString(), fSuccess);
+				Json::Value & vPayload = vContent[1];
 
-				if (fSuccess && lpResponse != NULL)
+				if (vPayload.isString())
 				{
-					ReportReceived(lpResponse);
+					CWaveResponse * lpResponse =
+						ParseWfeResponse(vPayload.asString(), fSuccess);
+
+					if (fSuccess && lpResponse != NULL)
+					{
+						ReportReceived(lpResponse);
+					}
+				}
+				else
+				{
+					LOG("Could not parse json");
 				}
 			}
 		}

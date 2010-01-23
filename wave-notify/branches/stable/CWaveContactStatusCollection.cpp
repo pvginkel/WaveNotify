@@ -19,14 +19,8 @@
 #include "include.h"
 #include "wave.h"
 
-CWaveContactStatusCollection::CWaveContactStatusCollection(Json::Value & vRoot)
+CWaveContactStatusCollection::CWaveContactStatusCollection()
 {
-	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
-	{
-		CWaveContactStatus * lpStatus = new CWaveContactStatus(*iter);
-
-		m_vStatuses[lpStatus->GetEmailAddress()] = lpStatus;
-	}
 }
 
 CWaveContactStatusCollection::~CWaveContactStatusCollection()
@@ -35,4 +29,47 @@ CWaveContactStatusCollection::~CWaveContactStatusCollection()
 	{
 		delete iter->second;
 	}
+}
+
+CWaveContactStatusCollection * CWaveContactStatusCollection::CreateFromJson(Json::Value & vRoot)
+{
+	CWaveContactStatusCollection * lpResult = new CWaveContactStatusCollection();
+
+	// An empty status collection?
+
+	if (vRoot.isObject())
+	{
+		Json::Value & vItem1 = vRoot[L"1"];
+
+		if (vItem1.isIntegral() && vItem1.asInt() == 0)
+		{
+			return lpResult;
+		}
+	}
+
+	if (!vRoot.isArray())
+	{
+		goto __failure;
+	}
+
+	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
+	{
+		CWaveContactStatus * lpStatus = CWaveContactStatus::CreateFromJson(*iter);
+
+		if (lpStatus == NULL)
+		{
+			goto __failure;
+		}
+
+		lpResult->m_vStatuses[lpStatus->GetEmailAddress()] = lpStatus;
+	}
+
+	return lpResult;
+
+__failure:
+	LOG("Could not parse json");
+
+	delete lpResult;
+
+	return NULL;
 }
