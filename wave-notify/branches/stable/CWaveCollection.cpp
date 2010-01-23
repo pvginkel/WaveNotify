@@ -33,10 +33,7 @@ CWaveCollection::~CWaveCollection()
 {
 	for (TWaveMapIter iter = m_vWaves.begin(); iter != m_vWaves.end(); iter++)
 	{
-		if (iter->second != NULL)
-		{
-			delete iter->second;
-		}
+		delete iter->second;
 	}
 }
 

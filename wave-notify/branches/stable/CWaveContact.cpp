@@ -71,10 +71,7 @@ CWaveContact::~CWaveContact()
 {
 	for (TWaveNameVectorIter iter = m_vNames.begin(); iter != m_vNames.end(); iter++)
 	{
-		if (*iter != NULL)
-		{
-			delete *iter;
-		}
+		delete *iter;
 	}
 
 	if (m_lpAvatar != NULL)
