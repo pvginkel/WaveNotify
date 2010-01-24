@@ -70,9 +70,7 @@ LRESULT CMessagePopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 
 LRESULT CMessagePopup::OnPaint()
 {
-	PAINTSTRUCT ps;
-
-	CDC dc(BeginPaint(GetHandle(), &ps));
+	CPaintDC dc(GetWindow());
 
 	PaintBackground(dc);
 
@@ -111,8 +109,6 @@ LRESULT CMessagePopup::OnPaint()
 	dc.DrawText(m_szMessage, &rc, DT_NOPREFIX | DT_WORDBREAK);
 
 	dc.SelectObject(hOriginal);
-
-	EndPaint(GetHandle(), &ps);
 
 	return 0;
 }

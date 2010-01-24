@@ -24,15 +24,21 @@ class CDC
 {
 private:
 	HDC m_hDC;
+	BOOL m_fMustDelete;
 
 public:
-	CDC(HDC hDC) {
-		ASSERT(hDC != NULL);
-
-		m_hDC = hDC;
+	CDC() : m_hDC(NULL), m_fMustDelete(FALSE) { }
+	virtual ~CDC() {
+		if (m_fMustDelete) {
+			ASSERT(m_hDC != NULL);
+			DeleteDC(m_hDC);
+		}
 	}
-	virtual ~CDC() { }
 	
+	void CreateCompatibleDC(CDC * lpDC) {
+		SetHandle(::CreateCompatibleDC(lpDC == NULL ? GetDC(NULL) : lpDC->GetHandle()));
+		m_fMustDelete = TRUE;
+	}
 	void FrameRect(LPRECT lprc, HBRUSH hBrush) const {
 		CHECK_PTR(lprc);
 		CHECK_HANDLE(hBrush);
@@ -81,7 +87,16 @@ public:
 
 		CHECK_NE_0(nResult);
 	}
-	HDC GetHandle() const { return m_hDC; }
+	HDC GetHandle() const {
+		ASSERT(m_hDC != NULL);
+
+		return m_hDC;
+	}
+	void SetHandle(HDC hDC) {
+		ASSERT(m_hDC == NULL && hDC != NULL);
+
+		m_hDC = hDC;
+	}
 	COLORREF SetTextColor(COLORREF cr) const { return ::SetTextColor(m_hDC, cr); }
 	COLORREF SetBkColor(COLORREF cr) const { return ::SetBkColor(m_hDC, cr); }
 	int SetBkMode(int nMode) const { return ::SetBkMode(m_hDC, nMode); }
@@ -116,35 +131,70 @@ private:
 	CWindowHandle * m_lpWindow;
 
 public:
-	CWindowDC(CWindowHandle * lpWindow) : m_lpWindow(lpWindow), CDC(GetWindowDC(lpWindow->GetHandle())) { };
-	~CWindowDC() { ReleaseDC(m_lpWindow->GetHandle(), GetHandle()); }
+	CWindowDC(CWindowHandle * lpWindow) : m_lpWindow(lpWindow) {
+		SetHandle(GetWindowDC(lpWindow->GetHandle()));
+	}
+	~CWindowDC() {
+		ReleaseDC(m_lpWindow->GetHandle(), GetHandle());
+	}
+};
+
+class CClientDC : public CDC
+{
+private:
+	CWindowHandle * m_lpWindow;
+
+public:
+	CClientDC(CWindowHandle * lpWindow) : m_lpWindow(lpWindow) {
+		SetHandle(GetDC(lpWindow == NULL ? NULL : lpWindow->GetHandle()));
+	}
+	~CClientDC() {
+		ReleaseDC(m_lpWindow == NULL ? NULL : m_lpWindow->GetHandle(), GetHandle());
+	}
+};
+
+class CPaintDC : public CDC
+{
+private:
+	CWindowHandle * m_lpWindow;
+	PAINTSTRUCT m_ps;
+
+public:
+	CPaintDC(CWindowHandle * lpWindow) : m_lpWindow(lpWindow) {
+		ASSERT(lpWindow != NULL);
+		SetHandle(BeginPaint(m_lpWindow->GetHandle(), &m_ps));
+	}
+	~CPaintDC() {
+		EndPaint(m_lpWindow->GetHandle(), &m_ps);
+	}
 };
 
 class CDoubleBufferedDC : public CDC
 {
 private:
 	HBITMAP m_hMemBitmap;
-	CDC & m_dcParent;
+	CDC * m_lpParent;
 	BOOL m_fCompleted;
 	CWindowHandle * m_lpWindow;
 	HGDIOBJ m_hOriginal;
 	SIZE m_szSize;
 
 public:
-	CDoubleBufferedDC(CWindowHandle * lpWindow, CDC & dcParent) :
-		m_dcParent(dcParent),
+	CDoubleBufferedDC(CWindowHandle * lpWindow, CDC * lpParent) :
+		m_lpParent(lpParent),
 		m_fCompleted(FALSE),
-		m_lpWindow(lpWindow),
-		CDC(CreateDC(dcParent))
+		m_lpWindow(lpWindow)
 	{
 		ASSERT(lpWindow != NULL);
+
+		CreateCompatibleDC(lpParent);
 
 		RECT rc;
 		m_lpWindow->GetWindowRect(&rc);
 		m_szSize.cx = rc.right - rc.left;
 		m_szSize.cy = rc.bottom - rc.top;
 
-		m_hMemBitmap = CreateCompatibleBitmap(m_dcParent.GetHandle(), m_szSize.cx, m_szSize.cy);
+		m_hMemBitmap = CreateCompatibleBitmap(m_lpParent->GetHandle(), m_szSize.cx, m_szSize.cy);
 		m_hOriginal = SelectObject(m_hMemBitmap);
 
 		ASSERT(m_hMemBitmap != NULL);
@@ -156,18 +206,11 @@ public:
 			m_fCompleted = TRUE;
 
 			POINT pt = { 0, 0 };
-			m_dcParent.BitBlt(pt, m_szSize, this, pt, SRCCOPY);
+			m_lpParent->BitBlt(pt, m_szSize, this, pt, SRCCOPY);
 
 			SelectObject(m_hOriginal);
 			DeleteObject(m_hMemBitmap);
-
-			DeleteDC(GetHandle());
 		}
-	}
-
-private:
-	static HDC CreateDC(CDC & dcParent) {
-		return CreateCompatibleDC(dcParent.GetHandle());
 	}
 };
 
