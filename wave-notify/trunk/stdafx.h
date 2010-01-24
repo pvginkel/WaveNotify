@@ -74,5 +74,6 @@ using namespace std;
 #include <zlib\unzip.h>
 #include "json\json.h"
 #include <gd\gd.h>
+#include <mozilla-frame\mozilla-frame.h>
 
 #endif // _INC_STDAFX
