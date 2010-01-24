@@ -190,37 +190,6 @@ HSBREF CColorScheme::AdjustColor(HSBREF crColor, FLOAT dSaturation, FLOAT dBrigh
 	crTo.hsbSaturation = RoundByte((INT)((FLOAT)crFrom.hsbSaturation * dSaturation));
 	crTo.hsbBrightness = RoundByte((INT)((FLOAT)crFrom.hsbBrightness * dBrightness));
 
-/*
-	if (dSaturation > 0.0f)
-	{
-		INT nDelta = 255 - crFrom.hsbSaturation;
-
-		crTo.hsbSaturation = RoundByte(
-			crFrom.hsbSaturation + (INT)((FLOAT)nDelta * dSaturation)
-		);
-	}
-	else
-	{
-		crTo.hsbSaturation = RoundByte(
-			(INT)((FLOAT)crFrom.hsbSaturation * (1.0f - dSaturation))
-		);
-	}
-
-	if (dBrightness > 0.0f)
-	{
-		INT nDelta = 255 - crFrom.hsbBrightness;
-
-		crTo.hsbBrightness = RoundByte(
-			crFrom.hsbBrightness + (INT)((FLOAT)nDelta * dBrightness)
-		);
-	}
-	else
-	{
-		crTo.hsbBrightness = RoundByte(
-			(INT)((FLOAT)crFrom.hsbBrightness * (1.0f - dBrightness))
-		);
-	}
-*/
 	return HSBQuadToHSBRef(crTo);
 }
 

@@ -137,6 +137,8 @@ public:
 		m_lpWindow(lpWindow),
 		CDC(CreateDC(dcParent))
 	{
+		ASSERT(lpWindow != NULL);
+
 		RECT rc;
 		m_lpWindow->GetWindowRect(&rc);
 		m_szSize.cx = rc.right - rc.left;
@@ -144,16 +146,21 @@ public:
 
 		m_hMemBitmap = CreateCompatibleBitmap(m_dcParent.GetHandle(), m_szSize.cx, m_szSize.cy);
 		m_hOriginal = SelectObject(m_hMemBitmap);
+
+		ASSERT(m_hMemBitmap != NULL);
 	}
 	virtual ~CDoubleBufferedDC() { Complete(); }
 
 	void Complete() {
 		if (!m_fCompleted) {
 			m_fCompleted = TRUE;
+
 			POINT pt = { 0, 0 };
 			m_dcParent.BitBlt(pt, m_szSize, this, pt, SRCCOPY);
+
 			SelectObject(m_hOriginal);
 			DeleteObject(m_hMemBitmap);
+
 			DeleteDC(GetHandle());
 		}
 	}

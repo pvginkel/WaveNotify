@@ -69,6 +69,8 @@ LRESULT CContactOnlinePopup::OnPaint()
 	if (lpAvatar == NULL)
 	{
 		lpAvatar = CNotifierApp::Instance()->GetGenericAvatar();
+
+		ASSERT(lpAvatar != NULL);
 	}
 
 	PaintBackground(dc);

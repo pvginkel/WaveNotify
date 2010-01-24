@@ -20,24 +20,27 @@
 
 typedef enum
 {
-	UrlEncodeModeNormal,
-	UrlEncodeModePath
-} UrlEncodeMode;
+	UEM_NORMAL,
+	UEM_PATH,
+	UEM_MAX
+} URL_ENCODE_MODE;
 
-static wstring UrlEncode(wstring szSource, UrlEncodeMode nMode);
+static wstring UrlEncode(wstring szSource, URL_ENCODE_MODE nMode);
 
 wstring UrlEncode(wstring szSource)
 {
-	return UrlEncode(szSource, UrlEncodeModeNormal);
+	return UrlEncode(szSource, UEM_NORMAL);
 }
 
 wstring UrlEncodePath(wstring szSource)
 {
-	return UrlEncode(szSource, UrlEncodeModePath);
+	return UrlEncode(szSource, UEM_PATH);
 }
 
-static wstring UrlEncode(wstring szSource, UrlEncodeMode nMode)
+static wstring UrlEncode(wstring szSource, URL_ENCODE_MODE nMode)
 {
+	CHECK_ENUM(nMode, UME_MAX);
+
 	string szSourceA = ConvertToMultiByte(szSource, CP_UTF8);
 	size_t nLength = 0;
 	ostringstream szResultA;
@@ -56,7 +59,7 @@ static wstring UrlEncode(wstring szSource, UrlEncodeMode nMode)
 			break;
 
 		case ' ':
-			if (nMode == UrlEncodeModeNormal)
+			if (nMode == UEM_NORMAL)
 			{
 				szResultA << '+';
 				fParsed = TRUE;
@@ -66,7 +69,7 @@ static wstring UrlEncode(wstring szSource, UrlEncodeMode nMode)
 
 		case ':':
 		case '/':
-			if (nMode == UrlEncodeModePath)
+			if (nMode == UEM_PATH)
 			{
 				szResultA << *iter;
 				fParsed = TRUE;
@@ -74,7 +77,7 @@ static wstring UrlEncode(wstring szSource, UrlEncodeMode nMode)
 			break;
 
 		case '\\':
-			if (nMode == UrlEncodeModePath)
+			if (nMode == UEM_PATH)
 			{
 				szResultA << '/';
 				fParsed = TRUE;

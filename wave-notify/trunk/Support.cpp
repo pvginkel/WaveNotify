@@ -440,9 +440,13 @@ wstring GetCurrentDirectoryEx()
 {
 	DWORD dwLength = GetCurrentDirectory(0, NULL);
 
+	ASSERT(dwLength != 0);
+
 	LPWSTR szPath = (LPWSTR)malloc(sizeof(WCHAR) * (dwLength + 1));
 
-	GetCurrentDirectory(dwLength + 1, szPath);
+	dwLength = GetCurrentDirectory(dwLength + 1, szPath);
+
+	ASSERT(dwLength != 0);
 
 	wstring szResult(szPath);
 
@@ -455,9 +459,13 @@ wstring GetEnvironmentVariableEx(wstring szName)
 {
 	DWORD dwLength = GetEnvironmentVariable(szName.c_str(), NULL, 0);
 
+	ASSERT(dwLength != 0);
+
 	LPWSTR szValue = (LPWSTR)malloc(sizeof(WCHAR) * (dwLength + 1));
 
-	GetEnvironmentVariable(szName.c_str(), szValue, dwLength + 1);
+	dwLength = GetEnvironmentVariable(szName.c_str(), szValue, dwLength + 1);
+
+	ASSERT(dwLength != 0);
 
 	wstring szResult(szValue);
 

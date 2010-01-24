@@ -392,6 +392,8 @@ void CNotifierApp::CancelRequest(CCurl * lpRequest)
 
 void CNotifierApp::OpenWave(wstring szWaveID)
 {
+	ASSERT(!szWaveID.empty());
+
 	if (CNotifierApp::Instance()->GetEnableInlineChat())
 	{
 		wstring szUrl = Format(

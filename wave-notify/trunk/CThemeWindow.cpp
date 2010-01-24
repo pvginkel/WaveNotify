@@ -25,10 +25,11 @@ CThemeWindow::CThemeWindow(HWND hWnd) :
 	m_fInSizeMove(FALSE),
 	m_nRef(1)
 {
-
 	// Subclass.
 
 	m_lpOldProc = (WNDPROC)SetWindowLong(GWL_WNDPROC, (LONG)CThemeWindow::WndProcCallback);
+
+	ASSERT(m_lpOldProc != NULL);
 
 	SetProp(PROPERTY_INSTANCE, this);
 
@@ -232,6 +233,8 @@ LRESULT CThemeWindow::OnNcCalcSize(BOOL fCalculateClientArea, LPARAM lParam)
 	{
 		LPNCCALCSIZE_PARAMS lpParam = (LPNCCALCSIZE_PARAMS)lParam;
 
+		ASSERT(lpParam != NULL);
+
 		LPRECT lpClientNew = &lpParam->rgrc[0];
 		LPRECT lpValidDst  = &lpParam->rgrc[1];
 		LPRECT lpValidSrc  = &lpParam->rgrc[2];
@@ -324,6 +327,8 @@ void CThemeWindow::DrawFrame(CDC & dc, THEMING_CALCS & tc)
 
 void CThemeWindow::DrawCaptionGradient(CDC & dc, RECT & rc, CThemeScheme * lpScheme)
 {
+	ASSERT(lpScheme != NULL);
+
 	// Draw the gradient.
 
 	TRIVERTEX vert[2];
@@ -356,6 +361,8 @@ void CThemeWindow::DrawCaptionGradient(CDC & dc, RECT & rc, CThemeScheme * lpSch
 
 void CThemeWindow::DrawRestoredFrame(CDC & dc, THEMING_CALCS & tc, CThemeScheme * lpScheme)
 {
+	ASSERT(lpScheme != NULL);
+
 	RECT rcGradient = {
 		tc.rcCaptionArea.left + 2,
 		tc.rcCaptionArea.top + 2,
@@ -472,6 +479,8 @@ void CThemeWindow::DrawRestoredFrame(CDC & dc, THEMING_CALCS & tc, CThemeScheme 
 
 void CThemeWindow::DrawZoomedFrame(CDC & dc, THEMING_CALCS & tc, CThemeScheme * lpScheme)
 {
+	ASSERT(lpScheme != NULL);
+
 	// Draw a blue border to fill up the hidden border.
 
 	RECT rc;
@@ -577,6 +586,8 @@ void CThemeWindow::DrawButtons(CDC & dc, THEMING_CALCS & tc)
 
 void CThemeWindow::DrawButtonBackground(CDC & dc, THEMING_CALCS & tc, THEMING_CALCS_BUTTON & tcn, CThemeScheme * lpScheme)
 {
+	ASSERT(lpScheme != NULL);
+
 	RECT & rc = tc.rcButtonArea;
 
 	// Draw the gradient.
@@ -622,6 +633,8 @@ void CThemeWindow::DrawButtonBackground(CDC & dc, THEMING_CALCS & tc, THEMING_CA
 
 void CThemeWindow::DrawButtonsFrame(CDC & dc, THEMING_CALCS & tc, CThemeScheme * lpScheme)
 {
+	ASSERT(lpScheme != NULL);
+
 	// Draw the dark border.
 
 	HGDIOBJ hOriginal = dc.SelectPen(lpScheme->GetPen(ThemeColorButtonBorderDarkTop));
@@ -671,6 +684,8 @@ void CThemeWindow::DrawButtonsFrame(CDC & dc, THEMING_CALCS & tc, CThemeScheme *
 
 void CThemeWindow::DrawMinimizeIcon(CDC & dc, THEMING_CALCS & tc, THEMING_CALCS_BUTTON & tcn, CThemeScheme * lpScheme)
 {
+	ASSERT(lpScheme != NULL);
+
 	HGDIOBJ hOriginal = dc.SelectPen(lpScheme->GetPen(
 		tcn.fOver ? ThemeColorButtonIconActiveBorder : ThemeColorButtonIconInactiveBorder));
 
@@ -707,6 +722,8 @@ void CThemeWindow::DrawMinimizeIcon(CDC & dc, THEMING_CALCS & tc, THEMING_CALCS_
 
 void CThemeWindow::DrawMaximizeIcon(CDC & dc, THEMING_CALCS & tc, THEMING_CALCS_BUTTON & tcn, CThemeScheme * lpScheme)
 {
+	ASSERT(lpScheme != NULL);
+
 	HGDIOBJ hOriginal = dc.SelectPen(lpScheme->GetPen(
 		tcn.fOver ? ThemeColorButtonIconActiveBorder : ThemeColorButtonIconInactiveBorder));
 
@@ -794,6 +811,8 @@ void CThemeWindow::DrawMaximizeIcon(CDC & dc, THEMING_CALCS & tc, THEMING_CALCS_
 
 void CThemeWindow::DrawCloseIcon(CDC & dc, THEMING_CALCS & tc, THEMING_CALCS_BUTTON & tcn, CThemeScheme * lpScheme)
 {
+	ASSERT(lpScheme != NULL);
+
 	HGDIOBJ hOriginal = dc.SelectPen(lpScheme->GetPen(
 		tcn.fOver ? ThemeColorButtonIconActiveBorder : ThemeColorButtonIconInactiveBorder));
 
