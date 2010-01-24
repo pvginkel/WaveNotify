@@ -34,12 +34,25 @@ public:
 
 	CWindow * GetWindow() const { return m_lpWindow; }
 	UINT GetID() const { return m_uId; }
-	void SetWindow(CWindow * lpWindow) { m_lpWindow = lpWindow; }
+	void SetWindow(CWindow * lpWindow) {
+		ASSERT(lpWindow != NULL);
+
+		m_lpWindow = lpWindow;
+	}
 	wstring GetTooltip() const { return m_szTooltip; }
-	void SetTooltip(wstring szTooltip) { m_szTooltip = szTooltip; Update(); }
+	void SetTooltip(wstring szTooltip) {
+		m_szTooltip = szTooltip;
+		Update();
+	}
 	HICON GetIcon() const { return m_hIcon; }
-	void SetIcon(HICON hIcon) { m_hIcon = hIcon; Update(); }
+	void SetIcon(HICON hIcon) {
+		CHECK_HANDLE(hIcon);
+
+		m_hIcon = hIcon;
+		Update();
+	}
 	void Recreate();
+	void Create();
 	void Destroy();
 
 private:

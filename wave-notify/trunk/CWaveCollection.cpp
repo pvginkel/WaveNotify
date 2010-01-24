@@ -19,22 +19,46 @@
 #include "include.h"
 #include "wave.h"
 
-CWaveCollection::CWaveCollection(Json::Value & vRoot)
-{
-	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
-	{
-		CWave * lpWave = new CWave(*iter);
-
-		m_vWaves[lpWave->GetID()] = lpWave;
-	}
-}
-
 CWaveCollection::~CWaveCollection()
 {
 	for (TWaveMapIter iter = m_vWaves.begin(); iter != m_vWaves.end(); iter++)
 	{
 		delete iter->second;
 	}
+}
+
+CWaveCollection * CWaveCollection::CreateFromJson(Json::Value & vRoot)
+{
+	CWaveCollection * lpResult = new CWaveCollection();
+
+	// (( scope ))
+	{
+		if (!vRoot.isArray())
+		{
+			goto __failure;
+		}
+
+		for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
+		{
+			CWave * lpWave = CWave::CreateFromJson(*iter);
+
+			if (lpWave == NULL)
+			{
+				goto __failure;
+			}
+
+			lpResult->m_vWaves[lpWave->GetID()] = lpWave;
+		}
+
+		return lpResult;
+	}
+
+__failure:
+	LOG("Could not parse json");
+
+	delete lpResult;
+
+	return NULL;
 }
 
 void CWaveCollection::Merge(CWaveCollection * lpWaves)
@@ -47,7 +71,10 @@ void CWaveCollection::Merge(CWaveCollection * lpWaves)
 
 		if (pos != m_vWaves.end())
 		{
-			delete pos->second;
+			if (pos->second != NULL)
+			{
+				delete pos->second;
+			}
 
 			m_vWaves.erase(pos);
 		}
@@ -71,7 +98,10 @@ void CWaveCollection::RemoveWaves(const TStringVector & vRemovedWaves)
 
 		if (pos != m_vWaves.end())
 		{
-			delete pos->second;
+			if (pos->second != NULL)
+			{
+				delete pos->second;
+			}
 
 			m_vWaves.erase(pos);
 		}
@@ -84,7 +114,10 @@ void CWaveCollection::AddWave(CWave * lpWave)
 
 	if (pos != m_vWaves.end())
 	{
-		delete pos->second;
+		if (pos->second != NULL)
+		{
+			delete pos->second;
+		}
 
 		m_vWaves.erase(pos);
 	}

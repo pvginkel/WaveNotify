@@ -63,6 +63,8 @@ void CBrowser::OpenUrlForWine(wstring szUrl)
 
 void CBrowser::OpenUrlWithExecutable(wstring szExecutable, wstring szUrl)
 {
+	ASSERT(!szExecutable.empty() && !szUrl.empty());
+
 	wstring szCommandLine(Format(L"\"%s\" \"%s\"", szExecutable.c_str(), szUrl.c_str()));
 
 	STARTUPINFO si;
@@ -94,6 +96,8 @@ void CBrowser::OpenUrlWithExecutable(wstring szExecutable, wstring szUrl)
 
 void CBrowser::OpenUrlWithDefault(wstring szUrl)
 {
+	ASSERT(!szUrl.empty());
+
 	ShellExecute(NULL, L"open", szUrl.c_str(), NULL, NULL, SW_SHOW);
 }
 
@@ -286,6 +290,8 @@ wstring CBrowser::GetFirefoxExecutable()
 
 wstring CBrowser::GetExecutableFromProgramFiles(wstring szRelativePath)
 {
+	ASSERT(!szRelativePath.empty());
+
 	WCHAR szPath[MAX_PATH];
 
 	if (SHGetSpecialFolderPath(NULL, szPath, CSIDL_PROGRAM_FILES, FALSE))
@@ -317,6 +323,8 @@ wstring CBrowser::GetExecutableFromProgramFiles(wstring szRelativePath)
 
 wstring CBrowser::GetExecutableFromLocalSettings(wstring szRelativePath)
 {
+	ASSERT(!szRelativePath.empty());
+
 	WCHAR szPath[MAX_PATH];
 
 	if (SHGetSpecialFolderPath(NULL, szPath, CSIDL_LOCAL_APPDATA, FALSE))
@@ -336,6 +344,8 @@ wstring CBrowser::GetExecutableFromLocalSettings(wstring szRelativePath)
 
 wstring CBrowser::GetExecutableFromStartMenu(wstring szExecutable)
 {
+	ASSERT(!szExecutable.empty());
+
 	CRegKey * lpKey = CRegKey::OpenKey(HKEY_CURRENT_USER, L"Software\\Clients\\StartMenuInternet");
 
 	if (lpKey != NULL)
@@ -369,6 +379,8 @@ wstring CBrowser::GetExecutableFromStartMenu(wstring szExecutable)
 
 wstring CBrowser::GetExecutableFromStartMenu(CRegKey * lpKey, wstring szExecutable)
 {
+	ASSERT(lpKey != NULL && !szExecutable.empty());
+	
 	TStringVector vSubKeys;
 	
 	if (!lpKey->GetSubKeys(vSubKeys))
@@ -398,6 +410,8 @@ wstring CBrowser::GetExecutableFromStartMenu(CRegKey * lpKey, wstring szExecutab
 
 wstring CBrowser::GetExecutableFromStartMenuKey(CRegKey * lpKey, wstring szExecutable)
 {
+	ASSERT(lpKey != NULL && !szExecutable.empty());
+
 	CRegKey * lpSubKey = CRegKey::OpenKey(lpKey, L"shell\\open\\command");
 	wstring szPath;
 

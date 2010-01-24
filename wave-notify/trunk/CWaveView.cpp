@@ -33,6 +33,7 @@ CWaveView::~CWaveView()
 
 BOOL CWaveView::ProcessResponse(CWaveResponse * lpResponse)
 {
+	ASSERT(lpResponse != NULL);
 
 	switch (lpResponse->GetType())
 	{
@@ -65,6 +66,8 @@ void CWaveView::ProcessContacts(CWaveContactCollection * lpContacts)
 
 void CWaveView::ProcessWaves(CWaveResponseStartListening * lpResponse)
 {
+	ASSERT(lpResponse != NULL);
+
 	m_lpWaves->Merge(lpResponse->GetWaves());
 
 	TStringVector vRemovedWaves;

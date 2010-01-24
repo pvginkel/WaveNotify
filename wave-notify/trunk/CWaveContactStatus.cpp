@@ -19,16 +19,60 @@
 #include "include.h"
 #include "wave.h"
 
-CWaveContactStatus::CWaveContactStatus(Json::Value & vRoot)
+CWaveContactStatus::CWaveContactStatus() :
+	m_fOnline(FALSE)
 {
-	m_szEmailAddress = vRoot[L"2"][L"1"].asString();
-	
-	Json::Value & vStatus = vRoot[L"3"];
-
-	m_fOnline = vStatus[L"2"].asBool();
-	m_szStatusMessage = vStatus[L"3"].asString();
 }
 
 CWaveContactStatus::~CWaveContactStatus()
 {
+}
+
+CWaveContactStatus * CWaveContactStatus::CreateFromJson(Json::Value & vRoot)
+{
+	CWaveContactStatus * lpResult = new CWaveContactStatus();
+
+	// (( scope ))
+	{
+		if (!vRoot.isObject())
+		{
+			goto __failure;
+		}
+
+		Json::Value & vItem2 = vRoot[L"2"];
+		Json::Value & vStatus = vRoot[L"3"];
+
+		if (
+			!vItem2.isObject() ||
+			!vStatus.isObject()
+		) {
+			goto __failure;
+		}
+
+		Json::Value & vEmailAddress = vItem2[L"1"];
+		Json::Value & vOnline = vStatus[L"2"];
+		Json::Value & vStatusMessage = vStatus[L"3"];
+
+		if (
+			!vEmailAddress.isString() ||
+			!vOnline.isBool() ||
+			!(vStatusMessage.isString() || vStatusMessage.isNull())
+		) {
+			goto __failure;
+		}
+
+		lpResult->m_szEmailAddress = vEmailAddress.asString();
+		
+		lpResult->m_fOnline = vOnline.asBool();
+		lpResult->m_szStatusMessage = vStatusMessage.isNull() ? L"" : vStatusMessage.asString();
+
+		return lpResult;
+	}
+
+__failure:
+	LOG("Could not parse json");
+
+	delete lpResult;
+
+	return NULL;
 }

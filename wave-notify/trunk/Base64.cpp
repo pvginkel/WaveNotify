@@ -52,7 +52,7 @@ static const BYTE g_vDecodeTable[128] =
 	49, 50, 51, -1, -1, -1, -1, -1  // 120
 };
 
-wstring Base64Encode(TByteVector vData)
+wstring Base64Encode(TByteVector & vData)
 {
 	TByteVectorIter iter = vData.begin();
 	INT nLineSize = 0;
@@ -113,9 +113,8 @@ wstring Base64Encode(TByteVector vData)
 	return szResult.str();
 }
 
-TByteVector Base64Decode(wstring szData)
+void Base64Decode(wstring szData, TByteVector & vResult)
 {
-	TByteVector vResult;
 	LPCWSTR szChars = szData.c_str();
 
 	INT nChars;
@@ -167,6 +166,4 @@ TByteVector Base64Decode(wstring szData)
 		}
 	}
 	while (nChars == 4);
-
-	return vResult;
 }

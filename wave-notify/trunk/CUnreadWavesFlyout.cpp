@@ -24,6 +24,8 @@
 
 CUnreadWavesFlyout::CUnreadWavesFlyout(CUnreadWaveCollection * lpWaves)
 {
+	ASSERT(lpWaves != NULL);
+
 	m_lpWaves = lpWaves;
 
 	SetWidth(FL_WIDTH);
@@ -31,7 +33,7 @@ CUnreadWavesFlyout::CUnreadWavesFlyout(CUnreadWaveCollection * lpWaves)
 
 	CalculateInboxBounds();
 
-	m_vLastHitTest = CHitTest(None);
+	m_vLastHitTest = CHitTest(HTT_NONE);
 }
 
 CUnreadWavesFlyout::~CUnreadWavesFlyout()
@@ -46,14 +48,18 @@ LRESULT CUnreadWavesFlyout::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	case WM_PAINT:
 		return OnPaint();
 
-	case WM_MOUSEMOVE:
-		return OnMouseMove(LOWORD(lParam), HIWORD(lParam));
-
-	case WM_LBUTTONUP:
-		return OnLeftButtonUp(LOWORD(lParam), HIWORD(lParam));
-
-	case WM_MOUSELEAVE:
-		return OnMouseMove(-1, -1);
+	case WM_MOUSEMOVE: {
+		POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+		return OnMouseMove(pt);
+	}
+	case WM_LBUTTONUP: {
+		POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+		return OnLeftButtonUp(pt);
+	}
+	case WM_MOUSELEAVE: {
+		POINT pt = { -1, -1 };
+		return OnMouseMove(pt);
+	}
 
 	default:
 		return CFlyout::WndProc(uMessage, wParam, lParam);
@@ -100,6 +106,10 @@ void CUnreadWavesFlyout::PaintBottom(CDC & dc, RECT & rcBounds)
 	static HPEN hBorderPen = CreatePen(PS_SOLID, 1, RGB(204, 217, 234));
 	static HBRUSH hBackgroundBrush = CreateSolidBrush(RGB(241, 245, 251));
 	static HFONT hFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_NORMAL, FALSE, TRUE);
+
+	CHECK_HANDLE(hBorderPen);
+	CHECK_HANDLE(hBackgroundBrush);
+	CHECK_HANDLE(hFont);
 
 	//
 	// Draw the background
@@ -203,6 +213,8 @@ void CUnreadWavesFlyout::PaintWaves(CDC & dc, RECT & rcBounds)
 	{
 		CUnreadWave * lpWave = *iter;
 
+		ASSERT(lpWave != NULL);
+
 		if (i > 0)
 		{
 			rc.top += FL_SPACING;
@@ -217,7 +229,7 @@ void CUnreadWavesFlyout::PaintWaves(CDC & dc, RECT & rcBounds)
 			rc.top += FL_SPACING + 1;
 		}
 
-		BOOL fMouseOver = vHitTest.GetType() == UnreadWave && vHitTest.GetWave() == lpWave;
+		BOOL fMouseOver = vHitTest.GetType() == HTT_UNREAD_WAVE && vHitTest.GetWave() == lpWave;
 
 		RECT rcTmp = m_vRects[i];
 
@@ -235,6 +247,8 @@ void CUnreadWavesFlyout::PaintWaves(CDC & dc, RECT & rcBounds)
 void CUnreadWavesFlyout::PaintNoWaves(CDC & dc, RECT & rcBounds)
 {
 	static HBRUSH hBackgroundBrush = (HBRUSH)GetStockObject(WHITE_BRUSH);
+
+	CHECK_HANDLE(hBackgroundBrush);
 
 	//
 	// Draw the background
@@ -271,27 +285,30 @@ void CUnreadWavesFlyout::PaintNoWaves(CDC & dc, RECT & rcBounds)
 	dc.SelectObject(hOriginal);
 }
 
-LRESULT CUnreadWavesFlyout::OnMouseMove(WORD x, WORD y)
+LRESULT CUnreadWavesFlyout::OnMouseMove(POINT pt)
 {
-	POINT pt = { x, y };
-
 	CHitTest vHitTest = HitTest(pt);
 
 	if (!vHitTest.Equals(m_vLastHitTest))
 	{
 		CDC dc(GetDC(GetHandle()));
 
-		if (m_vLastHitTest.GetType() == UnreadWave)
+		if (m_vLastHitTest.GetType() == HTT_UNREAD_WAVE)
 		{
 			CUnreadWave * lpWave = m_vLastHitTest.GetWave();
+
+			ASSERT(lpWave != NULL);
 
 			RECT rcTmp = m_vRects[m_lpWaves->Find(lpWave)];
 
 			lpWave->Paint(dc, rcTmp, FALSE, FALSE);
 		}
-		if (vHitTest.GetType() == UnreadWave)
+
+		if (vHitTest.GetType() == HTT_UNREAD_WAVE)
 		{
 			CUnreadWave * lpWave = vHitTest.GetWave();
+
+			ASSERT(lpWave != NULL);
 
 			RECT rcTmp = m_vRects[m_lpWaves->Find(lpWave)];
 
@@ -302,7 +319,7 @@ LRESULT CUnreadWavesFlyout::OnMouseMove(WORD x, WORD y)
 	if (m_vLastHitTest.GetType() != vHitTest.GetType())
 	{
 		SetCursor(
-			vHitTest.GetType() == None ?
+			vHitTest.GetType() == HTT_NONE ?
 			CNotifierApp::Instance()->GetCursorArrow() :
 			CNotifierApp::Instance()->GetCursorHand()
 		);
@@ -313,20 +330,18 @@ LRESULT CUnreadWavesFlyout::OnMouseMove(WORD x, WORD y)
 	return 0;
 }
 
-LRESULT CUnreadWavesFlyout::OnLeftButtonUp(WORD x, WORD y)
+LRESULT CUnreadWavesFlyout::OnLeftButtonUp(POINT pt)
 {
-	POINT pt = { x, y };
-
 	CHitTest vHitTest = HitTest(pt);
 
 	switch (vHitTest.GetType())
 	{
-	case Inbox:
+	case HTT_INBOX:
 		CNotifierApp::Instance()->OpenUrl(
 			CNotifierApp::Instance()->GetSession()->GetInboxUrl());
 		break;
 
-	case UnreadWave:
+	case HTT_UNREAD_WAVE:
 		CNotifierApp::Instance()->OpenWave(vHitTest.GetWave()->GetID());
 		break;
 	}
@@ -337,7 +352,6 @@ LRESULT CUnreadWavesFlyout::OnLeftButtonUp(WORD x, WORD y)
 INT CUnreadWavesFlyout::CalculateRects()
 {
 	POINT pt = { -1, -1 };
-
 	RECT rc = { 0, 0, FL_WIDTH - PL_PADDING * 2, 32267 };
 
 	const TUnreadWaveVector & vWaves = m_lpWaves->GetChanges();
@@ -346,6 +360,8 @@ INT CUnreadWavesFlyout::CalculateRects()
 
 	for (TUnreadWaveVectorConstIter iter = vWaves.begin(); iter != vWaves.end(); iter++, i++)
 	{
+		ASSERT(*iter !=  NULL);
+
 		if (i > 0)
 		{
 			rc.top += FL_SPACING * 2 + 1;
@@ -383,16 +399,16 @@ CUnreadWavesFlyout::CHitTest CUnreadWavesFlyout::HitTest(POINT pt) const
 	{
 		if (PtInRect(&m_vRects[i], pt))
 		{
-			return CHitTest(UnreadWave, m_lpWaves->GetChange(i));
+			return CHitTest(HTT_UNREAD_WAVE, m_lpWaves->GetChange(i));
 		}
 	}
 
 	if (PtInRect(&m_rcInbox, pt))
 	{
-		return CHitTest(Inbox);
+		return CHitTest(HTT_INBOX);
 	}
 
-	return CHitTest(None);
+	return CHitTest(HTT_NONE);
 }
 
 void CUnreadWavesFlyout::CalculateInboxBounds()

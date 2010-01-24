@@ -20,6 +20,8 @@
 
 BOOL CCurlAnsiStringReader::Read(LPBYTE lpData, DWORD cbData)
 {
+	ASSERT(lpData != NULL && cbData > 0);
+
 	BOOL fResult = FALSE;
 
 	// Converts using ISO-8859-1 codepage.

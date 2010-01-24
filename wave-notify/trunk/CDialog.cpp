@@ -55,6 +55,8 @@ void CDialog::Create(INT nType, CWindowHandle * lpParentWindow)
 		CDialog::DialogProcCallback,
 		(LPARAM)this);
 
+	ASSERT(hWnd != NULL);
+
 	SetHandle(hWnd);
 
 	CModelessDialogs::RegisterDialog(nType, this);
@@ -66,13 +68,17 @@ void CDialog::Create(INT nType, CWindowHandle * lpParentWindow)
 
 INT_PTR CALLBACK CDialog::DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
 {
+	// TODO: Change GWLP_USERDATA into GetProp/SetProp.
+
 	CDialog * lpDialog;
 
 	if (uMessage == WM_INITDIALOG)
 	{
 		lpDialog = (CDialog *)lParam;
+		
+		ASSERT(lpDialog != NULL);
 
-		::SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+		::SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)lpDialog);
 
 		lpDialog->SetHandle(hWnd);
 	}

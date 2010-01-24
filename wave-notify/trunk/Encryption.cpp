@@ -53,7 +53,9 @@ BOOL EncryptString(wstring szValue, wstring & szEncrypted)
 
 BOOL DecryptString(wstring szValue, wstring & szDecrypted)
 {
-	TByteVector vEncoded = Base64Decode(szValue);
+	TByteVector vEncoded;
+	
+	Base64Decode(szValue, vEncoded);
 
 	DATA_BLOB vInput;
 	DATA_BLOB vOutput;

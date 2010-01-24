@@ -22,7 +22,7 @@ CApp * CApp::m_lpInstance = NULL;
 
 CApp::CApp(HINSTANCE hInstance, wstring szCmdLine)
 {
-	ASSERT(m_lpInstance == NULL);
+	ASSERT(hInstance != NULL && m_lpInstance == NULL);
 
 	m_lpInstance = this;
 	m_hInstance = hInstance;

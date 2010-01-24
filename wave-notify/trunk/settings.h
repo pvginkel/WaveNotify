@@ -62,6 +62,7 @@ private:
 	static const wstring RegPlaySoundOnNewWave;
 	static const wstring RegBrowser;
 	static const wstring RegNotificationWhenOnline;
+	static const wstring RegApplicationRunning;
 
 	CRegKey * m_lpKey;
 
@@ -95,16 +96,23 @@ public:
 	SETTINGS_VALUE(BOOL, PlaySoundOnNewWave);
 	SETTINGS_VALUE(wstring, Browser);
 	SETTINGS_VALUE(BOOL, NotificationWhenOnline);
+	SETTINGS_VALUE(BOOL, ApplicationRunning);
 
 	BOOL GetValue(wstring szName, wstring & szValue) const {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		return m_lpKey->GetValue(szName, szValue);
 	}
 	BOOL SetValue(wstring szName, wstring szValue) {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		return m_lpKey->SetValue(szName, szValue);
 	}
 	BOOL SetValue(wstring szName, wstring szValue, BOOL & fChanged) {
+		ASSERT(!szName.empty());
+
 		fChanged = TRUE;
 		wstring szTmp;
 		if (GetValue(szName, szTmp)) {
@@ -113,6 +121,8 @@ public:
 		return SetValue(szName, szValue);
 	}
 	BOOL GetEncryptedValue(wstring szName, wstring & szValue) const {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		wstring szTmp;
 		if (m_lpKey->GetValue(szName, szTmp)) {
@@ -121,6 +131,8 @@ public:
 		return FALSE;
 	}
 	BOOL SetEncryptedValue(wstring szName, wstring szValue) {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		wstring szTmp;
 		if (EncryptString(szValue, szTmp)) {
@@ -129,6 +141,8 @@ public:
 		return FALSE;
 	}
 	BOOL SetEncryptedValue(wstring szName, wstring szValue, BOOL & fChanged) {
+		ASSERT(!szName.empty());
+
 		fChanged = TRUE;
 		wstring szTmp;
 		if (GetEncryptedValue(szName, szTmp)) {
@@ -137,14 +151,20 @@ public:
 		return SetEncryptedValue(szName, szValue);
 	}
 	BOOL GetValue(wstring szName, DWORD & dwValue) const {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		return m_lpKey->GetValue(szName, dwValue);
 	}
 	BOOL SetValue(wstring szName, DWORD dwValue) {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		return m_lpKey->SetValue(szName, dwValue);
 	}
 	BOOL SetValue(wstring szName, DWORD dwValue, BOOL & fChanged) {
+		ASSERT(!szName.empty());
+
 		fChanged = TRUE;
 		DWORD dwTmp;
 		if (GetValue(szName, dwTmp)) {
@@ -153,14 +173,20 @@ public:
 		return SetValue(szName, dwValue);
 	}
 	BOOL GetValue(wstring szName, BOOL & fValue) const {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		return m_lpKey->GetValue(szName, fValue);
 	}
 	BOOL SetValue(wstring szName, BOOL fValue) {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		return m_lpKey->SetValue(szName, fValue);
 	}
 	BOOL SetValue(wstring szName, BOOL fValue, BOOL & fChanged) {
+		ASSERT(!szName.empty());
+
 		fChanged = TRUE;
 		BOOL fTmp;
 		if (GetValue(szName, fTmp)) {
@@ -169,6 +195,8 @@ public:
 		return SetValue(szName, fValue);
 	}
 	BOOL DeleteValue(wstring szName) {
+		ASSERT(!szName.empty());
+
 		if (m_lpKey == NULL) return FALSE;
 		return m_lpKey->DeleteValue(szName);
 	}

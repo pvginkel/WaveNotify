@@ -37,6 +37,11 @@ void CPopupBase::PaintBackground(CDC & dc)
 		MAKEINTRESOURCE(IDI_CLOSE_BUTTON),
 		IMAGE_ICON, 16, 16, 0);
 
+	CHECK_HANDLE(hBorderBrush);
+	CHECK_HANDLE(hIcon);
+	CHECK_HANDLE(hBackgroundBrush);
+	CHECK_HANDLE(hCloseButton);
+
 	RECT rc;
 
 	GetClientRect(GetHandle(), &rc);

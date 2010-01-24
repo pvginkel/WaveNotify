@@ -22,6 +22,11 @@ wstring CWindowHandle::GetDlgItemText(INT nDlgItem) const
 {
 	HWND hWnd = GetDlgItem(nDlgItem);
 
+	if (hWnd == NULL)
+	{
+		return L"";
+	}
+
 	INT nLength = GetWindowTextLength(hWnd);
 
 	if (nLength > 0)

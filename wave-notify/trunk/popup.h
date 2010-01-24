@@ -104,22 +104,54 @@ public:
 	virtual ~CPopup() { }
 
 	INT GetDuration() const { return m_nDuration; }
-	void SetDuration(INT nDuration) { m_nDuration = nDuration; }
+	void SetDuration(INT nDuration) {
+		CHECK_GT_0(nDuration);
+
+		m_nDuration = nDuration;
+	}
 	INT GetHeight() const { return m_nHeight; }
-	void SetHeight(INT nHeight) { m_nHeight = nHeight; }
+	void SetHeight(INT nHeight) {
+		CHECK_GT_0(nHeight);
+
+		m_nHeight = nHeight;
+	}
 	INT GetWidth() const { return m_nWidth; }
-	void SetWidth(INT nWidth) { m_nWidth = nWidth; }
+	void SetWidth(INT nWidth) {
+		CHECK_GT_0(nWidth);
+
+		m_nWidth = nWidth;
+	}
 	INT GetAnimationDuration() const { return m_nAnimationDuration; }
-	void SetAnimationDuration(INT nAnimationDuration) { m_nAnimationDuration = nAnimationDuration; }
-	void GetLocation(LPRECT lpRect) const { memcpy(lpRect, &m_rcLocation, sizeof(RECT)); }
-	void SetLocation(LPRECT lpRect) { memcpy(&m_rcLocation, lpRect, sizeof(RECT)); }
-	CPopupWindow * GetWindow() const { return CPopupWindow::Instance(); }
+	void SetAnimationDuration(INT nAnimationDuration) {
+		CHECK_GT_0(nAnimationDuration);
+
+		m_nAnimationDuration = nAnimationDuration;
+	}
+	void GetLocation(LPRECT lpRect) const {
+		ASSERT(lpRect != NULL);
+
+		memcpy(lpRect, &m_rcLocation, sizeof(RECT));
+	}
+	void SetLocation(LPRECT lpRect) {
+		ASSERT(lpRect != NULL);
+
+		memcpy(&m_rcLocation, lpRect, sizeof(RECT));
+	}
+	CPopupWindow * GetWindow() const {
+		CPopupWindow * lpResult = CPopupWindow::Instance();
+		ASSERT(lpResult != NULL);
+		return lpResult;
+	}
 	HWND GetHandle() const { return GetWindow()->GetHandle(); }
 	void ExtendDuration(INT nDuration);
 
 	void Show();
 	void Cancel() { GetWindow()->CancelPopup(this); }
-	BOOL IsDisplaying() const { return GetWindow()->GetCurrent() == this && GetWindow()->GetState() != PS_PENDING; }
+	BOOL IsDisplaying() const {
+		CPopupWindow * lpWindow = GetWindow();
+
+		return lpWindow->GetCurrent() == this && lpWindow->GetState() != PS_PENDING;
+	}
 
 protected:
 	virtual LRESULT WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam);

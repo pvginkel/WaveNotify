@@ -70,11 +70,15 @@ HFONT GetMessageBoxFont(BOOL fReload)
 		}
 	}
 
+	CHECK_HANDLE(hFont);
+
 	return hFont;
 }
 
 HFONT CreateFontIndirectEx(HFONT hFont, LONG lWeight, BOOL fItalic, BOOL fUnderline)
 {
+	ASSERT(hFont != NULL);
+
 	LOGFONT lf;
 
 	GetObject(hFont, sizeof(LOGFONT), &lf);
@@ -130,6 +134,8 @@ BOOL FontExists(wstring szFontName)
 
 static int CALLBACK FontExistsProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam)
 {
+	ASSERT(lParam != 0);
+
 	*((LPBOOL)lParam) = TRUE;
 
 	return 0;

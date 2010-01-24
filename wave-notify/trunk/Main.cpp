@@ -21,6 +21,10 @@
 #include "version.h"
 #include "notifierapp.h"
 #include "theming.h"
+#include "settings.h"
+
+static void CheckCleanShutdown();
+static void SetCleanShutdown();
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -34,6 +38,21 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	_CrtMemCheckpoint(&vMemState);
 
 #endif
+	
+	// Set the application version for logging purposes.
+
+	Log_SetAppVersion(ConvertToMultiByte(CVersion::GetAppVersion()).c_str());
+
+	//
+	// Check for unclean shutdown.
+	//
+
+	CheckCleanShutdown();
+
+	//
+	// Initialize COM.
+	//
+
 	CoInitialize(NULL);
 
 	//
@@ -74,6 +93,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	if (!lpApp->Initialise())
 	{
 		delete lpApp;
+		delete lpVersion;
 
 		return -1;
 	}
@@ -111,6 +131,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	CoUninitialize();
 
+	SetCleanShutdown();
+
 #ifdef _DEBUG
 
 	_CrtMemState vNewMemState;
@@ -135,4 +157,27 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
+}
+
+static void CheckCleanShutdown()
+{
+	CSettings vSettings(TRUE);
+
+#ifndef _DEBUG
+
+	BOOL fRunning;
+
+	if (vSettings.GetApplicationRunning(fRunning) && fRunning)
+	{
+		LOG("Detected unclean shutdown");
+	}
+
+#endif
+
+	vSettings.SetApplicationRunning(TRUE);
+}
+
+static void SetCleanShutdown()
+{
+	CSettings(TRUE).SetApplicationRunning(FALSE);
 }

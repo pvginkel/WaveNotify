@@ -1,11 +1,10 @@
 #include "stdafx.h"
+#include "log.h"
 #include <iostream>
 #include "json/json_value.h"
 #include "json/json_writer.h"
 #include <utility>
-#include <stdexcept>
 #include <cstring>
-#include <cassert>
 #ifdef JSON_USE_CPPTL
 # include <cpptl/conststring.h>
 #endif
@@ -13,10 +12,6 @@
 #ifndef JSON_USE_SIMPLE_INTERNAL_ALLOCATOR
 # include "json/json_batchallocator.h"
 #endif // #ifndef JSON_USE_SIMPLE_INTERNAL_ALLOCATOR
-
-#define JSON_ASSERT_UNREACHABLE assert( false )
-#define JSON_ASSERT( condition ) assert( condition );  // @todo <= change this into an exception throw
-#define JSON_ASSERT_MESSAGE( condition, message ) if (!( condition )) throw std::runtime_error( message );
 
 namespace Json {
 
@@ -153,8 +148,8 @@ Value::CommentInfo::setComment( const wchar_t *text )
 {
    if ( comment_ )
       valueAllocator()->releaseStringValue( comment_ );
-   JSON_ASSERT( text );
-   JSON_ASSERT_MESSAGE( text[0]==L'\0' || text[0]==L'/', "Comments must start with /");
+   ASSERT( text );
+   ASSERT_MSG( text[0]==L'\0' || text[0]==L'/', "Comments must start with /");
    // It seems that /**/ style comments are acceptable as well.
    comment_ = valueAllocator()->duplicateStringValue( text );
 }
@@ -305,7 +300,7 @@ Value::Value( ValueType type )
       value_.bool_ = false;
       break;
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
 }
 
@@ -440,7 +435,7 @@ Value::Value( const Value &other )
       break;
 #endif
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    if ( other.comments_ )
    {
@@ -483,7 +478,7 @@ Value::~Value()
       break;
 #endif
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
 
    if ( comments_ )
@@ -541,7 +536,7 @@ Value::compare( const Value &other )
    case objectValue:
       delete value_.map_;
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    */
    return 0;  // unreachable
@@ -586,7 +581,7 @@ Value::operator <( const Value &other ) const
       return value_.map_->compare( *(other.value_.map_) ) < 0;
 #endif
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return 0;  // unreachable
 }
@@ -648,7 +643,7 @@ Value::operator ==( const Value &other ) const
       return value_.map_->compare( *(other.value_.map_) ) == 0;
 #endif
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return 0;  // unreachable
 }
@@ -662,7 +657,7 @@ Value::operator !=( const Value &other ) const
 const wchar_t *
 Value::asCString() const
 {
-   JSON_ASSERT( type_ == stringValue );
+   ASSERT( type_ == stringValue );
    return value_.string_;
 }
 
@@ -683,9 +678,9 @@ Value::asString() const
    case realValue:
    case arrayValue:
    case objectValue:
-      JSON_ASSERT_MESSAGE( false, "Type is not convertible to string" );
+      ASSERT_MSG( false, "Type is not convertible to string" );
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return L""; // unreachable
 }
@@ -708,19 +703,19 @@ Value::asInt() const
    case intValue:
       return value_.int_;
    case uintValue:
-      JSON_ASSERT_MESSAGE( value_.uint_ < (unsigned)maxInt, "integer out of signed integer range" );
+      ASSERT_MSG( value_.uint_ < (unsigned)maxInt, "integer out of signed integer range" );
       return value_.uint_;
    case realValue:
-      JSON_ASSERT_MESSAGE( value_.real_ >= minInt  &&  value_.real_ <= maxInt, "Real out of signed integer range" );
+      ASSERT_MSG( value_.real_ >= minInt  &&  value_.real_ <= maxInt, "Real out of signed integer range" );
       return Int( value_.real_ );
    case booleanValue:
       return value_.bool_ ? 1 : 0;
    case stringValue:
    case arrayValue:
    case objectValue:
-      JSON_ASSERT_MESSAGE( false, "Type is not convertible to int" );
+      ASSERT_MSG( false, "Type is not convertible to int" );
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return 0; // unreachable;
 }
@@ -733,21 +728,21 @@ Value::asUInt() const
    case nullValue:
       return 0;
    case intValue:
-      JSON_ASSERT_MESSAGE( value_.int_ >= 0, "Negative integer can not be converted to unsigned integer" );
+      ASSERT_MSG( value_.int_ >= 0, "Negative integer can not be converted to unsigned integer" );
       return value_.int_;
    case uintValue:
       return value_.uint_;
    case realValue:
-      JSON_ASSERT_MESSAGE( value_.real_ >= 0  &&  value_.real_ <= maxUInt,  "Real out of unsigned integer range" );
+      ASSERT_MSG( value_.real_ >= 0  &&  value_.real_ <= maxUInt,  "Real out of unsigned integer range" );
       return UInt( value_.real_ );
    case booleanValue:
       return value_.bool_ ? 1 : 0;
    case stringValue:
    case arrayValue:
    case objectValue:
-      JSON_ASSERT_MESSAGE( false, "Type is not convertible to uint" );
+      ASSERT_MSG( false, "Type is not convertible to uint" );
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return 0; // unreachable;
 }
@@ -770,9 +765,9 @@ Value::asDouble() const
    case stringValue:
    case arrayValue:
    case objectValue:
-      JSON_ASSERT_MESSAGE( false, "Type is not convertible to double" );
+      ASSERT_MSG( false, "Type is not convertible to double" );
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return 0; // unreachable;
 }
@@ -797,7 +792,7 @@ Value::asBool() const
    case objectValue:
       return value_.map_->size() != 0;
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return false; // unreachable;
 }
@@ -848,7 +843,7 @@ Value::isConvertibleTo( ValueType other ) const
       return other == objectValue
              ||  ( other == nullValue  &&  value_.map_->size() == 0 );
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return false; // unreachable;
 }
@@ -885,7 +880,7 @@ Value::size() const
       return Int( value_.map_->size() );
 #endif
    default:
-      JSON_ASSERT_UNREACHABLE;
+      ASSERT(FALSE);
    }
    return 0; // unreachable;
 }
@@ -911,7 +906,7 @@ Value::operator!() const
 void 
 Value::clear()
 {
-   JSON_ASSERT( type_ == nullValue  ||  type_ == arrayValue  || type_ == objectValue );
+   ASSERT( type_ == nullValue  ||  type_ == arrayValue  || type_ == objectValue );
 
    switch ( type_ )
    {
@@ -936,7 +931,7 @@ Value::clear()
 void 
 Value::resize( UInt newSize )
 {
-   JSON_ASSERT( type_ == nullValue  ||  type_ == arrayValue );
+   ASSERT( type_ == nullValue  ||  type_ == arrayValue );
    if ( type_ == nullValue )
       *this = Value( arrayValue );
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -949,7 +944,7 @@ Value::resize( UInt newSize )
    {
       for ( UInt index = newSize; index < oldSize; ++index )
          value_.map_->erase( index );
-      assert( size() == newSize );
+      CHECK( size() == newSize );
    }
 #else
    value_.array_->resize( newSize );
@@ -960,7 +955,7 @@ Value::resize( UInt newSize )
 Value &
 Value::operator[]( UInt index )
 {
-   JSON_ASSERT( type_ == nullValue  ||  type_ == arrayValue );
+   ASSERT( type_ == nullValue  ||  type_ == arrayValue );
    if ( type_ == nullValue )
       *this = Value( arrayValue );
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -981,7 +976,7 @@ Value::operator[]( UInt index )
 const Value &
 Value::operator[]( UInt index ) const
 {
-   JSON_ASSERT( type_ == nullValue  ||  type_ == arrayValue );
+   ASSERT( type_ == nullValue  ||  type_ == arrayValue );
    if ( type_ == nullValue )
       return null;
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -1008,7 +1003,7 @@ Value &
 Value::resolveReference( const wchar_t *key, 
                          bool isStatic )
 {
-   JSON_ASSERT( type_ == nullValue  ||  type_ == objectValue );
+   ASSERT( type_ == nullValue  ||  type_ == objectValue );
    if ( type_ == nullValue )
       *this = Value( objectValue );
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -1048,7 +1043,7 @@ Value::isValidIndex( UInt index ) const
 const Value &
 Value::operator[]( const wchar_t *key ) const
 {
-   JSON_ASSERT( type_ == nullValue  ||  type_ == objectValue );
+   ASSERT( type_ == nullValue  ||  type_ == objectValue );
    if ( type_ == nullValue )
       return null;
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -1126,7 +1121,7 @@ Value::get( const std::wstring &key,
 Value
 Value::removeMember( const wchar_t* key )
 {
-   JSON_ASSERT( type_ == nullValue  ||  type_ == objectValue );
+   ASSERT( type_ == nullValue  ||  type_ == objectValue );
    if ( type_ == nullValue )
       return null;
 #ifndef JSON_VALUE_USE_INTERNAL_MAP
@@ -1190,7 +1185,7 @@ Value::isMember( const CppTL::ConstString &key ) const
 Value::Members 
 Value::getMemberNames() const
 {
-   JSON_ASSERT( type_ == nullValue  ||  type_ == objectValue );
+   ASSERT( type_ == nullValue  ||  type_ == objectValue );
    if ( type_ == nullValue )
        return Value::Members();
    Members members;

@@ -88,6 +88,8 @@ CPopupWindow * CPopupWindow::Instance(BOOL fCreate)
 
 void CPopupWindow::Show(CPopup * lpPopup)
 {
+	ASSERT(lpPopup != NULL);
+
 	m_vQueue.push_back(lpPopup);
 
 	if (m_lpCurrent == NULL)
@@ -118,6 +120,8 @@ void CPopupWindow::Show(CPopup * lpPopup)
 
 ATOM CPopupWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 {
+	ASSERT(lpWndClass != NULL);
+
 	lpWndClass->style = CS_HREDRAW | CS_VREDRAW;
 	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
 
@@ -148,6 +152,8 @@ void CPopupWindow::CalculatePopupRect()
 	RECT rc;
 
 	GetTaskbarPopupLocation(sPopupSize, sOffset, &rc);
+
+	ASSERT(m_lpCurrent != NULL);
 
 	m_lpCurrent->SetLocation(&rc);
 
@@ -370,6 +376,8 @@ void CPopupWindow::UpdateFromAnimationStep()
 	BYTE nOpacity;
 	INT nOffset;
 
+	ASSERT(m_lpCurrent != NULL);
+
 	if (m_nAnimationStep == ANIMATION_STEPS)
 	{
 		nOpacity = 255;
@@ -436,7 +444,9 @@ BOOL CPopupWindow::ShouldShowPopup()
 
 	lii.cbSize = sizeof(LASTINPUTINFO);
 
-	GetLastInputInfo(&lii);
+	BOOL fResult = GetLastInputInfo(&lii);
+
+	CHECK(fResult);
 
 	if (GetTickCount() - lii.dwTime > IDLE_TIME)
 	{
@@ -459,7 +469,9 @@ BOOL CPopupWindow::ShouldShowPopup()
 
 	miex.cbSize = sizeof(MONITORINFOEX);
 
-	GetMonitorInfo(hMonitor, (LPMONITORINFO)&miex);
+	fResult = GetMonitorInfo(hMonitor, (LPMONITORINFO)&miex);
+
+	CHECK(fResult);
 
 	// If not maximized, we can show a popup.
 
@@ -503,6 +515,8 @@ void CPopupWindow::CancelAll()
 
 		lpPopup = *pos;
 
+		ASSERT(lpPopup != NULL);
+
 		m_vQueue.erase(pos);
 
 		delete lpPopup;
@@ -534,12 +548,16 @@ void CPopupWindow::GetPopups(TPopupVector & vPopups) const
 
 	for (TPopupVectorConstIter iter = m_vQueue.begin(); iter != m_vQueue.end(); iter++)
 	{
+		ASSERT(*iter != NULL);
+
 		vPopups.push_back(*iter);
 	}
 }
 
 void CPopupWindow::CancelPopup(CPopup * lpPopup)
 {
+	ASSERT(lpPopup != NULL);
+
 	if (lpPopup == m_lpCurrent)
 	{
 		ShowNext();

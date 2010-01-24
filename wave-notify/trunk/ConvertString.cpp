@@ -25,11 +25,15 @@ const wstring ConvertToWideChar(const string szString, int nCodePage)
 
 const wstring ConvertToWideChar(const TByteVector * szData, int nCodePage)
 {
+	ASSERT(szData != NULL);
+
 	return ConvertToWideChar((LPCSTR)_VECTOR_DATA(*szData), szData->size(), nCodePage);
 }
 
 const wstring ConvertToWideChar(LPCSTR szString, size_t nLength, int nCodePage)
 {
+	ASSERT(szString != NULL);
+
 	size_t nNewLength = MultiByteToWideChar(
 		nCodePage < 0 ? 0 : nCodePage,
 		0,
@@ -38,9 +42,11 @@ const wstring ConvertToWideChar(LPCSTR szString, size_t nLength, int nCodePage)
 		NULL,
 		0);
 	
-	wchar_t * szBuffer = new wchar_t[nNewLength + 1];
+	ASSERT(nNewLength != 0);
 
-	MultiByteToWideChar(
+	LPWSTR szBuffer = (LPWSTR)malloc(sizeof(WCHAR) * (nNewLength + 1));
+
+	INT nResult = MultiByteToWideChar(
 		nCodePage < 0 ? 0 : nCodePage,
 		0,
 		szString,
@@ -48,11 +54,13 @@ const wstring ConvertToWideChar(LPCSTR szString, size_t nLength, int nCodePage)
 		szBuffer,
 		nNewLength + 1);
 
+	ASSERT(nResult != 0);
+
 	szBuffer[nNewLength] = L'\0';
 
 	wstring szResult(szBuffer);
 
-	delete szBuffer;
+	free(szBuffer);
 
 	return szResult;
 }
@@ -74,9 +82,11 @@ const string ConvertToMultiByte(LPCWSTR szString, size_t nLength, int nCodePage)
 		NULL,
 		NULL);
 
-	char * szBuffer = new char[nNewLength + 1];
+	ASSERT(nNewLength != 0);
 
-	WideCharToMultiByte(
+	LPSTR szBuffer = (LPSTR)malloc(nNewLength + 1);
+
+	INT nResult = WideCharToMultiByte(
 		nCodePage < 0 ? 0 : nCodePage,
 		0,
 		szString,
@@ -86,11 +96,13 @@ const string ConvertToMultiByte(LPCWSTR szString, size_t nLength, int nCodePage)
 		NULL,
 		NULL);
 
+	ASSERT(nResult != 0);
+
 	szBuffer[nNewLength] = '\0';
 
 	string szResult(szBuffer);
 
-	delete szBuffer;
+	free(szBuffer);
 
 	return szResult;
 }

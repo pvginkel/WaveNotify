@@ -37,7 +37,11 @@ public:
 	HINSTANCE GetInstance() const { return m_hInstance; }
 	wstring GetCmdLine() const { return m_szCmdLine; }
 
-	static CApp * Instance() { return m_lpInstance; }
+	static CApp * Instance() {
+		ASSERT(m_lpInstance != NULL);
+
+		return m_lpInstance;
+	}
 };
 
 #endif // _INC_APP

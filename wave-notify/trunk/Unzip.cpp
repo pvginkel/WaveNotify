@@ -20,6 +20,8 @@
 
 unzFile unzOpenW(wstring szFile)
 {
+	ASSERT(!szFile.empty());
+
 	unzFile lpResult;
 
 	lpResult = unzOpen(ConvertToMultiByte(szFile).c_str());
@@ -29,6 +31,8 @@ unzFile unzOpenW(wstring szFile)
 
 wstring unzGetCurrentFileNameW(unzFile lpZip)
 {
+	ASSERT(lpZip != NULL);
+
 	CHAR szFilenameA[MAX_PATH];
 	INT nResult;
 

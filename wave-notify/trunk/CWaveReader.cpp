@@ -21,6 +21,8 @@
 
 BOOL CWaveReader::Read(LPBYTE lpData, DWORD cbData)
 {
+	ASSERT(lpData != NULL && cbData > 0);
+
 	m_szBuffer << m_vConverter.Parse(lpData, cbData);
 
 	return PumpResponseBuffer();
@@ -54,7 +56,7 @@ BOOL CWaveReader::PumpMessage(BOOL & fSuccess)
 
 	wstring szLength = szReceived.substr(0, dwPos);
 
-	if (!iswdigit(szLength))
+	if (szLength.length() == 0 || !iswdigit(szLength))
 	{
 		// The first line was not a number; we cannot read a package.
 

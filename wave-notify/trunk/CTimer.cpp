@@ -40,12 +40,14 @@ void CTimer::SetInterval(UINT uInterval)
 
 	if (m_fRunning)
 	{
-		SetTimer(
+		UINT_PTR nResult = SetTimer(
 			CTimerCollection::Instance()->GetTargetWindow()->GetHandle(),
 			m_nEventId,
 			m_uInterval,
 			NULL
 		);
+
+		CHECK_NE_0(nResult);
 	}
 }
 

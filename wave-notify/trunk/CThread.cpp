@@ -20,5 +20,7 @@
 
 DWORD WINAPI CThread::ThreadProcCallback(LPVOID lpParameter)
 {
+	ASSERT(lpParameter != NULL);
+
 	return ((CThread *)lpParameter)->ThreadProc();
 }

@@ -34,7 +34,7 @@ void CPopup::Show()
 
 LRESULT CPopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 {
-	return CPopupWindow::Instance()->DefWindowProc(uMessage, wParam, lParam);
+	return GetWindow()->DefWindowProc(uMessage, wParam, lParam);
 }
 
 void CPopup::ExtendDuration(INT nDuration)
