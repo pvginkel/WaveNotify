@@ -113,7 +113,7 @@ LRESULT CContactOnlinePopup::OnPaint()
 
 LRESULT CContactOnlinePopup::OnLeftButtonUp(LPARAM lParam)
 {
-	POINT pt = { LOWORD(lParam), HIWORD(lParam) };
+	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
 	if (HitTestCloseButton(pt))
 	{
