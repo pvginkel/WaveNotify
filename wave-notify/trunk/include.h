@@ -83,13 +83,15 @@ typedef enum
 {
 	DT_ABOUT,
 	DT_OPTIONS,
-	DT_LOGIN
+	DT_LOGIN,
+	DT_MAX
 } DIALOG_TYPE;
 
 typedef enum
 {
 	CR_SUSPEND,
-	CR_LOCK
+	CR_LOCK,
+	CR_MAX
 } CONNECT_REASON;
 
 // All timer intervals (in milliseconds).
@@ -107,6 +109,7 @@ typedef enum
 
 #define TIMER_REREPORT_TIMEOUT			(3 * 60 * 1000)
 
+#include "log.h"
 #include "compat.h"
 #include "types.h"
 #include "thread.h"
@@ -116,7 +119,6 @@ typedef enum
 #include "colorscheme.h"
 #include "lock.h"
 #include "registry.h"
-#include "log.h"
 #include "support.h"
 #include "delegate.h"
 #include "event.h"

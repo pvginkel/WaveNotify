@@ -25,7 +25,10 @@ class CMutex
 	HANDLE m_hHandle;
 
 private:
-	CMutex(HANDLE hHandle) { m_hHandle = hHandle; }
+	CMutex(HANDLE hHandle) {
+		ASSERT(hHandle != NULL);
+		m_hHandle = hHandle;
+	}
 
 public:
 	~CMutex() { CloseHandle(m_hHandle); }

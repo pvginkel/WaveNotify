@@ -23,6 +23,8 @@
 
 CUnreadWave::CUnreadWave(CWave * lpWave, CWaveMessage * lpMessage)
 {
+	ASSERT(lpWave != NULL && lpMessage != NULL);
+
 	m_szId = lpWave->GetID();
 	m_szContact = lpMessage->GetEmailAddress();
 	m_szSubject = lpWave->GetSubject();
@@ -37,6 +39,10 @@ INT CUnreadWave::Paint(CDC & dc, RECT & rcClient, BOOL fMouseOver, BOOL fExclude
 	static HFONT hBoldFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_BOLD, FALSE, FALSE);
 	static HFONT hUnderlineFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_NORMAL, FALSE, TRUE);
 	static HFONT hUnderlineBoldFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_BOLD, FALSE, TRUE);
+
+	CHECK_HANDLE(hBoldFont);
+	CHECK_HANDLE(hUnderlineFont);
+	CHECK_HANDLE(hUnderlineBoldFont);
 
 	wstring szContact = m_lpContact == NULL ? m_szContact : m_lpContact->GetDisplayName();
 
@@ -160,6 +166,8 @@ INT CUnreadWave::CalculateHeight(RECT & rcClient) const
 	CDC dc(GetDC(NULL));
 
 	static HFONT hBoldFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_BOLD, FALSE, FALSE);
+
+	CHECK_HANDLE(hBoldFont);
 
 	HGDIOBJ hOriginal = dc.SelectFont(hBoldFont);
 

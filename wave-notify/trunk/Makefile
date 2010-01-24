@@ -31,7 +31,7 @@ LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CAvatar.obj	\
 	CCurlAnsiStringReader.obj CCurlMonitor.obj CCurlMulti.obj		\
 	CDialog.obj CFlyout.obj CLoginDialog.obj CMessagePopup.obj		\
 	CMigration.obj CModelessDialogs.obj CModelessPropertySheets.obj		\
-	CNotifierApp.obj CNotifyIcon.obj Compat.obj ConvetString.obj		\
+	CNotifierApp.obj CNotifyIcon.obj Compat.obj ConvertString.obj		\
 	COptionsSheet.obj CPopup.obj CPopupBase.obj CPopupWindow.obj 		\
 	CPropertySheet.obj CPropertySheetPage.obj CRegKey.obj CSettings.obj	\
 	CThread.obj CTimer.obj CTimerCollection.obj CUnreadWave.obj 		\

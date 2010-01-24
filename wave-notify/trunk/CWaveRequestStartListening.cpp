@@ -24,6 +24,8 @@ CWaveRequestStartListening::CWaveRequestStartListening(wstring szSearchString)
 	: CWaveRequest(WMT_START_LISTENING)
 {
 	m_lpListener = CNotifierApp::Instance()->GetSession()->CreateListener(szSearchString);
+
+	ASSERT(m_lpListener != NULL);
 }
 
 void CWaveRequestStartListening::CreateRequest(Json::Value & vRoot)

@@ -26,27 +26,81 @@ private:
 	HDC m_hDC;
 
 public:
-	CDC(HDC hDC) { m_hDC = hDC; }
-	virtual ~CDC() { }
+	CDC(HDC hDC) {
+		ASSERT(hDC != NULL);
 
-	void FrameRect(LPRECT lprc, HBRUSH hBrush) const { ::FrameRect(m_hDC, lprc, hBrush); }
-	void FillRect(LPRECT lprc, HBRUSH hBrush) const { ::FillRect(m_hDC, lprc, hBrush); }
-	void DrawIconEx(int xLeft, int yTop, HICON hIcon, int cxWidth, int cyWidth, UINT istepIfAniCur = 0, HBRUSH hbrFlickerFreeDraw = NULL, UINT diFlags = DI_NORMAL) const {
-		::DrawIconEx(m_hDC, xLeft, yTop, hIcon, cxWidth, cyWidth, istepIfAniCur, hbrFlickerFreeDraw, diFlags);
+		m_hDC = hDC;
 	}
-	HGDIOBJ SelectObject(HGDIOBJ hGdiObj) const { return ::SelectObject(m_hDC, hGdiObj); }
-	HGDIOBJ SelectFont(HFONT hFont) const { return ::SelectObject(m_hDC, hFont); }
-	HGDIOBJ SelectPen(HPEN hPen) const { return ::SelectObject(m_hDC, hPen); }
-	void GetTextMetrics(LPTEXTMETRIC lptm) const { ::GetTextMetrics(m_hDC, lptm); }
-	void DrawText(wstring szText, LPRECT lprc, UINT format) const { ::DrawText(m_hDC, szText.c_str(), szText.size(), lprc, format); }
+	virtual ~CDC() { }
+	
+	void FrameRect(LPRECT lprc, HBRUSH hBrush) const {
+		CHECK_PTR(lprc);
+		CHECK_HANDLE(hBrush);
+
+		int nResult = ::FrameRect(m_hDC, lprc, hBrush);
+
+		CHECK_NE_0(nResult);
+	}
+	void FillRect(LPRECT lprc, HBRUSH hBrush) const {
+		CHECK_PTR(lprc);
+		CHECK_HANDLE(hBrush);
+
+		int nResult = ::FillRect(m_hDC, lprc, hBrush);
+
+		CHECK_NE_0(nResult);
+	}
+	void DrawIconEx(int xLeft, int yTop, HICON hIcon, int cxWidth, int cyWidth, UINT istepIfAniCur = 0, HBRUSH hbrFlickerFreeDraw = NULL, UINT diFlags = DI_NORMAL) const {
+		BOOL fResult = ::DrawIconEx(m_hDC, xLeft, yTop, hIcon, cxWidth, cyWidth, istepIfAniCur, hbrFlickerFreeDraw, diFlags);
+
+		CHECK(fResult);
+	}
+	HGDIOBJ SelectObject(HGDIOBJ hGdiObj) const {
+		return ::SelectObject(m_hDC, hGdiObj);
+	}
+	HGDIOBJ SelectFont(HFONT hFont) const {
+		CHECK_HANDLE(hFont);
+
+		return ::SelectObject(m_hDC, hFont);
+	}
+	HGDIOBJ SelectPen(HPEN hPen) const {
+		CHECK_HANDLE(hPen);
+
+		return ::SelectObject(m_hDC, hPen);
+	}
+	void GetTextMetrics(LPTEXTMETRIC lptm) const {
+		CHECK_PTR(lptm);
+
+		BOOL fResult = ::GetTextMetrics(m_hDC, lptm);
+
+		CHECK(fResult);
+	}
+	void DrawText(wstring szText, LPRECT lprc, UINT format) const {
+		CHECK_PTR(lprc);
+
+		int nResult = ::DrawText(m_hDC, szText.c_str(), szText.size(), lprc, format);
+
+		CHECK_NE_0(nResult);
+	}
 	HDC GetHandle() const { return m_hDC; }
 	COLORREF SetTextColor(COLORREF cr) const { return ::SetTextColor(m_hDC, cr); }
 	COLORREF SetBkColor(COLORREF cr) const { return ::SetBkColor(m_hDC, cr); }
 	int SetBkMode(int nMode) const { return ::SetBkMode(m_hDC, nMode); }
-	void MoveToEx(INT x, INT y, LPPOINT lppt = NULL) const { ::MoveToEx(m_hDC, x, y, lppt); }
-	void LineTo(INT x, INT y) const { ::LineTo(m_hDC, x, y); }
+	void MoveToEx(INT x, INT y, LPPOINT lppt = NULL) const {
+		BOOL fResult = ::MoveToEx(m_hDC, x, y, lppt);
+
+		CHECK(fResult);
+	}
+	void LineTo(INT x, INT y) const {
+		int nResult = ::LineTo(m_hDC, x, y);
+
+		CHECK_NE_0(nResult);
+	}
 	void BitBlt(POINT ptDest, SIZE szDest, CDC * lpSourceDC, POINT ptSource, DWORD dwRop) const {
-		::BitBlt(m_hDC, ptDest.x, ptDest.y, szDest.cx, szDest.cy, lpSourceDC->GetHandle(), ptSource.x, ptSource.y, dwRop);
+		ASSERT(lpSourceDC != NULL);
+
+		BOOL fResult = ::BitBlt(m_hDC, ptDest.x, ptDest.y, szDest.cx, szDest.cy, lpSourceDC->GetHandle(), ptSource.x, ptSource.y, dwRop);
+
+		CHECK(fResult);
 	}
 	INT ExcludeClipRect(LPRECT lprc) {
 		return ::ExcludeClipRect(m_hDC, lprc->left, lprc->top, lprc->right, lprc->bottom);

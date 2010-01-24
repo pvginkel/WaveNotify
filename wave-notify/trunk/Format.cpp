@@ -28,13 +28,13 @@ wstring Format(wstring szFormat, ...)
 
 	for (;;)
 	{
-		HRESULT hResult = StringCchVPrintf(szBuffer, nLength - 1, szFormat.c_str(), argptr);
+		HRESULT hr = StringCchVPrintf(szBuffer, nLength - 1, szFormat.c_str(), argptr);
 
-		if (hResult == S_OK)
+		if (SUCCEEDED(hr))
 		{
 			break;
 		}
-		else if (hResult == STRSAFE_E_INSUFFICIENT_BUFFER)
+		else if (hr == STRSAFE_E_INSUFFICIENT_BUFFER)
 		{
 			nLength *= 2;
 			szBuffer = (LPWSTR)realloc(szBuffer, nLength * sizeof(WCHAR));

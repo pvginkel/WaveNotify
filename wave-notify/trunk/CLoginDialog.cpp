@@ -23,6 +23,8 @@
 
 CLoginDialog::CLoginDialog(CAppWindow * lpAppWindow) : CThemedDialog(IDD_LOGIN)
 {
+	ASSERT(lpAppWindow != NULL);
+
 	m_lpAppWindow = lpAppWindow;
 
 	m_hStateOffline = (HICON)LoadImage(
@@ -30,15 +32,21 @@ CLoginDialog::CLoginDialog(CAppWindow * lpAppWindow) : CThemedDialog(IDD_LOGIN)
 		MAKEINTRESOURCE(IDI_STATE_OFFLINE),
 		IMAGE_ICON, 16, 16, 0);
 
+	CHECK_HANDLE(m_hStateOffline);
+
 	m_hStateUnknown = (HICON)LoadImage(
 		CApp::Instance()->GetInstance(),
 		MAKEINTRESOURCE(IDI_STATE_UNKNOWN),
 		IMAGE_ICON, 16, 16, 0);
 
+	CHECK_HANDLE(m_hStateUnknown);
+
 	m_hStateOnline = (HICON)LoadImage(
 		CApp::Instance()->GetInstance(),
 		MAKEINTRESOURCE(IDI_STATE_ONLINE),
 		IMAGE_ICON, 16, 16, 0);
+
+	CHECK_HANDLE(m_hStateOnline);
 
 	m_fLoggingOn = FALSE;
 
@@ -197,6 +205,8 @@ void CLoginDialog::EnableControls(BOOL fEnabled)
 
 INT_PTR CLoginDialog::OnWaveConnectionState(WAVE_CONNECTION_STATE nState, LPARAM lParam)
 {
+	CHECK_ENUM(nState, WCS_MAX);
+
 	if (!m_fLoggingOn)
 	{
 		return 0;
@@ -215,6 +225,9 @@ INT_PTR CLoginDialog::OnWaveConnectionState(WAVE_CONNECTION_STATE nState, LPARAM
 
 INT_PTR CLoginDialog::OnLoginStateChanged(WAVE_CONNECTION_STATE nState, WAVE_LOGIN_ERROR nLoginError)
 {
+	CHECK_ENUM(nState, WCS_MAX);
+	CHECK_ENUM(nLoginError, WLE_MAX);
+
 	switch (nState)
 	{
 	case WCS_GOT_KEY:
@@ -254,6 +267,8 @@ void CLoginDialog::ProcessLoginSuccess()
 
 void CLoginDialog::ProcessLoginFailure(WAVE_LOGIN_ERROR nLoginError)
 {
+	CHECK_ENUM(nLoginError, WLE_MAX);
+
 	m_fLoggingOn = FALSE;
 
 	EnableControls(TRUE);
@@ -297,21 +312,21 @@ INT_PTR CLoginDialog::UpdateEnabled()
 
 void CLoginDialog::UpdateRegistry()
 {
-	CSettings settings(TRUE);
+	CSettings vSettings(TRUE);
 
-	settings.SetGoogleUsername(GetDlgItemText(IDC_LOGIN_USERNAME));
+	vSettings.SetGoogleUsername(GetDlgItemText(IDC_LOGIN_USERNAME));
 
 	BOOL fRemember = GetDlgItemChecked(IDC_LOGIN_REMEMBERPASSWORD);
 
-	settings.SetRememberPassword(fRemember);
+	vSettings.SetRememberPassword(fRemember);
 
 	if (fRemember)
 	{
-		settings.SetGooglePassword(GetDlgItemText(IDC_LOGIN_PASSWORD));
+		vSettings.SetGooglePassword(GetDlgItemText(IDC_LOGIN_PASSWORD));
 	}
 	else
 	{
-		settings.DeleteGooglePassword();
+		vSettings.DeleteGooglePassword();
 	}
 }
 
@@ -323,6 +338,8 @@ void CLoginDialog::SetStateIcon(HICON hIcon)
 BOOL CALLBACK CLoginDialog::DisableWindowsEnumCallback(HWND hWnd, LPARAM lParam)
 {
 	THwndVector * lpDisabledWindows = (THwndVector *)lParam;
+
+	ASSERT(lpDisabledWindows != NULL);
 
 	if (IsWindowEnabled(hWnd))
 	{

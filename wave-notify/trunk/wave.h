@@ -88,7 +88,8 @@ typedef enum
 	WCS_FAILED,
 	WCS_RECEIVED,
 	WCS_BEGIN_SIGNOUT,
-	WCS_SIGNED_OUT
+	WCS_SIGNED_OUT,
+	WCS_MAX
 } WAVE_CONNECTION_STATE;
 
 typedef enum
@@ -105,7 +106,8 @@ typedef enum
 {
 	WLE_SUCCESS,
 	WLE_AUTHENTICATE,
-	WLE_NETWORK
+	WLE_NETWORK,
+	WLE_MAX
 } WAVE_LOGIN_ERROR;
 
 typedef enum
@@ -116,7 +118,8 @@ typedef enum
 	WSR_SESSION_DETAILS,
 	WSR_SID,
 	WSR_CHANNEL,
-	WSR_SIGN_OUT
+	WSR_SIGN_OUT,
+	WSR_MAX
 } WAVE_SESSION_REQUESTING;
 
 typedef enum
@@ -125,7 +128,8 @@ typedef enum
 	WSS_CONNECTING,
 	WSS_ONLINE,
 	WSS_DISCONNECTING,
-	WSS_RECONNECTING
+	WSS_RECONNECTING,
+	WSS_MAX
 } WAVE_SESSION_STATE;
 
 class CWaveSession
@@ -176,14 +180,14 @@ public:
 	WAVE_LOGIN_ERROR GetLoginError() { return m_nLoginError; }
 	void AddProgressTarget(CWindowHandle * lpSignalWindow);
 	void RemoveProgressTarget(CWindowHandle * lpSignalWindow);
-	BOOL ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
+	BOOL ProcessCurlResponse(CCurl * lpCurl);
 	BOOL ParseChannelResponse(wstring szResponse);
 	WAVE_SESSION_STATE GetState() const { return m_nState; }
 	void StopReconnecting();
 	void QueueRequest(CWaveRequest * lpRequest);
 	void FlushRequestQueue();
 	void SuspendRequestFlush();
-	void ResponseRequestFlush();
+	void ReleaseRequestFlush();
 	void ForceReconnect();
 	wstring GetAuthKey() const { return m_szAuthKey; }
 
@@ -235,9 +239,13 @@ private:
 	BOOL m_fRequestedAvatar;
 	CAvatar * m_lpAvatar;
 
+private:
+	CWaveContact();
+
 public:
-	CWaveContact(Json::Value & vRoot);
 	virtual ~CWaveContact();
+
+	static CWaveContact * CreateFromJson(Json::Value & vRoot);
 
 	wstring GetEmailAddress() const { return m_szEmailAddress; }
 	wstring GetName() const { return m_szName; }
@@ -265,11 +273,14 @@ private:
 
 public:
 	CWaveContactCollection() { }
-	CWaveContactCollection(Json::Value & vRoot);
 	virtual ~CWaveContactCollection();
+
+	static CWaveContactCollection * CreateFromJson(Json::Value & vRoot);
 
 	const TWaveContactMap & GetContacts() const { return m_vContacts; }
 	CWaveContact * GetContact(wstring szEmailAddress) const {
+		CHECK_NOT_EMPTY(szEmailAddress);
+
 		TWaveContactMapConstIter pos = m_vContacts.find(szEmailAddress);
 		return pos == m_vContacts.end() ? NULL : pos->second;
 	}
@@ -284,9 +295,13 @@ private:
 	BOOL m_fOnline;
 	wstring m_szStatusMessage;
 
+private:
+	CWaveContactStatus();
+
 public:
-	CWaveContactStatus(Json::Value & vRoot);
 	virtual ~CWaveContactStatus();
+
+	static CWaveContactStatus * CreateFromJson(Json::Value & vRoot);
 
 	wstring GetEmailAddress() const { return m_szEmailAddress; }
 	BOOL GetOnline() const { return m_fOnline; }
@@ -298,18 +313,23 @@ class CWaveContactStatusCollection
 private:
 	TWaveContactStatusMap m_vStatuses;
 
+private:
+	CWaveContactStatusCollection();
 public:
-	CWaveContactStatusCollection(Json::Value & vRoot);
 	virtual ~CWaveContactStatusCollection();
+
+	static CWaveContactStatusCollection * CreateFromJson(Json::Value & vRoot);
 
 	const TWaveContactStatusMap & GetStatuses() const { return m_vStatuses; }
 };
 
 typedef enum
 {
+	WNT_UNKNOWN,
 	WNT_FULL = 1,
 	WNT_SHORT = 2,
-	WNT_SELF = 3
+	WNT_SELF = 3,
+	WNT_MAX
 } WAVE_NAME_TYPE;
 
 class CWaveName
@@ -318,8 +338,11 @@ private:
 	WAVE_NAME_TYPE m_nType;
 	wstring m_szName;
 
+private:
+	CWaveName();
+
 public:
-	CWaveName(Json::Value & vRoot);
+	static CWaveName * CreateFromJson(Json::Value & vRoot);
 
 	wstring GetName() const { return m_szName; }
 	WAVE_NAME_TYPE GetType() const { return m_nType; }
@@ -333,10 +356,14 @@ private:
 	UINT m_uContactId;
 	UINT m_uOrder;
 
+private:
+	CWaveMessage();
+
 public:
 	CWaveMessage(const CWaveMessage & _Other);
-	CWaveMessage(Json::Value & vRoot, UINT uOrder);
 	virtual ~CWaveMessage() { }
+
+	static CWaveMessage * CreateFromJson(Json::Value & vRoot, UINT uOrder);
 
 	void ResolveContact(CWave * lpWave);
 
@@ -369,10 +396,13 @@ private:
 	wstring m_szEmailAddress;
 	CDateTime m_dtTime;
 
+private:
+	CWave();
 public:
 	CWave(const CWave & _Other);
-	CWave(Json::Value & vRoot);
 	virtual ~CWave();
+
+	static CWave * CreateFromJson(Json::Value & vRoot);
 
 	wstring GetID() const { return m_szID; }
 	UINT GetTotalMessages() const { return m_uMessages; }
@@ -383,8 +413,17 @@ public:
 	wstring GetEmailAddress() const { return m_szEmailAddress; }
 	CDateTime GetTime() const { return m_dtTime; }
 
-	static CDateTime CreateDateTime(Json::Value & vRoot) {
-		return CreateDateTime(vRoot[1].asInt(), vRoot[0u].asInt());
+	static BOOL CreateDateTime(Json::Value & vRoot, CDateTime & dtResult) {
+		Json::Value & vMajor = vRoot[1];
+		Json::Value & vMinor = vRoot[0u];
+
+		if (vMajor.isIntegral() && vMinor.isIntegral()) {
+			dtResult = CreateDateTime(vMajor.asInt(), vMinor.asInt());
+			return TRUE;
+		} else {
+			LOG("Could not parse json");
+			return FALSE;
+		}
 	}
 	static CDateTime CreateDateTime(DWORD dwMajor, DWORD dwMinor) {
 		SYSTEMTIME vOffsetSystemTime = { 1970, 1, 0, 1, 0 };
@@ -395,8 +434,8 @@ public:
 	}
 
 private:
-	void AddContacts(Json::Value & vRoot);
-	void AddMessages(Json::Value & vRoot);
+	BOOL AddContacts(Json::Value & vRoot);
+	BOOL AddMessages(Json::Value & vRoot);
 
 };
 
@@ -407,8 +446,9 @@ private:
 
 public:
 	CWaveCollection() { }
-	CWaveCollection(Json::Value & vRoot);
 	~CWaveCollection();
+
+	static CWaveCollection * CreateFromJson(Json::Value & vRoot);
 
 	void Merge(CWaveCollection * lpWaves);
 	void RemoveWaves(const TStringVector & vRemovedWaves);
@@ -425,6 +465,9 @@ private:
 
 public:
 	CWaveListener(wstring szID, wstring szSearchString) {
+		ASSERT(!szID.empty());
+		CHECK_NOT_EMPTY(szSearchString);
+
 		m_szID = szID;
 		m_szSearchString = szSearchString;
 	}
@@ -466,7 +509,11 @@ private:
 	CWaveSession * m_lpSession;
 
 public:
-	CWaveReader(CWaveSession * lpSession) { m_lpSession = lpSession; }
+	CWaveReader(CWaveSession * lpSession) {
+		ASSERT(lpSession != NULL);
+
+		m_lpSession = lpSession;
+	}
 	BOOL Read(LPBYTE lpData, DWORD cbData);
 	
 private:

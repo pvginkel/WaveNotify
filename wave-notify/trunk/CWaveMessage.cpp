@@ -19,11 +19,10 @@
 #include "include.h"
 #include "wave.h"
 
-CWaveMessage::CWaveMessage(Json::Value & vRoot, UINT uOrder)
+CWaveMessage::CWaveMessage() :
+	m_uContactId(0),
+	m_uOrder(0)
 {
-	m_szText = vRoot[L"1"].asString();
-	m_uContactId = vRoot[L"6"].asUInt();
-	m_uOrder = uOrder;
 }
 
 CWaveMessage::CWaveMessage(const CWaveMessage & _Other)
@@ -34,8 +33,46 @@ CWaveMessage::CWaveMessage(const CWaveMessage & _Other)
 	m_uOrder = _Other.m_uOrder;
 }
 
+CWaveMessage * CWaveMessage::CreateFromJson(Json::Value & vRoot, UINT uOrder)
+{
+	CWaveMessage * lpResult = new CWaveMessage();
+
+	// (( scope ))
+	{
+		if (!vRoot.isObject())
+		{
+			goto __failure;
+		}
+
+		Json::Value & vText = vRoot[L"1"];
+		Json::Value & vContactId = vRoot[L"6"];
+
+		if (
+			!vText.isString() ||
+			!vContactId.isIntegral()
+		) {
+			goto __failure;
+		}
+
+		lpResult->m_szText = vText.asString();
+		lpResult->m_uContactId = vContactId.asUInt();
+		lpResult->m_uOrder = uOrder;
+
+		return lpResult;
+	}
+
+__failure:
+	LOG("Could not parse json");
+
+	delete lpResult;
+
+	return NULL;
+}
+
 void CWaveMessage::ResolveContact(CWave * lpWave)
 {
+	ASSERT(lpWave != NULL);
+
 	const TStringVector & vContacts = lpWave->GetContacts();
 
 	if (m_uContactId < vContacts.size())

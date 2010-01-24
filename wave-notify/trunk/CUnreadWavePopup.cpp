@@ -23,6 +23,8 @@
 
 CUnreadWavePopup::CUnreadWavePopup(CUnreadWave * lpWave, UINT uIndex, UINT uCount) : CPopupBase(PT_WAVE)
 {
+	ASSERT(lpWave != NULL);
+
 	m_lpWave = lpWave;
 	m_uIndex = uIndex;
 	m_uCount = uCount;
@@ -50,7 +52,7 @@ LRESULT CUnreadWavePopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 		return OnLeftButtonUp(lParam);
 
 	case WM_POPUP_OPENING:
-		CPopupWindow::Instance()->SetCursor(CNotifierApp::Instance()->GetCursorHand());
+		GetWindow()->SetCursor(CNotifierApp::Instance()->GetCursorHand());
 		return 0;
 
 	default:
@@ -104,7 +106,7 @@ LRESULT CUnreadWavePopup::OnPaint()
 
 LRESULT CUnreadWavePopup::OnLeftButtonUp(LPARAM lParam)
 {
-	POINT pt = { LOWORD(lParam), HIWORD(lParam) };
+	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
 	if (HitTestCloseButton(pt))
 	{
@@ -120,6 +122,8 @@ LRESULT CUnreadWavePopup::OnLeftButtonUp(LPARAM lParam)
 
 void CUnreadWavePopup::UpdateUnread(CUnreadWave * lpUnread)
 {
+	ASSERT(lpUnread != NULL);
+
 	delete m_lpWave;
 
 	m_lpWave = lpUnread;
@@ -134,12 +138,17 @@ void CUnreadWavePopup::UpdateUnread(CUnreadWave * lpUnread)
 
 void CUnreadWavePopup::ContactsUpdated(CWaveContactCollection * lpContacts)
 {
+	ASSERT(lpContacts != NULL);
+
 	if (m_lpWave->GetWaveContact() == NULL)
 	{
 		CWaveContact * lpContact = lpContacts->GetContact(m_lpWave->GetContact());
 
-		m_lpWave->SetWaveContact(lpContact);
+		if (lpContact != NULL)
+		{
+			m_lpWave->SetWaveContact(lpContact);
 
-		InvalidateRect(GetHandle(), NULL, FALSE);
+			InvalidateRect(GetHandle(), NULL, FALSE);
+		}
 	}
 }

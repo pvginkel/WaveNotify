@@ -23,6 +23,8 @@
 
 CMessagePopup::CMessagePopup(wstring szMessage) : CPopupBase(PT_MESSAGE)
 {
+	CHECK_NOT_EMPTY(szMessage);
+
 	m_szMessage = szMessage;
 
 	SetHeight(PL_MSG_HEIGHT);
@@ -45,7 +47,7 @@ LRESULT CMessagePopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 		{
 			POINT pt = { LOWORD(lParam), HIWORD(lParam) };
 
-			CPopupWindow::Instance()->SetCursor(
+			GetWindow()->SetCursor(
 				HitTestCloseButton(pt) ?
 				CNotifierApp::Instance()->GetCursorHand() :
 				CNotifierApp::Instance()->GetCursorArrow()
@@ -54,7 +56,7 @@ LRESULT CMessagePopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_POPUP_OPENING:
-		CPopupWindow::Instance()->SetCursor(
+		GetWindow()->SetCursor(
 			m_szUrl.empty() ?
 			CNotifierApp::Instance()->GetCursorArrow() :
 			CNotifierApp::Instance()->GetCursorHand()
@@ -117,7 +119,7 @@ LRESULT CMessagePopup::OnPaint()
 
 LRESULT CMessagePopup::OnLeftButtonUp(LPARAM lParam)
 {
-	POINT pt = { LOWORD(lParam), HIWORD(lParam) };
+	POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
 	if (HitTestCloseButton(pt))
 	{
@@ -126,7 +128,7 @@ LRESULT CMessagePopup::OnLeftButtonUp(LPARAM lParam)
 	else if (!m_szUrl.empty())
 	{
 		CNotifierApp::Instance()->OpenUrl(m_szUrl);
-		CPopupWindow::Instance()->ShowNext();
+		GetWindow()->ShowNext();
 	}
 
 	return 0;

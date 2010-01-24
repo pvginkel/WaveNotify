@@ -20,21 +20,28 @@
 
 CNotifyIcon::CNotifyIcon(CWindow * lpWindow, UINT uId, wstring szTooltip, HICON hIcon)
 {
+	ASSERT(lpWindow != NULL);
+
 	m_lpWindow = lpWindow;
 	m_uId = uId;
 	m_szTooltip = szTooltip;
 	m_hIcon = hIcon;
-
-	NOTIFYICONDATA nid;
-
-	PopulateData(&nid);
-
-	Shell_NotifyIcon(NIM_ADD, &nid);
 }
 
 CNotifyIcon::~CNotifyIcon()
 {
 	Destroy();
+}
+
+void CNotifyIcon::Create()
+{
+	NOTIFYICONDATA nid;
+
+	PopulateData(&nid);
+
+	BOOL fResult = Shell_NotifyIcon(NIM_ADD, &nid);
+
+	CHECK(fResult);
 }
 
 void CNotifyIcon::Destroy()
@@ -48,11 +55,7 @@ void CNotifyIcon::Destroy()
 
 void CNotifyIcon::Recreate()
 {
-	NOTIFYICONDATA nid;
-
-	PopulateData(&nid);
-
-	Shell_NotifyIcon(NIM_ADD, &nid);
+	Create();
 }
 
 void CNotifyIcon::Update()
@@ -61,11 +64,15 @@ void CNotifyIcon::Update()
 
 	PopulateData(&nid);
 
-	Shell_NotifyIcon(NIM_MODIFY, &nid);
+	BOOL fResult = Shell_NotifyIcon(NIM_MODIFY, &nid);
+
+	CHECK(fResult);
 }
 
 void CNotifyIcon::PopulateData(PNOTIFYICONDATA lpnid)
 {
+	ASSERT(lpnid != NULL);
+
 	memset(lpnid, 0, sizeof(NOTIFYICONDATA));
 
 	lpnid->cbSize = sizeof(NOTIFYICONDATA);

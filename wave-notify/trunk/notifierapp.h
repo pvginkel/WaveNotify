@@ -76,7 +76,7 @@ private:
 	LRESULT OnNotifyIcon(UINT uMessage, UINT uID);
 	LRESULT OnCommand(WORD wID);
 	LRESULT OnWaveConnectionState(WAVE_CONNECTION_STATE nStatus, LPARAM lParam);
-	LRESULT OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl);
+	LRESULT OnCurlResponse(CURL_RESPONSE nState, LPARAM lParam);
 	LRESULT OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGIN_ERROR nError);
 	LRESULT OnVersionState(VERSION_STATE nState);
 	LRESULT OnClose();
@@ -110,6 +110,8 @@ private:
 	void ClientConnected(CONNECT_REASON nReason);
 	void ClientDisconnected(CONNECT_REASON nReason);
 	void ReportContactOnline(CWaveContact * lpContact, BOOL fOnline);
+	LRESULT ProcessCurlDataReceived(LPCURL_DATA_RECEIVED lpParam);
+	LRESULT ProcessCurlCompleted(CCurl * lpCurl);
 
 private:
 	friend class CWorkingTimer;
@@ -155,18 +157,25 @@ public:
 	UINT GetWmTaskbarCreated() const { return m_uWmTaskbarCreated; }
 	HCURSOR GetCursorArrow() const { return m_hCursorArrow; }
 	HCURSOR GetCursorHand() const { return m_hCursorHand; }
-	CWaveSession * GetSession() const { return m_lpWindow->GetSession(); }
+	CWaveSession * GetSession() const { return GetAppWindow()->GetSession(); }
 	wstring GetShortcutTargetPath() const { return m_szShortcutTargetPath; }
-	CAppWindow * GetAppWindow() const { return m_lpWindow; }
+	CAppWindow * GetAppWindow() const {
+		ASSERT(m_lpWindow != NULL);
+		return m_lpWindow;
+	}
 	BOOL Initialise();
-	CWaveContact * GetWaveContact(wstring szEmailAddress) const { return m_lpWindow->GetWaveContact(szEmailAddress); }
+	CWaveContact * GetWaveContact(wstring szEmailAddress) const {
+		return GetAppWindow()->GetWaveContact(szEmailAddress);
+	}
 	void SetStartWithWindows(BOOL fValue);
 	void SetPlaySoundOnNewWave(BOOL fValue) { m_fPlaySoundOnNewWave = fValue; }
 	BOOL GetPlaySoundOnNewWave() const { return m_fPlaySoundOnNewWave; }
 	void SetNotificationWhenOnline(BOOL fValue) { m_fNotificationWhenOnline = fValue; }
 	BOOL GetNotificationWhenOnline() const { return m_fNotificationWhenOnline; }
 	wstring GetBrowser() const { return m_szBrowser; }
-	void SetBrowser(wstring szBrowser) { m_szBrowser = szBrowser; }
+	void SetBrowser(wstring szBrowser) {
+		m_szBrowser = szBrowser;
+	}
 	void SyncProxySettings();
 	void DetectStartWithWindowsSetting();
 	void OpenUrl(wstring szUrl);

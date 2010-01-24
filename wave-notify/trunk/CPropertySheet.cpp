@@ -38,14 +38,18 @@ CPropertySheet::~CPropertySheet()
 
 	if (m_lpSheet != NULL)
 	{
-		free((void *)m_lpSheet->ppsp);
+		if (m_lpSheet->ppsp != NULL)
+		{
+			free((void *)m_lpSheet->ppsp);
+		}
+
 		free(m_lpSheet);
 	}
 }
 
 BOOL CPropertySheet::ShowDialog(CWindowHandle * lpParentWindow)
 {
-	BuildStructures(lpParentWindow);
+	m_lpSheet = BuildStructures(lpParentWindow);
 
 	INT_PTR nResult = PropertySheet(m_lpSheet);
 
@@ -54,7 +58,7 @@ BOOL CPropertySheet::ShowDialog(CWindowHandle * lpParentWindow)
 
 BOOL CPropertySheet::Create(INT nType, CWindowHandle * lpParentWindow)
 {
-	BuildStructures(lpParentWindow);
+	m_lpSheet = BuildStructures(lpParentWindow);
 
 	m_lpSheet->dwFlags |= PSH_MODELESS;
 
@@ -74,7 +78,7 @@ BOOL CPropertySheet::Create(INT nType, CWindowHandle * lpParentWindow)
 	return nResult > 0;
 }
 
-void CPropertySheet::BuildStructures(CWindowHandle * lpParentWindow)
+LPPROPSHEETHEADER CPropertySheet::BuildStructures(CWindowHandle * lpParentWindow)
 {
 	LPPROPSHEETPAGE lpPages = (LPPROPSHEETPAGE)malloc(sizeof(PROPSHEETPAGE) * m_vPages.size());
 
@@ -85,23 +89,27 @@ void CPropertySheet::BuildStructures(CWindowHandle * lpParentWindow)
 		(*iter)->InitializeStructure(lpPages + i);
 	}
 
-	m_lpSheet = (LPPROPSHEETHEADER)malloc(sizeof(PROPSHEETHEADER));
+	LPPROPSHEETHEADER lpSheet = (LPPROPSHEETHEADER)malloc(sizeof(PROPSHEETHEADER));
 
-	memset(m_lpSheet, 0, sizeof(PROPSHEETHEADER));
+	memset(lpSheet, 0, sizeof(PROPSHEETHEADER));
 
-	m_lpSheet->dwSize = sizeof(PROPSHEETHEADER);
-	m_lpSheet->dwFlags = m_dwFlags | PSH_PROPSHEETPAGE | PSH_USEHICON | PSH_NOAPPLYNOW | PSH_USECALLBACK;
-	m_lpSheet->hwndParent = lpParentWindow == NULL ? NULL : lpParentWindow->GetHandle();
-	m_lpSheet->hInstance = CApp::Instance()->GetInstance();
-	m_lpSheet->hIcon = m_hIcon;
-	m_lpSheet->pszCaption = m_szCaption.c_str();
-	m_lpSheet->nPages = m_vPages.size();
-	m_lpSheet->ppsp = lpPages;
-	m_lpSheet->pfnCallback = CPropertySheet::SheetProcCallback;
+	lpSheet->dwSize = sizeof(PROPSHEETHEADER);
+	lpSheet->dwFlags = m_dwFlags | PSH_PROPSHEETPAGE | PSH_USEHICON | PSH_NOAPPLYNOW | PSH_USECALLBACK;
+	lpSheet->hwndParent = lpParentWindow == NULL ? NULL : lpParentWindow->GetHandle();
+	lpSheet->hInstance = CApp::Instance()->GetInstance();
+	lpSheet->hIcon = m_hIcon;
+	lpSheet->pszCaption = m_szCaption.c_str();
+	lpSheet->nPages = m_vPages.size();
+	lpSheet->ppsp = lpPages;
+	lpSheet->pfnCallback = CPropertySheet::SheetProcCallback;
+
+	return lpSheet;
 }
 
 void CPropertySheet::AddPage(CPropertySheetPage * lpPage)
 {
+	ASSERT(lpPage != NULL);
+
 	m_vPages.push_back(lpPage);
 }
 

@@ -25,11 +25,12 @@
 class CUnreadWavesFlyout : public CFlyout
 {
 public:
-	enum CHitTestType
+	enum HIT_TEST_TYPE
 	{
-		None,
-		UnreadWave,
-		Inbox
+		HTT_NONE,
+		HTT_UNREAD_WAVE,
+		HTT_INBOX,
+		HTT_MAX
 	};
 
 private:
@@ -37,19 +38,21 @@ private:
 	{
 	private:
 		CUnreadWave * m_lpWave;
-		CHitTestType m_nType;
+		HIT_TEST_TYPE m_nType;
 
 	public:
 		CHitTest() {
 			m_lpWave = NULL;
-			m_nType = None;
+			m_nType = HTT_NONE;
 		}
-		CHitTest(CHitTestType nType, CUnreadWave * lpWave = NULL) {
+		CHitTest(HIT_TEST_TYPE nType, CUnreadWave * lpWave = NULL) {
+			CHECK_ENUM(nType, HTT_MAX);
+
 			m_lpWave = lpWave;
 			m_nType = nType;
 		}
 		CUnreadWave * GetWave() const { return m_lpWave; }
-		CHitTestType GetType() const { return m_nType; }
+		HIT_TEST_TYPE GetType() const { return m_nType; }
 		BOOL Equals(CHitTest & other) const { return m_nType == other.m_nType && m_lpWave == other.m_lpWave; }
 	};
 
@@ -68,8 +71,8 @@ protected:
 
 private:
 	LRESULT OnPaint();
-	LRESULT OnMouseMove(WORD x, WORD y);
-	LRESULT OnLeftButtonUp(WORD x, WORD y);
+	LRESULT OnMouseMove(POINT pt);
+	LRESULT OnLeftButtonUp(POINT pt);
 
 	CHitTest HitTest(POINT pt) const;
 	INT CalculateRects();

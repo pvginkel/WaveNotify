@@ -62,6 +62,12 @@ CAppWindow::CAppWindow() :
 	// TODO: Deserialize the last reported here.
 
 	m_lpReportedView = new CWaveCollection();
+
+	m_lpNotifyIcon = new CNotifyIcon(
+		this,
+		ID_NOTIFYICON,
+		L"Google Wave Notifier",
+		CNotifierApp::Instance()->GetNotifyIconGray());
 }
 
 CAppWindow::~CAppWindow()
@@ -100,6 +106,8 @@ CAppWindow::~CAppWindow()
 
 ATOM CAppWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 {
+	ASSERT(lpWndClass != NULL);
+
 	lpWndClass->hIcon = CNotifierApp::Instance()->GetMainIcon();
 	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
 	lpWndClass->hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
@@ -146,7 +154,7 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_CURL_RESPONSE:
-		return OnCurlResponse((CURL_RESPONSE)wParam, (CCurl *)lParam);
+		return OnCurlResponse((CURL_RESPONSE)wParam, lParam);
 
 	case WM_VERSION_STATE:
 		return OnVersionState((VERSION_STATE)wParam);
@@ -174,11 +182,7 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 
 LRESULT CAppWindow::OnCreate()
 {
-	m_lpNotifyIcon = new CNotifyIcon(
-		this,
-		ID_NOTIFYICON,
-		L"Google Wave Notifier",
-		CNotifierApp::Instance()->GetNotifyIconGray());
+	m_lpNotifyIcon->Create();
 
 	if (!LoginFromRegistry())
 	{
@@ -460,6 +464,8 @@ BOOL CAppWindow::ActivateOpenDialog()
 
 LRESULT CAppWindow::OnWaveConnectionState(WAVE_CONNECTION_STATE nState, LPARAM lParam)
 {
+	CHECK_ENUM(nState, WCS_MAX);
+
 	switch (nState)
 	{
 	case WCS_RECEIVED:
@@ -473,6 +479,9 @@ LRESULT CAppWindow::OnWaveConnectionState(WAVE_CONNECTION_STATE nState, LPARAM l
 
 LRESULT CAppWindow::OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGIN_ERROR nError)
 {
+	CHECK_ENUM(nStatus, WCS_MAX);
+	CHECK_ENUM(nError, WLE_MAX);
+
 	if (!AllowContextMenu())
 	{
 		EndMenu();
@@ -616,6 +625,8 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 
 void CAppWindow::DisplayWavePopups(BOOL fManual)
 {
+	ASSERT(m_lpView != NULL);
+
 	// Create a changelog of the current view and the last
 	// reported view.
 
@@ -657,6 +668,8 @@ void CAppWindow::DisplayWavePopups(BOOL fManual)
 
 void CAppWindow::TruncateLastReported()
 {
+	ASSERT(m_lpView != NULL);
+
 	const TWaveMap & vReported = m_lpReportedView->GetWaves();
 	const TWaveMap & vCurrent = m_lpView->GetWaves()->GetWaves();
 	TStringVector vRemove;
@@ -674,6 +687,8 @@ void CAppWindow::TruncateLastReported()
 
 void CAppWindow::SynchronisePopups(CUnreadWaveCollection * lpUnreads, BOOL fManual)
 {
+	ASSERT(lpUnreads != NULL);
+
 	BOOL fQueuedNewWaves = FALSE;
 	TPopupVector vMustCancel;
 	TStringVector vSeen;
@@ -923,6 +938,10 @@ void CAppWindow::ProcessConnected()
 
 void CAppWindow::HaveReportedWave(wstring szWaveID)
 {
+	CHECK_NOT_EMPTY(szWaveID);
+
+	ASSERT(m_lpView != NULL);
+
 	TWaveMap vWaves = m_lpView->GetWaves()->GetWaves();
 
 	TWaveMapIter pos = vWaves.find(szWaveID);
@@ -1024,6 +1043,9 @@ void CAppWindow::DisplayHelp()
 
 void CAppWindow::Login(wstring szUsername, wstring szPassword)
 {
+	CHECK_NOT_EMPTY(szUsername);
+	CHECK_NOT_EMPTY(szPassword);
+
 	m_lpSession->Login(szUsername, szPassword);
 }
 
@@ -1073,15 +1095,42 @@ void CAppWindow::CancelRequest(CCurl * lpRequest)
 	m_lpMonitor->CancelRequest(lpRequest);
 }
 
-LRESULT CAppWindow::OnCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
+LRESULT CAppWindow::OnCurlResponse(CURL_RESPONSE nState, LPARAM lParam)
 {
+	CHECK_ENUM(nState, CR_MAX);
+
+	switch (nState)
+	{
+	case CR_DATA_RECEIVED:
+		return ProcessCurlDataReceived((LPCURL_DATA_RECEIVED)lParam);
+
+	case CR_COMPLETED:
+		return ProcessCurlCompleted((CCurl *)lParam);
+
+	default:
+		LOG1("Unknown CURL_RESPONSE state %d", nState);
+		return 0;
+	}
+}
+
+LRESULT CAppWindow::ProcessCurlDataReceived(LPCURL_DATA_RECEIVED lpParam)
+{
+	ASSERT(lpParam != NULL);
+
+	return lpParam->lpReader->Read(lpParam->lpData, lpParam->cbData);
+}
+
+LRESULT CAppWindow::ProcessCurlCompleted(CCurl * lpCurl)
+{
+	ASSERT(lpCurl != NULL);
+
 	if (m_lpAvatarRequest != NULL && m_lpAvatarRequest == lpCurl)
 	{
 		ProcessAvatarResponse();
 	}
 	else if (
-		!m_lpSession->ProcessCurlResponse(nState, lpCurl) &&
-		!CVersion::Instance()->ProcessCurlResponse(nState, lpCurl)
+		!m_lpSession->ProcessCurlResponse(lpCurl) &&
+		!CVersion::Instance()->ProcessCurlResponse(lpCurl)
 	) {
 		//LOG("Could not process curl response");
 
@@ -1127,6 +1176,8 @@ BOOL CAppWindow::AllowContextMenu()
 
 LRESULT CAppWindow::OnVersionState(VERSION_STATE nState)
 {
+	CHECK_ENUM(nState, VS_MAX);
+
 	switch (nState)
 	{
 	case VS_DOWNLOADING:
@@ -1160,6 +1211,8 @@ LRESULT CAppWindow::OnVersionState(VERSION_STATE nState)
 
 void CAppWindow::ReportContactUpdates(CWaveContactStatusCollection * lpStatuses)
 {
+	ASSERT(lpStatuses != NULL);
+
 	wstring szSelf(m_lpSession->GetEmailAddress());
 
 	const TWaveContactStatusMap & vStatuses = lpStatuses->GetStatuses();
@@ -1180,6 +1233,8 @@ void CAppWindow::ReportContactUpdates(CWaveContactStatusCollection * lpStatuses)
 
 void CAppWindow::ReportContactOnline(CWaveContact * lpContact, BOOL fOnline)
 {
+	ASSERT(lpContact != NULL);
+
 	CContactOnlinePopup * lpFound = NULL;
 
 	if (CPopupWindow::Instance() != NULL)
@@ -1233,6 +1288,8 @@ void CAppWindow::SeedAvatars()
 		return;
 	}
 
+	ASSERT(m_lpView != NULL);
+
 	const TWaveContactMap & vContacts = m_lpView->GetContacts()->GetContacts();
 	CWaveContact * lpContact = NULL;
 
@@ -1267,6 +1324,8 @@ void CAppWindow::SeedAvatars()
 
 void CAppWindow::ProcessAvatarResponse()
 {
+	ASSERT(m_lpAvatarRequest != NULL);
+
 	CCurlBinaryReader * lpReader = (CCurlBinaryReader *)m_lpAvatarRequest->GetReader();
 
 	CWaveContact * lpContact = GetWaveContact(m_szRequestingAvatar);
@@ -1307,6 +1366,8 @@ void CAppWindow::ProcessAvatarResponse()
 
 void CAppWindow::ClientDisconnected(CONNECT_REASON nReason)
 {
+	CHECK_ENUM(nReason, CR_MAX);
+
 	switch (nReason)
 	{
 	case CR_SUSPEND:
@@ -1326,6 +1387,8 @@ void CAppWindow::ClientDisconnected(CONNECT_REASON nReason)
 
 void CAppWindow::ClientConnected(CONNECT_REASON nReason)
 {
+	CHECK_ENUM(nReason, CR_MAX);
+
 	switch (nReason)
 	{
 	case CR_SUSPEND:

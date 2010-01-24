@@ -38,6 +38,8 @@ CWindow::~CWindow()
 
 ATOM CWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 {
+	ASSERT(lpWndClass != NULL);
+
 	// These cannot be overridden
 
 	lpWndClass->cbSize = sizeof(WNDCLASSEX);
@@ -121,6 +123,8 @@ LRESULT CALLBACK CWindow::WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wPara
 	{
 		LPCREATESTRUCT lpCreateStruct = (LPCREATESTRUCT)lParam;
 
+		ASSERT(lpCreateStruct != NULL && lpCreateStruct->lpCreateParams != NULL);
+		
 		::SetProp(hWnd, PROPERTY_INSTANCE, (HANDLE)lpCreateStruct->lpCreateParams);
 
 		lpWindow = (CWindow *)lpCreateStruct->lpCreateParams;

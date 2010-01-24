@@ -30,6 +30,8 @@ INT_PTR CPropertySheetPage::DialogProc(UINT uMessage, WPARAM wParam, LPARAM lPar
 	switch (uMessage)
 	{
 	case WM_NOTIFY:
+		ASSERT(lParam != 0);
+
 		switch (((LPNMHDR)lParam)->code)
 		{
 		case PSN_SETACTIVE:
@@ -70,7 +72,11 @@ INT_PTR CALLBACK CPropertySheetPage::DialogProcCallback(HWND hWnd, UINT uMessage
 	{
 		LPPROPSHEETPAGE lpPropSheetPage = (LPPROPSHEETPAGE)lParam;
 
+		ASSERT(lpPropSheetPage != NULL);
+
 		lpPage = (CPropertySheetPage *)lpPropSheetPage->lParam;
+
+		ASSERT(lpPage != NULL);
 
 		::SetWindowLongPtr(hWnd, GWLP_USERDATA, lpPropSheetPage->lParam);
 
@@ -100,6 +106,8 @@ INT_PTR CALLBACK CPropertySheetPage::DialogProcCallback(HWND hWnd, UINT uMessage
 
 void CPropertySheetPage::InitializeStructure(LPPROPSHEETPAGE lpPage)
 {
+	ASSERT(lpPage != NULL);
+
 	memset(lpPage, 0, sizeof(PROPSHEETPAGE));
 
 	lpPage->dwSize = sizeof(PROPSHEETPAGE);

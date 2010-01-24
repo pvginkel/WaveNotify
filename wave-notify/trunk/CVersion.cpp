@@ -46,11 +46,11 @@ CVersion::~CVersion()
 	m_lpInstance = NULL;
 }
 
-BOOL CVersion::ProcessCurlResponse(CURL_RESPONSE nState, CCurl * lpCurl)
+BOOL CVersion::ProcessCurlResponse(CCurl * lpCurl)
 {
 	// Do we understand the response?
 
-	if (nState != CR_COMPLETED || lpCurl == NULL)
+	if (lpCurl == NULL)
 	{
 		return FALSE;
 	}
@@ -112,6 +112,8 @@ BOOL CVersion::CheckVersion()
 
 void CVersion::PostVersionRequest()
 {
+	ASSERT(m_lpTargetWindow != NULL);
+
 	m_lpRequest = new CCurl(GetRequestUrl(), m_lpTargetWindow);
 
 	m_lpRequest->SetTimeout(WEB_TIMEOUT_LONG);
@@ -147,6 +149,8 @@ void CVersion::PostDownloadRequest()
 		return;
 	}
 
+	ASSERT(m_lpTargetWindow != NULL);
+
 	m_lpRequest = new CCurl(m_szLink, m_lpTargetWindow);
 
 	m_lpRequest->SetTimeout(WEB_TIMEOUT_LONG);
@@ -162,6 +166,8 @@ void CVersion::PostDownloadRequest()
 void CVersion::ProcessVersionResponse()
 {
 	CCurlAnsiStringReader * lpReader = (CCurlAnsiStringReader *)m_lpRequest->GetReader();
+
+	ASSERT(lpReader != NULL && m_lpRequest != NULL);
 
 	BOOL fSuccess = FALSE;
 
@@ -191,6 +197,8 @@ void CVersion::ProcessVersionResponse()
 void CVersion::ProcessDownloadResponse()
 {
 	CCurlFileReader * lpReader = (CCurlFileReader *)m_lpRequest->GetReader();
+
+	ASSERT(lpReader != NULL && m_lpRequest != NULL);
 
 	BOOL fSuccess = m_lpRequest->GetResult() == CURLE_OK;
 
@@ -250,6 +258,8 @@ wstring CVersion::GetAppVersion()
 	{
 		goto __end;
 	}
+
+	ASSERT(lpffi != NULL);
 
 	szVersion = Format(
 		L"%d.%d.%d.%d",
@@ -410,6 +420,8 @@ __up_to_date:
 
 BOOL CVersion::PrepareInstall(wstring szPath)
 {
+	ASSERT(!szPath.empty());
+
 	CSettings(TRUE).SetAttemptedVersion(m_szVersion);
 
 	if (!ExtractUpdate(szPath))
@@ -427,6 +439,8 @@ BOOL CVersion::PrepareInstall(wstring szPath)
 
 BOOL CVersion::ExtractUpdate(wstring szUpdateFilename)
 {
+	ASSERT(!szUpdateFilename.empty());
+
 	wstring szBasePath(GetBasePath());
 
 	// Ensure that an empty update directory exists.
@@ -543,6 +557,8 @@ BOOL CVersion::PerformUpdate()
 
 BOOL CVersion::ExtractFile(unzFile lpZip, wstring szUpdatePath, wstring szFilename)
 {
+	ASSERT(lpZip != NULL && !szUpdatePath.empty() && !szFilename.empty());
+
 	if (unzOpenCurrentFile(lpZip) != UNZ_OK)
 	{
 		return FALSE;
@@ -655,6 +671,8 @@ BOOL CVersion::GetLogDump(wstringstream & szLogDump)
 
 BOOL CVersion::ReadLogToEnd(HANDLE hFile, wstringstream & szLogDump)
 {
+	ASSERT(hFile != NULL);
+
 	LPSTR szBuffer = (LPSTR)malloc(FILECOPY_BUFFER_SIZE + 1);
 	BOOL fResult = FALSE;
 

@@ -28,6 +28,8 @@ typedef HRESULT (WINAPI * SetWindowTheme_t)(HWND, LPCWSTR, LPCWSTR);
 
 BOOL WINAPI Compat_WTSRegisterSessionNotification(HWND hWnd, DWORD dwFlags)
 {
+	ASSERT(hWnd != NULL);
+
 	static BOOL fLoaded = FALSE;
 	static WTSRegisterSessionNotification_t lpProc = NULL;
 
@@ -56,6 +58,8 @@ BOOL WINAPI Compat_WTSRegisterSessionNotification(HWND hWnd, DWORD dwFlags)
 
 BOOL WINAPI Compat_WTSUnRegisterSessionNotification(HWND hWnd)
 {
+	ASSERT(hWnd != NULL);
+
 	static BOOL fLoaded = FALSE;
 	static WTSUnRegisterSessionNotification_t lpProc = NULL;
 

@@ -70,9 +70,17 @@ public:
 	DWORD GetFlags() const { return m_dwFlags; }
 	void SetFlags(DWORD dwFlags) { m_dwFlags = dwFlags; }
 	HICON GetIcon() const { return m_hIcon; }
-	void SetIcon(HICON hIcon) { m_hIcon = hIcon; }
+	void SetIcon(HICON hIcon) {
+		CHECK_HANDLE(hIcon);
+
+		m_hIcon = hIcon;
+	}
 	wstring GetCaption() const { return m_szCaption; }
-	void SetCaption(wstring szCaption) { m_szCaption = szCaption; }
+	void SetCaption(wstring szCaption) {
+		CHECK_NOT_EMPTY(szCaption);
+
+		m_szCaption = szCaption;
+	}
 	UINT GetStartPage() const { return m_uStartPage; }
 	void SetStartPage(UINT uStartPage) { m_uStartPage = uStartPage; }
 
@@ -82,7 +90,7 @@ protected:
 private:
 	static int CALLBACK SheetProcCallback(HWND hWnd, UINT uMsg, LPARAM lParam);
 
-	void BuildStructures(CWindowHandle * lpParentWindow);
+	LPPROPSHEETHEADER BuildStructures(CWindowHandle * lpParentWindow);
 	INT SheetProc(UINT uMsg);
 };
 
@@ -101,7 +109,11 @@ public:
 	UINT GetResource() const { return m_uResource; }
 	void SetResource(UINT uResource) { m_uResource = uResource; }
 	wstring GetTitle() const { return m_szTitle; }
-	void SetTitle(wstring szTitle) { m_szTitle = szTitle; }
+	void SetTitle(wstring szTitle) {
+		CHECK_NOT_EMPTY(szTitle);
+
+		m_szTitle = szTitle;
+	}
 
 protected:
 	virtual INT_PTR DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam);

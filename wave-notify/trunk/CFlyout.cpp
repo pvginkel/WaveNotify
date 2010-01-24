@@ -28,6 +28,8 @@ CFlyout::CFlyout() : CWindow(L"Flyout")
 
 ATOM CFlyout::CreateClass(LPWNDCLASSEX lpWndClass)
 {
+	ASSERT(lpWndClass != NULL);
+
 	lpWndClass->style = CS_HREDRAW | CS_VREDRAW;
 	lpWndClass->hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
 	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -47,6 +49,8 @@ HWND CFlyout::CreateHandle(DWORD dwExStyle, wstring szWindowName, DWORD dwStyle,
 		CW_USEDEFAULT,
 		NULL,
 		NULL);
+
+	ASSERT(hWnd != NULL);
 
 	// Compensate for frame
 
@@ -125,7 +129,9 @@ void CFlyout::OnMouseOver()
 		tme.dwFlags = TME_LEAVE;
 		tme.hwndTrack = GetHandle();
 
-		TrackMouseEvent(&tme);
+		BOOL fResult = TrackMouseEvent(&tme);
+
+		CHECK(fResult);
 
 		m_fMouseOver = TRUE;
 	}

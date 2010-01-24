@@ -27,7 +27,10 @@ CAvatar::CAvatar(SIZE szSize)
 
 CAvatar::~CAvatar()
 {
-	DeleteObject(m_hBitmap);
+	if (m_hBitmap != NULL)
+	{
+		DeleteObject(m_hBitmap);
+	}
 }
 
 CAvatar * CAvatar::Load(LPCWSTR szResource, LPCWSTR szResourceType, HMODULE hModule, SIZE szSize, wstring szContentType)
@@ -179,22 +182,39 @@ BOOL CAvatar::LoadImage(const LPVOID lpData, DWORD cbData, wstring szContentType
 	fSuccess = TRUE;
 
 __end:
-	gdImageDestroy(lpSource);
+	if (lpSource != NULL)
+	{
+		gdImageDestroy(lpSource);
+	}
 
 	//
 	// The lpTarget image is manually created, so destroy ourself.
 	//
 
-	free(lpTarget->tpixels);
-	free(lpTarget);
+	if (lpTarget != NULL)
+	{
+		if (lpTarget->tpixels != NULL)
+		{
+			free(lpTarget->tpixels);
+		}
 
-	DeleteDC(hDC);
+		free(lpTarget);
+	}
+
+	if (hDC != NULL)
+	{
+		DeleteDC(hDC);
+	}
 
 	return fSuccess;
 }
 
 void CAvatar::Paint(CDC * lpDC, POINT ptLocation)
 {
+	ASSERT(lpDC != NULL);
+
+	// TODO: Replace CreateCompatibleDC with managed object (CCompatibleDC) which is scoped.
+
 	CDC vSource(CreateCompatibleDC(lpDC->GetHandle()));
 
 	HGDIOBJ hOriginal = vSource.SelectObject(m_hBitmap);
@@ -210,6 +230,8 @@ void CAvatar::Paint(CDC * lpDC, POINT ptLocation)
 
 gdImagePtr CAvatar::CreateImage(LPINT lpBits, SIZE szSize)
 {
+	ASSERT(lpBits != NULL);
+
 	gdImagePtr lpImage = (gdImagePtr)malloc(sizeof(gdImage));
 
 	memset(lpImage, 0, sizeof(gdImage));

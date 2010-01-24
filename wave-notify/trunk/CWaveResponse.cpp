@@ -22,36 +22,64 @@
 CWaveResponse * CWaveResponse::Parse(Json::Value & vRoot)
 {
 	BOOL fHadType = FALSE;
-	BOOL fHadParameter = FALSE;
+	BOOL fHadPayload = FALSE;
 
 	WAVE_MESSAGE_TYPE nType = WMT_UNKNOWN;
 	wstring szRequestID(L"");
 	BOOL fFinal = TRUE;
 
+	if (!vRoot.isObject())
+	{
+		LOG("Could not parse json");
+
+		return NULL;
+	}
+
 	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
 	{
 		if (iter.key() == L"t")
 		{
+			if (!(*iter).isIntegral())
+			{
+				LOG("Could not parse json");
+
+				return NULL;
+			}
+
 			fHadType = TRUE;
 			nType = (WAVE_MESSAGE_TYPE)(*iter).asInt();
 		}
 		else if (iter.key() == L"r")
 		{
+			if (!(*iter).isString())
+			{
+				LOG("Could not parse json");
+
+				return NULL;
+			}
+
 			szRequestID = (*iter).asString();
 		}
 		else if (iter.key() == L"p")
 		{
-			fHadParameter = TRUE;
+			fHadPayload = TRUE;
 		}
 		else if (iter.key() == L"f")
 		{
+			if (!(*iter).isIntegral())
+			{
+				LOG("Could not parse json");
+
+				return NULL;
+			}
+
 			fFinal = (*iter).asBool();
 		}
 	}
 
 	CWaveResponse * lpResponse = NULL;
 
-	if (fHadType && fHadParameter)
+	if (fHadType && fHadPayload)
 	{
 		switch (nType)
 		{
@@ -81,16 +109,38 @@ CWaveResponse * CWaveResponse::Parse(Json::Value & vRoot)
 	{
 		lpResponse->m_szRequestID = szRequestID;
 		lpResponse->m_fIsFinal = fFinal;
-		lpResponse->AssignJson(vRoot[L"p"]);
+		
+		if (!lpResponse->AssignJson(vRoot[L"p"]))
+		{
+			delete lpResponse;
+
+			lpResponse = NULL;
+		}
 	}
 
 	return lpResponse;
 }
 
-void CWaveResponse::ReadStringArray(TStringVector & vStrings, Json::Value & vRoot)
+BOOL CWaveResponse::ReadStringArray(TStringVector & vStrings, Json::Value & vRoot)
 {
+	if (!vRoot.isArray())
+	{
+		LOG("Could not parse json");
+
+		return FALSE;
+	}
+
 	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
 	{
+		if (!(*iter).isString())
+		{
+			LOG("Could not parse json");
+
+			return FALSE;
+		}
+
 		vStrings.push_back((*iter).asString());
 	}
+
+	return TRUE;
 }

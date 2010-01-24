@@ -40,7 +40,11 @@ public:
 	INT GetHeight() const { return m_nHeight; }
 	void SetHeight(INT nHeight) { m_nHeight = nHeight; }
 	INT GetWidth() const { return m_nWidth; }
-	void SetWidth(INT nWidth) { m_nWidth = nWidth; }
+	void SetWidth(INT nWidth) {
+		CHECK_GT_0(nWidth);
+
+		m_nWidth = nWidth;
+	}
 	POINT GetSnapPoint() const { return m_ptSnap; }
 	void SetSnapPoint(POINT pt) { m_ptSnap = pt; }
 	void OnMouseOver();

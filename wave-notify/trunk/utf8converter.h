@@ -23,7 +23,8 @@
 typedef enum
 {
 	UTF8S_NEXT_CHAR,
-	UTF8S_EAT_BYTES
+	UTF8S_EAT_BYTES,
+	UTF8S_MAX
 } UTF8_STATE;
 
 class CUTF8Converter

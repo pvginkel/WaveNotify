@@ -33,7 +33,7 @@ CUnreadWaveCollection::CUnreadWaveCollection(CWaveCollection * lpLastReported, C
 		InsertChangesOnly(lpLastReported, lpCurrent);
 	}
 
-	CNotifierApp::Instance()->GetSession()->ResponseRequestFlush();
+	CNotifierApp::Instance()->GetSession()->ReleaseRequestFlush();
 }
 
 CUnreadWaveCollection::~CUnreadWaveCollection()
@@ -46,11 +46,13 @@ CUnreadWaveCollection::~CUnreadWaveCollection()
 
 void CUnreadWaveCollection::InsertAllWaves(CWaveCollection * lpCurrent)
 {
+	ASSERT(lpCurrent != NULL);
+
 	const TWaveMap & vCurrent = lpCurrent->GetWaves();
 
 	for (TWaveMapConstIter iter = vCurrent.begin(); iter != vCurrent.end(); iter++)
 	{
-		if (GetChangedStatus(NULL, iter->second) == WCS_CHANGED)
+		if (GetChangedStatus(NULL, iter->second) == WCHS_CHANGED)
 		{
 			CUnreadWave * lpUnread = GetDifference(NULL, iter->second);
 
@@ -64,6 +66,8 @@ void CUnreadWaveCollection::InsertAllWaves(CWaveCollection * lpCurrent)
 
 void CUnreadWaveCollection::InsertChangesOnly(CWaveCollection * lpLastReported, CWaveCollection * lpCurrent)
 {
+	ASSERT(lpLastReported != NULL && lpCurrent != NULL);
+
 	const TWaveMap & vCurrent = lpCurrent->GetWaves();
 	const TWaveMap & vLastReported = lpLastReported->GetWaves();
 
@@ -75,11 +79,11 @@ void CUnreadWaveCollection::InsertChangesOnly(CWaveCollection * lpLastReported, 
 
 		WAVE_CHANGED_STATUS nStatus = GetChangedStatus(lpReportedWave, iter->second);
 
-		if (nStatus == WCS_REFRESH)
+		if (nStatus == WCHS_REFRESH)
 		{
 			lpLastReported->AddWave(new CWave(*iter->second));
 		}
-		else if (nStatus == WCS_CHANGED)
+		else if (nStatus == WCHS_CHANGED)
 		{
 			CUnreadWave * lpUnread = GetDifference(lpReportedWave, iter->second);
 
@@ -93,10 +97,14 @@ void CUnreadWaveCollection::InsertChangesOnly(CWaveCollection * lpLastReported, 
 
 void CUnreadWaveCollection::Insert(CUnreadWave * lpUnread)
 {
+	ASSERT(lpUnread != NULL);
+
 	TUnreadWaveVectorIter pos = m_vUnreadsVector.end();
 
 	for (TUnreadWaveVectorIter iter = m_vUnreadsVector.begin(); iter != m_vUnreadsVector.end(); iter++)
 	{
+		// TODO: Is this correct? This does not see to check the ID.
+
 		if ((*iter)->GetTime() < lpUnread->GetTime())
 		{
 			pos = iter;
@@ -111,6 +119,8 @@ void CUnreadWaveCollection::Insert(CUnreadWave * lpUnread)
 
 INT CUnreadWaveCollection::Find(CUnreadWave * lpUnread) const
 {
+	ASSERT(lpUnread != NULL);
+
 	INT i = 0;
 
 	for (TUnreadWaveVectorConstIter iter = m_vUnreadsVector.begin(); iter != m_vUnreadsVector.end(); iter++)
@@ -128,6 +138,8 @@ INT CUnreadWaveCollection::Find(CUnreadWave * lpUnread) const
 
 CUnreadWave * CUnreadWaveCollection::GetDifference(CWave * lpReportedWave, CWave * lpNewWave) const
 {
+	ASSERT(lpNewWave != NULL);
+
 	// So we're sure we want to create a popup for this Wave. The first message
 	// that appears in the new Wave which does not appear in the old Wave, is
 	// the message we're going to report.
@@ -175,14 +187,16 @@ CUnreadWave * CUnreadWaveCollection::GetDifference(CWave * lpReportedWave, CWave
 
 WAVE_CHANGED_STATUS CUnreadWaveCollection::GetChangedStatus(CWave * lpReportedWave, CWave * lpNewWave) const
 {
+	ASSERT(lpNewWave != NULL);
+
 	if (WavesEqual(lpReportedWave, lpNewWave))
 	{
-		return WCS_IGNORE;
+		return WCHS_IGNORE;
 	}
 
 	if (lpNewWave->GetUnreadMessages() == 0)
 	{
-		return WCS_REFRESH;
+		return WCHS_REFRESH;
 	}
 
 	wstring szSelf = CNotifierApp::Instance()->GetSession()->GetEmailAddress();
@@ -213,14 +227,14 @@ WAVE_CHANGED_STATUS CUnreadWaveCollection::GetChangedStatus(CWave * lpReportedWa
 			}
 		}
 
-		return fHadOne && fIsSelf ? WCS_REFRESH : ( fIsEmpty ? WCS_IGNORE : WCS_CHANGED );
+		return fHadOne && fIsSelf ? WCHS_REFRESH : ( fIsEmpty ? WCHS_IGNORE : WCHS_CHANGED );
 	}
 
 	INT nNewMessages = lpNewWave->GetUnreadMessages() - lpReportedWave->GetUnreadMessages();
 
 	if (nNewMessages <= 0)
 	{
-		return WCS_REFRESH;
+		return WCHS_REFRESH;
 	}
 
 	// If the unread count is as much higher as new messages of the owner, we do
@@ -258,18 +272,20 @@ WAVE_CHANGED_STATUS CUnreadWaveCollection::GetChangedStatus(CWave * lpReportedWa
 				// We have found a message that is not of owner and has
 				// not been reported before. Must consider.
 
-				return WCS_CHANGED;
+				return WCHS_CHANGED;
 			}
 		}
 	}
 
 	// When all new messages were of the owner, we do not consider the new wave.
 
-	return nNewMessages > 0 ? WCS_CHANGED : WCS_IGNORE;
+	return nNewMessages > 0 ? WCHS_CHANGED : WCHS_IGNORE;
 }
 
 BOOL CUnreadWaveCollection::WavesEqual(CWave * lpReportedWave, CWave * lpNewWave) const
 {
+	ASSERT(lpNewWave != NULL);
+
 	if (lpReportedWave == NULL)
 	{
 		return FALSE;
