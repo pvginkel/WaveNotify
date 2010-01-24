@@ -31,7 +31,7 @@ HRESULT WINAPI CoCreateInstanceFromFile(LPCWSTR szFilename, REFCLSID rclsid, LPU
 
 	hr = lpGetClassObject(rclsid, IID_IClassFactory, (void **)&lpClassFactory);
 
-	if (!SUCCEEDED(hr))
+	if (FAILED(hr))
 	{
 		return hr;
 	}
