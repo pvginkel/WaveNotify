@@ -72,13 +72,13 @@ INT_PTR CALLBACK CPropertySheetPage::DialogProcCallback(HWND hWnd, UINT uMessage
 
 		lpPage = (CPropertySheetPage *)lpPropSheetPage->lParam;
 
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lpPropSheetPage->lParam);
+		::SetWindowLongPtr(hWnd, GWLP_USERDATA, lpPropSheetPage->lParam);
 
 		lpPage->SetHandle(hWnd);
 	}
 	else
 	{
-		lpPage = (CPropertySheetPage *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		lpPage = (CPropertySheetPage *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	}
 
 	if (lpPage != NULL)
@@ -87,7 +87,7 @@ INT_PTR CALLBACK CPropertySheetPage::DialogProcCallback(HWND hWnd, UINT uMessage
 
 		if (uMessage == WM_DESTROY)
 		{
-			SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
+			::SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
 		}
 
 		return nResult;
