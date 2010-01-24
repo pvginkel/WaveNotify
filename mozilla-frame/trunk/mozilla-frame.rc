@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 10,1,20,1
- PRODUCTVERSION 10,1,20,1
+ FILEVERSION 10,1,24,2
+ PRODUCTVERSION 10,1,24,2
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -71,12 +71,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Webathome.org"
             VALUE "FileDescription", "Google Wave Notifier"
-            VALUE "FileVersion", "10.1.20.1"
+            VALUE "FileVersion", "10.1.24.2"
             VALUE "InternalName", "mozilla-frame.dll"
             VALUE "LegalCopyright", "© Webathome.org 2009-2010"
             VALUE "OriginalFilename", "mozilla-frame.dll"
             VALUE "ProductName", "Mozilla Frame Library"
-            VALUE "ProductVersion", "10.1.20.1"
+            VALUE "ProductVersion", "10.1.24.2"
         END
     END
     BLOCK "VarFileInfo"
