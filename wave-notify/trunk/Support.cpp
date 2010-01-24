@@ -274,7 +274,9 @@ BOOL RemoveDirectory(wstring szPath, BOOL fRecurse)
 {
 	ASSERT(!szPath.empty());
 
-	if (GetFileAttributes(szPath.c_str()) != FILE_ATTRIBUTE_DIRECTORY)
+	DWORD dwAttr = GetFileAttributes(szPath.c_str());
+
+	if (dwAttr == INVALID_FILE_ATTRIBUTES || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY))
 	{
 		return FALSE;
 	}
