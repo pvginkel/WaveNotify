@@ -17,6 +17,10 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "wave.h"
+#include "popups.h"
+#include "notifierapp.h"
+#include "layout.h"
 
 CContactOnlinePopup::CContactOnlinePopup(CWaveContact * lpContact, BOOL fOnline) : CPopupBase(PT_CONTACT_ONLINE)
 {
@@ -26,6 +30,7 @@ CContactOnlinePopup::CContactOnlinePopup(CWaveContact * lpContact, BOOL fOnline)
 	SetHeight(PL_CO_HEIGHT);
 	SetWidth(PL_CO_WIDTH);
 	SetDuration(3600);
+	SetPaintIcon(FALSE);
 }
 
 LRESULT CContactOnlinePopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
@@ -57,19 +62,19 @@ LRESULT CContactOnlinePopup::OnPaint()
 
 	CAvatar * lpAvatar = m_lpContact->GetAvatar();
 
-	SetPaintIcon(lpAvatar == NULL);
+	if (lpAvatar == NULL)
+	{
+		lpAvatar = CNotifierApp::Instance()->GetGenericAvatar();
+	}
 
 	PaintBackground(dc);
 
-	if (lpAvatar != NULL)
-	{
-		POINT ptLocation = {
-			PL_BORDER_WIDTH + PL_CO_ICON_DX,
-			PL_BORDER_WIDTH + PL_CO_ICON_DY
-		};
+	POINT ptLocation = {
+		PL_BORDER_WIDTH + PL_CO_ICON_DX,
+		PL_BORDER_WIDTH + PL_CO_ICON_DY
+	};
 
-		lpAvatar->Paint(&dc, ptLocation);
-	}
+	lpAvatar->Paint(&dc, ptLocation);
 
 	wstring szMessage(
 		m_lpContact->GetDisplayName() +
