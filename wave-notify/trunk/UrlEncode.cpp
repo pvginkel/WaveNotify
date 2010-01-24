@@ -18,7 +18,25 @@
 #include "stdafx.h"
 #include "include.h"
 
+typedef enum
+{
+	UrlEncodeModeNormal,
+	UrlEncodeModePath
+} UrlEncodeMode;
+
+static wstring UrlEncode(wstring szSource, UrlEncodeMode nMode);
+
 wstring UrlEncode(wstring szSource)
+{
+	return UrlEncode(szSource, UrlEncodeModeNormal);
+}
+
+wstring UrlEncodePath(wstring szSource)
+{
+	return UrlEncode(szSource, UrlEncodeModePath);
+}
+
+static wstring UrlEncode(wstring szSource, UrlEncodeMode nMode)
 {
 	string szSourceA = ConvertToMultiByte(szSource, CP_UTF8);
 	size_t nLength = 0;
@@ -26,19 +44,46 @@ wstring UrlEncode(wstring szSource)
 
 	for (string::const_iterator iter = szSourceA.begin(); iter < szSourceA.end(); iter++)
 	{
+		BOOL fParsed = FALSE;
+
 		switch (*iter)
 		{
 		case '-':
 		case '_':
 		case '.':
 			szResultA << *iter;
+			fParsed = TRUE;
 			break;
 
 		case ' ':
-			szResultA << '+';
+			if (nMode == UrlEncodeModeNormal)
+			{
+				szResultA << '+';
+				fParsed = TRUE;
+				break;
+			}
 			break;
 
-		default:
+		case ':':
+		case '/':
+			if (nMode == UrlEncodeModePath)
+			{
+				szResultA << *iter;
+				fParsed = TRUE;
+			}
+			break;
+
+		case '\\':
+			if (nMode == UrlEncodeModePath)
+			{
+				szResultA << '/';
+				fParsed = TRUE;
+			}
+			break;
+		}
+
+		if (!fParsed)
+		{
 			if (isalnum(*iter))
 			{
 				szResultA << *iter;
@@ -54,7 +99,6 @@ wstring UrlEncode(wstring szSource)
 					<< (int)(unsigned char)*iter
 					<< resetiosflags(ios_base::uppercase);
 			}
-			break;
 		}
 	}
 
