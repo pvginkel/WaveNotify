@@ -62,9 +62,7 @@ LRESULT CUnreadWavePopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 
 LRESULT CUnreadWavePopup::OnPaint()
 {
-	PAINTSTRUCT ps;
-
-	CDC dc(BeginPaint(GetHandle(), &ps));
+	CPaintDC dc(GetWindow());
 
 	PaintBackground(dc);
 
@@ -98,8 +96,6 @@ LRESULT CUnreadWavePopup::OnPaint()
 
 		dc.SelectObject(hOriginal);
 	}
-
-	EndPaint(GetHandle(), &ps);
 
 	return 0;
 }

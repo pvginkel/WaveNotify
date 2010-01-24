@@ -68,9 +68,7 @@ LRESULT CUnreadWavesFlyout::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 
 LRESULT CUnreadWavesFlyout::OnPaint()
 {
-	PAINTSTRUCT ps;
-
-	CDC dc(BeginPaint(GetHandle(), &ps));
+	CPaintDC dc(this);
 
 	//
 	// Paint the bottom
@@ -95,8 +93,6 @@ LRESULT CUnreadWavesFlyout::OnPaint()
 	{
 		PaintNoWaves(dc, rcClient);
 	}
-
-	EndPaint(GetHandle(), &ps);
 
 	return 0;
 }
@@ -291,7 +287,7 @@ LRESULT CUnreadWavesFlyout::OnMouseMove(POINT pt)
 
 	if (!vHitTest.Equals(m_vLastHitTest))
 	{
-		CDC dc(GetDC(GetHandle()));
+		CClientDC dc(this);
 
 		if (m_vLastHitTest.GetType() == HTT_UNREAD_WAVE)
 		{
@@ -413,7 +409,7 @@ CUnreadWavesFlyout::CHitTest CUnreadWavesFlyout::HitTest(POINT pt) const
 
 void CUnreadWavesFlyout::CalculateInboxBounds()
 {
-	CDC dc(GetDC(NULL));
+	CClientDC dc(NULL);
 
 	HGDIOBJ hOriginal = dc.SelectFont(GetMessageBoxFont());
 
@@ -422,8 +418,6 @@ void CUnreadWavesFlyout::CalculateInboxBounds()
 	dc.GetTextMetrics(&tm);
 
 	dc.SelectObject(hOriginal);
-
-	DeleteDC(dc.GetHandle());
 
 	INT nOffset = (FL_BOTTOM_HEIGHT - tm.tmHeight) / 2;
 

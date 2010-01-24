@@ -163,7 +163,7 @@ INT CUnreadWave::Paint(CDC & dc, RECT & rcClient, BOOL fMouseOver, BOOL fExclude
 
 INT CUnreadWave::CalculateHeight(RECT & rcClient) const
 {
-	CDC dc(GetDC(NULL));
+	CClientDC dc(NULL);
 
 	static HFONT hBoldFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_BOLD, FALSE, FALSE);
 
@@ -199,8 +199,6 @@ INT CUnreadWave::CalculateHeight(RECT & rcClient) const
 	}
 
 	dc.SelectObject(hOriginal);
-
-	DeleteDC(dc.GetHandle());
 
 	return nOffset - rcClient.top;
 }

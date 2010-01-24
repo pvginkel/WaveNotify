@@ -153,7 +153,9 @@ static void SubclassStaticForLink_Paint(HWND hWnd)
 	// Draw the label.
 	//
 
-	CDC dc(BeginPaint(hWnd, &ps));
+	CDC dc;
+	
+	dc.SetHandle(BeginPaint(hWnd, &ps));
 
 	dc.SetTextColor(RGB(0, 102, 204));
 	dc.SetBkColor(GetSysColor(COLOR_3DFACE));

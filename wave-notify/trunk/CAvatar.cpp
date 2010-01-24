@@ -128,14 +128,11 @@ BOOL CAvatar::LoadImage(const LPVOID lpData, DWORD cbData, wstring szContentType
 	m_vBitmap.bmiHeader.biClrUsed = 0;
 	m_vBitmap.bmiHeader.biClrImportant = 0;
 
-	hDC = CreateCompatibleDC(GetDC(NULL));
+	CDC dc;
 
-	if (hDC == NULL)
-	{
-		goto __end;
-	}
+	dc.CreateCompatibleDC(NULL);
 
-	m_hBitmap = CreateDIBSection(hDC, &m_vBitmap, DIB_RGB_COLORS, (void **)&lpBits, NULL, 0);
+	m_hBitmap = CreateDIBSection(dc.GetHandle(), &m_vBitmap, DIB_RGB_COLORS, (void **)&lpBits, NULL, 0);
 
 	if (m_hBitmap == NULL)
 	{
@@ -206,11 +203,6 @@ __end:
 		free(lpTarget);
 	}
 
-	if (hDC != NULL)
-	{
-		DeleteDC(hDC);
-	}
-
 	return fSuccess;
 }
 
@@ -218,19 +210,17 @@ void CAvatar::Paint(CDC * lpDC, POINT ptLocation)
 {
 	ASSERT(lpDC != NULL);
 
-	// TODO: Replace CreateCompatibleDC with managed object (CCompatibleDC) which is scoped.
+	CDC dcSource;
 
-	CDC vSource(CreateCompatibleDC(lpDC->GetHandle()));
+	dcSource.CreateCompatibleDC(lpDC);
 
-	HGDIOBJ hOriginal = vSource.SelectObject(m_hBitmap);
+	HGDIOBJ hOriginal = dcSource.SelectObject(m_hBitmap);
 
 	POINT ptSource = { 0, 0 };
 
-	lpDC->BitBlt(ptLocation, m_szSize, &vSource, ptSource, SRCCOPY);
+	lpDC->BitBlt(ptLocation, m_szSize, &dcSource, ptSource, SRCCOPY);
 
-	vSource.SelectObject(hOriginal);
-
-	DeleteDC(vSource.GetHandle());
+	dcSource.SelectObject(hOriginal);
 }
 
 gdImagePtr CAvatar::CreateImage(LPINT lpBits, SIZE szSize)

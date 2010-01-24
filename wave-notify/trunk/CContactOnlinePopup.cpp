@@ -58,11 +58,7 @@ LRESULT CContactOnlinePopup::OnPaint()
 {
 	static HFONT hFont = CreateFontIndirectEx(GetMessageBoxFont(), FW_BOLD, FALSE, FALSE);
 
-	PAINTSTRUCT ps;
-
-	// TODO: Replace with specialized CDC class.
-
-	CDC dc(BeginPaint(GetHandle(), &ps));
+	CPaintDC dc(GetWindow());
 
 	CAvatar * lpAvatar = m_lpContact->GetAvatar();
 
@@ -105,8 +101,6 @@ LRESULT CContactOnlinePopup::OnPaint()
 	dc.DrawText(szMessage, &rcClient, DT_NOPREFIX | DT_WORDBREAK);
 
 	dc.SelectObject(hOriginal);
-
-	EndPaint(GetHandle(), &ps);
 
 	return 0;
 }
