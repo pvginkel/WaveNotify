@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "avatar.h"
 
 CAvatar::CAvatar(SIZE szSize)
 {
@@ -29,12 +30,56 @@ CAvatar::~CAvatar()
 	DeleteObject(m_hBitmap);
 }
 
+CAvatar * CAvatar::Load(LPCWSTR szResource, LPCWSTR szResourceType, HMODULE hModule, SIZE szSize, wstring szContentType)
+{
+	HGLOBAL hLoadedResource = NULL;
+	HRSRC hResource = NULL;
+	LPVOID lpData = NULL;
+	DWORD cbData;
+	CAvatar * lpResult = NULL;
+	
+	hResource = FindResource(hModule, szResource, szResourceType);
+
+	if (hResource == NULL)
+	{
+		goto __end;
+	}
+
+	hLoadedResource = LoadResource(hModule, hResource);
+
+	if (hLoadedResource == NULL)
+	{
+		goto __end;
+	}
+
+	lpData = LockResource(hLoadedResource);
+
+	if (lpData == NULL)
+	{
+		goto __end;
+	}
+
+	cbData = SizeofResource(hModule, hResource);
+
+	lpResult = Create(lpData, cbData, szSize, szContentType);
+
+__end:
+	// The results of the functions do not need to be freed.
+
+	return lpResult;
+}
+
 CAvatar * CAvatar::Create(const TByteVector & vData, SIZE szSize, wstring szContentType)
+{
+	return Create(_VECTOR_DATA(vData), vData.size(), szSize, szContentType);
+}
+
+CAvatar * CAvatar::Create(const LPVOID lpData, DWORD cbData, SIZE szSize, wstring szContentType)
 {
 	BOOL fSuccess = FALSE;
 	CAvatar * lpResult = new CAvatar(szSize);
 
-	if (lpResult->LoadImage(vData, szContentType))
+	if (lpResult->LoadImage(lpData, cbData, szContentType))
 	{
 		return lpResult;
 	}
@@ -47,13 +92,12 @@ CAvatar * CAvatar::Create(const TByteVector & vData, SIZE szSize, wstring szCont
 
 }
 
-BOOL CAvatar::LoadImage(const TByteVector & vData, wstring szContentType)
+BOOL CAvatar::LoadImage(const LPVOID lpData, DWORD cbData, wstring szContentType)
 {
 	gdImagePtr lpTarget = NULL;
 	gdImagePtr lpSource = NULL;
 	HDC hDC = NULL;
 	BOOL fSuccess = FALSE;
-	LPVOID lpData = NULL;
 	LPBYTE lpBits = NULL;
 
 	m_hBitmap = NULL;
@@ -101,19 +145,17 @@ BOOL CAvatar::LoadImage(const TByteVector & vData, wstring szContentType)
 		goto __end;
 	}
 
-	lpData = (LPVOID)_VECTOR_DATA(vData);
-
 	if (szContentType == L"image/png")
 	{
-		lpSource = gdImageCreateFromPngPtr(vData.size(), lpData);
+		lpSource = gdImageCreateFromPngPtr(cbData, lpData);
 	}
 	else if (szContentType == L"image/jpeg")
 	{
-		lpSource = gdImageCreateFromJpegPtr(vData.size(), lpData);
+		lpSource = gdImageCreateFromJpegPtr(cbData, lpData);
 	}
 	else if (szContentType == L"image/gif")
 	{
-		lpSource = gdImageCreateFromGifPtr(vData.size(), lpData);
+		lpSource = gdImageCreateFromGifPtr(cbData, lpData);
 	}
 	else
 	{

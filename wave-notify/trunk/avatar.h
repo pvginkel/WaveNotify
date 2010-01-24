@@ -41,10 +41,12 @@ public:
 
 	void Paint(CDC * lpDC, POINT ptLocation);
 
+	static CAvatar * Load(LPCWSTR szResource, LPCWSTR szResourceType, HMODULE hModule, SIZE szSize, wstring szContentType);
 	static CAvatar * Create(const TByteVector & vData, SIZE szSize, wstring szContentType);
+	static CAvatar * Create(const LPVOID lpData, DWORD cbData, SIZE szSize, wstring szContentType);
 
 private:
-	BOOL LoadImage(const TByteVector & vData, wstring szContentType);
+	BOOL LoadImage(const LPVOID lpData, DWORD cbData, wstring szContentType);
 
 	static gdImagePtr CreateImage(LPINT lpBits, SIZE szSize);
 };
