@@ -41,5 +41,8 @@ typedef TStringBoolMap::const_iterator TStringBoolMapConstIter;
 typedef vector<UINT_PTR> TUintPtrVector;
 typedef TUintPtrVector::iterator TUintPtrVectorIter;
 typedef TUintPtrVector::const_iterator TUintPtrVectorConstIter;
+typedef map<INT, HANDLE> TIntHandleMap;
+typedef TIntHandleMap::iterator TIntHandleMapIter;
+typedef TIntHandleMap::const_iterator TIntHandleMapConstIter;
 
 #endif // _INC_TYPES2
