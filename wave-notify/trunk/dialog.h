@@ -57,6 +57,7 @@ public:
 
 protected:
 	virtual INT_PTR DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam);
+	virtual void BeforeShow() { }
 
 private:
 	static INT_PTR CALLBACK DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);

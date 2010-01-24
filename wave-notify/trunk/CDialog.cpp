@@ -59,7 +59,9 @@ void CDialog::Create(INT nType, CWindowHandle * lpParentWindow)
 
 	CModelessDialogs::RegisterDialog(nType, this);
 
-	ShowWindow(GetHandle(), SW_SHOW);
+	BeforeShow();
+
+	ShowWindow(SW_SHOW);
 }
 
 INT_PTR CALLBACK CDialog::DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
@@ -70,13 +72,13 @@ INT_PTR CALLBACK CDialog::DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wP
 	{
 		lpDialog = (CDialog *)lParam;
 
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
+		::SetWindowLongPtr(hWnd, GWLP_USERDATA, lParam);
 
 		lpDialog->SetHandle(hWnd);
 	}
 	else
 	{
-		lpDialog = (CDialog *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		lpDialog = (CDialog *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	}
 
 	if (lpDialog != NULL)
@@ -85,7 +87,7 @@ INT_PTR CALLBACK CDialog::DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wP
 
 		if (uMessage == WM_DESTROY)
 		{
-			SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
+			::SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
 
 			ASSERT(!lpDialog->m_fDisposing);
 
