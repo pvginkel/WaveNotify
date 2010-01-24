@@ -68,8 +68,11 @@ wstring GetDirname(wstring szPath);
 wstring GetBasename(wstring szPath);
 wstring GetLongPathName(wstring szPath);
 wstring ExpandEnvironmentStrings(wstring szPath);
+wstring GetCurrentDirectoryEx();
+wstring GetEnvironmentVariableEx(wstring szName);
 
 wstring UrlEncode(wstring szSource);
+wstring UrlEncodePath(wstring szSource);
 wstring Format(wstring szFormat, ...);
 
 HFONT GetMessageBoxFont(BOOL fReload = FALSE);
@@ -95,6 +98,7 @@ BOOL EncryptString(wstring szValue, wstring & szEncrypted);
 BOOL DecryptString(wstring szValue, wstring & szDecrypted);
 
 INT Rand(INT nMin, INT nMax);
+wstring CreateHash(DWORD dwLength, LPCWSTR szPool = NULL);
 
 bool isword(char _Ch);
 bool iswword(wchar_t _Ch);
@@ -218,5 +222,14 @@ typedef int errno_t;
 #define DISTANCE(p1, p2) ((long)(_W64 unsigned long)(p2) - (long)(_W64 unsigned long)(p1))
 
 #endif // _WIN64
+
+#ifndef GET_X_LPARAM
+#define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
+#endif
+
+#ifndef GET_Y_LPARAM
+#define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
+#endif
+
 
 #endif // _INC_SUPPORT
