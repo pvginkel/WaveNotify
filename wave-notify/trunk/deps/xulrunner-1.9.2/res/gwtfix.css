@@ -1,0 +1,2 @@
+/* Fixed a problem with the __gwt_historyFrame IFrame */
+#__gwt_historyFrame{position:absolute;}
