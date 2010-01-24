@@ -56,6 +56,8 @@ private:
 	TPropertySheetPagesVector m_vPages;
 	LPPROPSHEETHEADER m_lpSheet;
 
+	static CPropertySheet * m_lpCreatingPropertySheet;
+
 public:
 	CPropertySheet();
 	virtual ~CPropertySheet();
@@ -78,7 +80,10 @@ protected:
 	virtual void OnCreated() { }
 
 private:
+	static int CALLBACK SheetProcCallback(HWND hWnd, UINT uMsg, LPARAM lParam);
+
 	void BuildStructures(CWindowHandle * lpParentWindow);
+	INT SheetProc(UINT uMsg);
 };
 
 class CPropertySheetPage : public CWindowHandle
