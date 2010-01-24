@@ -50,6 +50,12 @@ Compat_WTSUnRegisterSessionNotification(
     HWND hWnd
     );
 
+HRESULT WINAPI
+Compat_SetWindowTheme(
+    HWND hWnd,
+    LPCWSTR pszSubAppName,
+    LPCWSTR pszSubIdList
+    );
 
 #ifdef __cplusplus
 };
