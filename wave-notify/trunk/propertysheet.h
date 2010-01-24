@@ -46,7 +46,9 @@ typedef vector<CPropertySheetPage *> TPropertySheetPagesVector;
 typedef TPropertySheetPagesVector::iterator TPropertySheetPagesVectorIter;
 typedef TPropertySheetPagesVector::const_iterator TPropertySheetPagesVectorConstIter;
 
-class CPropertySheet : public CWindowHandle
+class CPropertySheet :
+	public CWindowHandle,
+	public CRefCounted
 {
 private:
 	DWORD m_dwFlags;

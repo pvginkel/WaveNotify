@@ -40,7 +40,7 @@ BOOL CModelessPropertySheets::IsDialogMessage(LPMSG lpMsg)
 				
 				UnregisterSheet(iter->first);
 
-				delete lpSheet;
+				lpSheet->Release();
 			}
 
 			return TRUE;

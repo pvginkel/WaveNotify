@@ -669,6 +669,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\refcounted.h"
+				>
+			</File>
+			<File
 				RelativePath=".\registry.h"
 				>
 			</File>

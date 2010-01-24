@@ -112,6 +112,7 @@ typedef enum
 #include "log.h"
 #include "compat.h"
 #include "types.h"
+#include "refcounted.h"
 #include "thread.h"
 #include "utf8converter.h"
 #include "windowhandle.h"

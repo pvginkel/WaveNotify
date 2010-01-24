@@ -18,6 +18,8 @@
 #include "stdafx.h"
 #include "include.h"
 
+#define PROPERTY_INSTANCE	L"WAVENOTIFY_PROPERTYSHEET_INSTANCE"
+
 CPropertySheetPage::CPropertySheetPage()
 {
 	m_dwFlags = 0;
@@ -78,13 +80,13 @@ INT_PTR CALLBACK CPropertySheetPage::DialogProcCallback(HWND hWnd, UINT uMessage
 
 		ASSERT(lpPage != NULL);
 
-		::SetWindowLongPtr(hWnd, GWLP_USERDATA, lpPropSheetPage->lParam);
+		::SetProp(hWnd, PROPERTY_INSTANCE, (HANDLE)lpPropSheetPage->lParam);
 
 		lpPage->SetHandle(hWnd);
 	}
 	else
 	{
-		lpPage = (CPropertySheetPage *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		lpPage = (CPropertySheetPage *)::GetProp(hWnd, PROPERTY_INSTANCE);
 	}
 
 	if (lpPage != NULL)
@@ -93,7 +95,7 @@ INT_PTR CALLBACK CPropertySheetPage::DialogProcCallback(HWND hWnd, UINT uMessage
 
 		if (uMessage == WM_DESTROY)
 		{
-			::SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
+			::RemoveProp(hWnd, PROPERTY_INSTANCE);
 		}
 
 		return nResult;

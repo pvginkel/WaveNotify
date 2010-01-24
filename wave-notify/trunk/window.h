@@ -20,19 +20,18 @@
 
 #pragma once
 
-class CWindow : public CWindowHandle
+class CWindow :
+	public CWindowHandle,
+	public CRefCounted
 {
 private:
 	wstring m_szClassName;
 	BOOL m_fClassRegistered;
 	HCURSOR m_hCursor;
 	BOOL m_fHandleCreated;
-	INT m_nRef;
 
 protected:
 	CWindow(wstring szClassName);
-
-public:
 	virtual ~CWindow();
 
 protected:
@@ -52,12 +51,6 @@ public:
 
 private:
 	static LRESULT CALLBACK WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam);
-
-	void AddRef() { m_nRef++; }
-	void Release() {
-		if (--m_nRef == 0)
-			delete this;
-	}
 };
 
 #endif // _INC_WINDOW

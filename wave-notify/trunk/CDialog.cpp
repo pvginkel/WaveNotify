@@ -18,17 +18,23 @@
 #include "stdafx.h"
 #include "include.h"
 
+#define PROPERTY_INSTANCE	L"WAVENOTIFY_DIALOG_INSTANCE"
+
 CDialog::CDialog(INT nResource)
 {
 	m_nResource = nResource;
-	m_fDisposing = FALSE;
 }
 
 CDialog::~CDialog()
 {
-	ASSERT(m_fDisposing);
+	if (IsWindow())
+	{
+		RemoveProp(PROPERTY_INSTANCE);
+	}
 
 	CModelessDialogs::UnregisterDialog(this);
+
+	SetHandle(NULL);
 }
 
 INT_PTR CDialog::DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
@@ -68,8 +74,6 @@ void CDialog::Create(INT nType, CWindowHandle * lpParentWindow)
 
 INT_PTR CALLBACK CDialog::DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
 {
-	// TODO: Change GWLP_USERDATA into GetProp/SetProp.
-
 	CDialog * lpDialog;
 
 	if (uMessage == WM_INITDIALOG)
@@ -78,29 +82,27 @@ INT_PTR CALLBACK CDialog::DialogProcCallback(HWND hWnd, UINT uMessage, WPARAM wP
 		
 		ASSERT(lpDialog != NULL);
 
-		::SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)lpDialog);
+		::SetProp(hWnd,	PROPERTY_INSTANCE, (HANDLE)lpDialog);
 
 		lpDialog->SetHandle(hWnd);
 	}
 	else
 	{
-		lpDialog = (CDialog *)::GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		lpDialog = (CDialog *)::GetProp(hWnd, PROPERTY_INSTANCE);
 	}
 
 	if (lpDialog != NULL)
 	{
+		lpDialog->AddRef();
+
 		INT_PTR nResult = lpDialog->DialogProc(uMessage, wParam, lParam);
 
 		if (uMessage == WM_DESTROY)
 		{
-			::SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
-
-			ASSERT(!lpDialog->m_fDisposing);
-
-			lpDialog->m_fDisposing = TRUE;
-
-			delete lpDialog;
+			lpDialog->Release();
 		}
+
+		lpDialog->Release();
 
 		return nResult;
 	}
