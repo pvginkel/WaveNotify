@@ -17,9 +17,15 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "notifierapp.h"
+#include "layout.h"
+#include "settings.h"
+#include "browser.h"
+#include "chatwindow.h"
 
-CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
-	: CApp(hInstance, szCmdLine)
+CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine) :
+	CApp(hInstance, szCmdLine)
 {
 	m_fConnected = TRUE;
 	m_hNotifyIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TRAYICON));
@@ -35,6 +41,12 @@ CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
 
 	m_hCursorArrow = LoadCursor(NULL, IDC_ARROW);
 	m_hCursorHand = LoadCursor(NULL, IDC_HAND);
+
+	SIZE szSize = { PL_CO_ICON_SIZE, PL_CO_ICON_SIZE };
+
+	m_lpGenericAvatar = CAvatar::Load(MAKEINTRESOURCE(IDB_UNKNOWN), L"PNG", hInstance, szSize, L"image/png");
+
+	ASSERT(m_lpGenericAvatar != NULL);
 
 	m_lpWindow = new CAppWindow();
 
@@ -56,6 +68,11 @@ CNotifierApp::CNotifierApp(HINSTANCE hInstance, wstring szCmdLine)
 	{
 		m_szBrowser = CBrowser::BrowserDefault;
 	}
+
+	IncludeXULRunner();
+
+	// TODO: Make this a registry setting.
+	m_fEnableExperimental = TRUE;
 }
 
 CNotifierApp::~CNotifierApp()
@@ -71,6 +88,8 @@ CNotifierApp::~CNotifierApp()
 
 	DestroyCursor(m_hCursorArrow);
 	DestroyCursor(m_hCursorHand);
+
+	delete m_lpGenericAvatar;
 
 	if (CPopupWindow::Instance() != NULL)
 	{
@@ -349,4 +368,83 @@ void CNotifierApp::QueueRequest(CCurl * lpRequest)
 void CNotifierApp::CancelRequest(CCurl * lpRequest)
 {
 	m_lpWindow->CancelRequest(lpRequest);
+}
+
+void CNotifierApp::OpenWave(wstring szWaveID)
+{
+	if (CNotifierApp::Instance()->GetEnableInlineChat())
+	{
+		wstring szUrl = Format(
+			L"file:///%s/waveframe.html?waveid=%s&cookie=%s",
+			UrlEncodePath(GetCurrentDirectoryEx()).c_str(),
+			UrlEncode(szWaveID).c_str(),
+			UrlEncode(GetSession()->GetAuthKey()).c_str()
+		);
+
+		(new CChatWindow(szUrl, szWaveID))->Create();
+	}
+	else
+	{
+		OpenUrl(GetSession()->GetWaveUrl(szWaveID));
+	}
+}
+
+void CNotifierApp::IncludeXULRunner()
+{
+	wstring szXULPath;
+
+#ifdef _DEBUG
+
+	WIN32_FIND_DATA wfd;
+
+	// Find the xulrunner library in the deps path.
+
+	HANDLE hFind = FindFirstFile(L".\\deps\\xulrunner-*", &wfd);
+
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			szXULPath = L".\\deps\\";
+			szXULPath += wfd.cFileName;
+
+			break;
+		}
+		while (FindNextFile(hFind, &wfd) != 0);
+	}
+
+	FindClose(hFind);
+
+#endif
+
+	if (szXULPath.empty())
+	{
+		// Find the location of xulrunner.
+
+		wstring szXULPath(GetDirname(GetModuleFileNameEx()) + L"\\xulrunner");
+
+		DWORD dwAttr = GetFileAttributes(szXULPath.c_str());
+
+		if (dwAttr == INVALID_FILE_ATTRIBUTES || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY))
+		{
+			szXULPath = GetCurrentDirectoryEx() + L"\\xulrunner";
+
+			dwAttr = GetFileAttributes(szXULPath.c_str());
+
+			if (dwAttr == INVALID_FILE_ATTRIBUTES || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				LOG("Could not find xulrunner");
+
+				return;
+			}
+		}
+	}
+
+	// Put it into the path.
+
+	wstringstream szPath;
+
+	szPath << GetEnvironmentVariableEx(L"PATH") << ";" << szXULPath;
+
+	SetEnvironmentVariable(L"PATH", szPath.str().c_str());
 }
