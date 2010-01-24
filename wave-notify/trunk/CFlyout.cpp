@@ -102,7 +102,7 @@ LRESULT CFlyout::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	switch (uMessage)
 	{
 	case WM_KILLFOCUS:
-		DestroyWindow(GetHandle());
+		DestroyWindow();
 		break;
 
 	case WM_NCHITTEST:

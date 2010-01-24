@@ -20,36 +20,12 @@
 
 wstring CWindowHandle::GetDlgItemText(INT nDlgItem) const
 {
-	HWND hWnd = GetDlgItem(nDlgItem);
-
-	if (hWnd == NULL)
-	{
-		return L"";
-	}
-
-	INT nLength = GetWindowTextLength(hWnd);
-
-	if (nLength > 0)
-	{
-		LPWSTR szBuffer = (LPWSTR)malloc((nLength + 1) * sizeof(WCHAR));
-
-		::GetWindowText(hWnd, szBuffer, nLength + 1);
-
-		wstring szResult(szBuffer);
-
-		free(szBuffer);
-
-		return szResult;
-	}
-	else
-	{
-		return L"";
-	}
+	return GetDlgItem(nDlgItem).GetWindowText();
 }
 
 wstring CWindowHandle::GetWindowText() const
 {
-	INT nLength = GetWindowTextLength(GetHandle());
+	INT nLength = ::GetWindowTextLength(GetHandle());
 
 	if (nLength > 0)
 	{

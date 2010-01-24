@@ -220,7 +220,7 @@ LRESULT CAppWindow::OnClose()
 
 	case WSS_OFFLINE:
 		// Already offline, destroy the window
-		DestroyWindow(GetHandle());
+		DestroyWindow();
 		break;
 	}
 	
@@ -533,7 +533,7 @@ void CAppWindow::ProcessSignedOut()
 
 	if (m_fQuitting)
 	{
-		DestroyWindow(GetHandle());
+		DestroyWindow();
 	}
 }
 

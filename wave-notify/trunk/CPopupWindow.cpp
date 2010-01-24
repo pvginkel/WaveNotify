@@ -338,7 +338,7 @@ void CPopupWindow::CompleteClosing()
 {
 	m_nAnimationStep = 0;
 
-	DestroyWindow(GetHandle());
+	DestroyWindow();
 }
 
 void CPopupWindow::AnimateClosing()
@@ -418,7 +418,7 @@ void CPopupWindow::UpdateFromAnimationStep()
 		break;
 	}
 
-	SetLayeredWindowAttributes(GetHandle(), 0, nOpacity, LWA_ALPHA);
+	SetLayeredWindowAttributes(0, nOpacity, LWA_ALPHA);
 
 	SetWindowPos(
 		NULL,
@@ -499,7 +499,7 @@ void CPopupWindow::ShowPopup()
 		m_lpPopupTimer->SetInterval(m_lpCurrent->GetAnimationDuration() / ANIMATION_STEPS);
 		m_lpPopupTimer->SetRunning(TRUE);
 
-		SetLayeredWindowAttributes(GetHandle(), 0, 0, LWA_ALPHA);
+		SetLayeredWindowAttributes(0, 0, LWA_ALPHA);
 	}
 
 	ShowWindow(SW_SHOWNOACTIVATE);
@@ -522,7 +522,7 @@ void CPopupWindow::CancelAll()
 		delete lpPopup;
 	}
 
-	DestroyWindow(GetHandle());
+	DestroyWindow();
 }
 
 void CPopupWindow::ShowNext()

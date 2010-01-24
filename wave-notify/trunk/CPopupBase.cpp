@@ -44,7 +44,7 @@ void CPopupBase::PaintBackground(CDC & dc)
 
 	RECT rc;
 
-	GetClientRect(GetHandle(), &rc);
+	GetWindow()->GetClientRect(&rc);
 
 	for (INT i = 0; i < PL_BORDER_WIDTH; i++)
 	{

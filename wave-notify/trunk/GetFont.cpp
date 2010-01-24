@@ -121,13 +121,11 @@ BOOL FontExists(wstring szFontName)
 	lf.lfCharSet = DEFAULT_CHARSET;
 	wcscpy(lf.lfFaceName, szFontName.c_str());
 
-	HDC hDC = GetDC(NULL);
+	CClientDC dc(NULL);
 
 	BOOL fExists = FALSE;
 
-	EnumFontFamiliesEx(hDC, &lf, (FONTENUMPROC)FontExistsProc, (LPARAM)&fExists, 0);
-
-	ReleaseDC(NULL, hDC);
+	EnumFontFamiliesEx(dc.GetHandle(), &lf, (FONTENUMPROC)FontExistsProc, (LPARAM)&fExists, 0);
 
 	return fExists;
 }

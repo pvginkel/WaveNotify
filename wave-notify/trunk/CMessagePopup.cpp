@@ -75,8 +75,8 @@ LRESULT CMessagePopup::OnPaint()
 	PaintBackground(dc);
 
 	RECT rcClient;
-	
-	GetClientRect(GetHandle(), &rcClient);
+
+	GetWindow()->GetClientRect(&rcClient);
 	InflateRect(&rcClient, -(PL_BORDER_WIDTH + PL_PADDING), -(PL_BORDER_WIDTH + PL_PADDING));
 
 	rcClient.right -= 16;

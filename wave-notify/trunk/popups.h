@@ -97,7 +97,7 @@ public:
 		m_uIndex = uIndex;
 		m_uCount = uCount;
 
-		InvalidateRect(GetHandle(), NULL, FALSE);
+		GetWindow()->InvalidateRect();
 	}
 	UINT GetCount() const { return m_uCount; }
 	UINT GetIndex() const { return m_uIndex; }

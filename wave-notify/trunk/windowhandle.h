@@ -107,23 +107,23 @@ public:
 
 		SendDlgItemMessage(nDlgItem, BM_SETCHECK, fChecked ? BST_CHECKED : BST_UNCHECKED);
 	}
-	HWND GetDlgItem(INT nDlgItem) const {
+	CWindowHandle GetDlgItem(INT nDlgItem) const {
 		CHECK(IsWindow());
 		CHECK_GT_0(nDlgItem);
 
-		return ::GetDlgItem(GetHandle(), nDlgItem);
+		return CWindowHandle(::GetDlgItem(GetHandle(), nDlgItem));
 	}
 	void SetDlgItemEnabled(INT nDlgItem, BOOL fEnabled) const {
 		CHECK(IsWindow());
 		CHECK_GT_0(nDlgItem);
 
-		::EnableWindow(GetDlgItem(nDlgItem), fEnabled);
+		GetDlgItem(nDlgItem).EnableWindow(fEnabled);
 	}
 	BOOL GetDlgItemEnabled(INT nDlgItem) const {
 		CHECK(IsWindow());
 		CHECK_GT_0(nDlgItem);
 
-		return ::IsWindowEnabled(GetDlgItem(nDlgItem));
+		return GetDlgItem(nDlgItem).IsWindowEnabled();
 	}
 	void SetMessageResult(INT_PTR lResult) const {
 		CHECK(IsWindow());
@@ -178,7 +178,7 @@ public:
 
 		return ::SetWindowRgn(GetHandle(), hRgn, bRedraw);
 	}
-	BOOL InvalidateRect(CONST RECT *lpRect, BOOL bErase = FALSE) const {
+	BOOL InvalidateRect(CONST RECT *lpRect = NULL, BOOL bErase = FALSE) const {
 		CHECK(IsWindow());
 
 		return ::InvalidateRect(GetHandle(), lpRect, bErase);
@@ -227,6 +227,11 @@ public:
 		CHECK(IsWindow());
 
 		return GetHandle() == GetFocus();
+	}
+	BOOL IsWindowEnabled() const {
+		CHECK(IsWindow());
+
+		return ::IsWindowEnabled(GetHandle());
 	}
 	BOOL HasMinimizeButton() const {
 		CHECK(IsWindow());
@@ -284,6 +289,31 @@ public:
 		CHECK(IsWindow());
 
 		return ::RedrawWindow(GetHandle(), lprcUpdate, hrgnUpdate, uFlags);
+	}
+	BOOL DestroyWindow() const {
+		CHECK(IsWindow());
+
+		return ::DestroyWindow(GetHandle());
+	}
+	BOOL EnableWindow(BOOL fEnabled) const {
+		CHECK(IsWindow());
+
+		return ::EnableWindow(GetHandle(), fEnabled);
+	}
+	BOOL SetLayeredWindowAttributes(COLORREF cr, BYTE bAlpha, DWORD dwFlags) const {
+		CHECK(IsWindow());
+
+		return ::SetLayeredWindowAttributes(GetHandle(), cr, bAlpha, dwFlags);
+	}
+	HWND SetCapture() const {
+		CHECK(IsWindow());
+
+		return ::SetCapture(GetHandle());
+	}
+	HWND SetFocus() const {
+		CHECK(IsWindow());
+
+		return ::SetFocus(GetHandle());
 	}
 
 protected:
