@@ -123,16 +123,16 @@ INT_PTR CLoginDialog::OnInitDialog()
 	{
 		if (fHasPassword)
 		{
-			SetFocus(GetDlgItem(IDOK));
+			GetDlgItem(IDOK).SetFocus();
 		}
 		else
 		{
-			SetFocus(GetDlgItem(IDC_LOGIN_PASSWORD));
+			GetDlgItem(IDC_LOGIN_PASSWORD).SetFocus();
 		}
 	}
 	else
 	{
-		SetFocus(GetDlgItem(IDC_LOGIN_USERNAME));
+		GetDlgItem(IDC_LOGIN_USERNAME).SetFocus();
 	}
 
 	UpdateEnabled();
@@ -150,7 +150,7 @@ INT_PTR CLoginDialog::OnCommand(WORD wCommand, WORD wNotifyMessage)
 		return ProcessLogin();
 
 	case IDCANCEL:
-		DestroyWindow(GetHandle());
+		DestroyWindow();
 		return (INT_PTR)TRUE;
 
 	case IDC_LOGIN_USERNAME:
@@ -189,7 +189,7 @@ void CLoginDialog::EnableControls(BOOL fEnabled)
 	{
 		for (THwndVectorIter iter = m_vDisabledWindows.begin(); iter != m_vDisabledWindows.end(); iter++)
 		{
-			EnableWindow(*iter, TRUE);
+			::EnableWindow(*iter, TRUE);
 		}
 
 		m_vDisabledWindows.empty();
@@ -200,7 +200,7 @@ void CLoginDialog::EnableControls(BOOL fEnabled)
 
 	}
 
-	EnableWindow(GetHandle(), fEnabled);
+	EnableWindow(fEnabled);
 }
 
 INT_PTR CLoginDialog::OnWaveConnectionState(WAVE_CONNECTION_STATE nState, LPARAM lParam)
@@ -262,7 +262,7 @@ void CLoginDialog::ProcessLoginSuccess()
 
 	UpdateRegistry();
 
-	DestroyWindow(GetHandle());
+	DestroyWindow();
 }
 
 void CLoginDialog::ProcessLoginFailure(WAVE_LOGIN_ERROR nLoginError)
@@ -303,7 +303,7 @@ INT_PTR CLoginDialog::UpdateEnabled()
 		!GetDlgItemText(IDC_LOGIN_USERNAME).empty() &&
 		!GetDlgItemText(IDC_LOGIN_PASSWORD).empty();
 
-	EnableWindow(GetDlgItem(IDOK), fEnabled);
+	SetDlgItemEnabled(IDOK, fEnabled);
 
 	SendMessage(DM_SETDEFID, IDOK);
 
@@ -341,10 +341,10 @@ BOOL CALLBACK CLoginDialog::DisableWindowsEnumCallback(HWND hWnd, LPARAM lParam)
 
 	ASSERT(lpDisabledWindows != NULL);
 
-	if (IsWindowEnabled(hWnd))
+	if (::IsWindowEnabled(hWnd))
 	{
 		lpDisabledWindows->push_back(hWnd);
-		EnableWindow(hWnd, FALSE);
+		::EnableWindow(hWnd, FALSE);
 	}
 
 	return TRUE;

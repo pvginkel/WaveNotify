@@ -78,9 +78,9 @@ CThemeWindow::CThemeWindow(HWND hWnd) :
 
 CThemeWindow::~CThemeWindow()
 {
-	::SetWindowLongPtr(GetHandle(), GWL_WNDPROC, (LONG_PTR)m_lpOldProc);
+	SetWindowLongPtr(GWL_WNDPROC, (LONG_PTR)m_lpOldProc);
 
-	::RemoveProp(GetHandle(), PROPERTY_INSTANCE);
+	RemoveProp(PROPERTY_INSTANCE);
 }
 
 void CThemeWindow::Subclass(HWND hWnd)
@@ -1189,7 +1189,7 @@ LRESULT CThemeWindow::OnNcLButtonDown(WPARAM wParam, POINT pt)
 
 	PerformPaint();
 
-	SetCapture(GetHandle());
+	SetCapture();
 
 	return 0;
 }
@@ -1293,7 +1293,7 @@ void CThemeWindow::PerformPaint()
 
 	dc.ExcludeClipRect(&tc.rcClientArea);
 
-	CDoubleBufferedDC dcBuffered(this, dc);
+	CDoubleBufferedDC dcBuffered(this, &dc);
 
 	DrawFrame(dcBuffered, tc);
 

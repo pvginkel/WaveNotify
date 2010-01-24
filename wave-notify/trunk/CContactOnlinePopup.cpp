@@ -85,7 +85,7 @@ LRESULT CContactOnlinePopup::OnPaint()
 
 	RECT rcClient;
 	
-	GetClientRect(GetHandle(), &rcClient);
+	GetWindow()->GetClientRect(&rcClient);
 	InflateRect(&rcClient, -PL_BORDER_WIDTH, -PL_BORDER_WIDTH);
 
 	rcClient.left += PL_CO_ICON_DX + PL_CO_ICON_SIZE + PL_CO_LABEL_DX;

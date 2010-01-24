@@ -68,7 +68,7 @@ LRESULT CUnreadWavePopup::OnPaint()
 
 	RECT rcClient;
 
-	GetClientRect(GetHandle(), &rcClient);
+	GetWindow()->GetClientRect(&rcClient);
 	InflateRect(&rcClient, -(PL_BORDER_WIDTH + PL_PADDING), -(PL_BORDER_WIDTH + PL_PADDING));
 
 	RECT rc = rcClient;
@@ -126,7 +126,7 @@ void CUnreadWavePopup::UpdateUnread(CUnreadWave * lpUnread)
 
 	if (IsDisplaying())
 	{
-		InvalidateRect(GetHandle(), NULL, FALSE);
+		GetWindow()->InvalidateRect(NULL, FALSE);
 
 		ExtendDuration(3600);
 	}
@@ -144,7 +144,7 @@ void CUnreadWavePopup::ContactsUpdated(CWaveContactCollection * lpContacts)
 		{
 			m_lpWave->SetWaveContact(lpContact);
 
-			InvalidateRect(GetHandle(), NULL, FALSE);
+			GetWindow()->InvalidateRect(NULL, FALSE);
 		}
 	}
 }

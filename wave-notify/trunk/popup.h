@@ -142,7 +142,6 @@ public:
 		ASSERT(lpResult != NULL);
 		return lpResult;
 	}
-	HWND GetHandle() const { return GetWindow()->GetHandle(); }
 	void ExtendDuration(INT nDuration);
 
 	void Show();

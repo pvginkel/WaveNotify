@@ -98,10 +98,12 @@ INT_PTR CAboutDialog::OnInitDialog()
 	);
 
 	SubclassStaticForLink(
-		GetDlgItem(IDC_ABOUT_HOMEPAGE),
+		GetDlgItem(IDC_ABOUT_HOMEPAGE).GetHandle(),
 		HOMEPAGE_LINK
 	);
-	SubclassStaticForLink(GetDlgItem(IDC_ABOUT_LICENSE_LINK));
+	SubclassStaticForLink(
+		GetDlgItem(IDC_ABOUT_LICENSE_LINK).GetHandle()
+	);
 
 	SendDlgItemMessage(IDC_ABOUT_TITLE, WM_SETFONT, (WPARAM)hBoldFont);
 
@@ -114,7 +116,7 @@ INT_PTR CAboutDialog::OnCommand(WORD wCommand, WORD wNotifyMessage)
 	{
 	case IDOK:
 	case IDCANCEL:
-		DestroyWindow(GetHandle());
+		DestroyWindow();
 		break;
 	}
 
