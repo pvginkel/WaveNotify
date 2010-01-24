@@ -226,50 +226,6 @@ wstring towuppoer(wstring _String)
 	return _Result;
 }
 
-INT Rand(INT nMin, INT nMax)
-{
-	static BOOL fInitialised = FALSE;
-
-	if (!fInitialised)
-	{
-		fInitialised = TRUE;
-
-		srand(GetTickCount());
-	}
-
-	INT nRand = 0;
-	INT nRandMax = 0;
-	INT nCount = INT(ceil(DOUBLE(nMax - nMin) / DOUBLE(RAND_MAX)));
-
-	if (nCount < 1)
-	{
-		nCount = 1;
-	}
-
-	for (INT i = 0; i < nCount; i++)
-	{
-		nRand += rand();
-		nRandMax += RAND_MAX;
-	}
-
-	INT nResult = nMin + INT((DOUBLE(nRand) / DOUBLE(nRandMax)) * DOUBLE(nMax - nMin + 1));
-
-	// Force result inside nMin/nMax because of DOUBLE rounding errors
-
-	if (nResult < nMin)
-	{
-		return nMin;
-	}
-	else if (nResult > nMax)
-	{
-		return nMax;
-	}
-	else
-	{
-		return nResult;
-	}
-}
-
 BOOL ParseStringMap(const wstring & szInput, TStringStringMap & vMap)
 {
 	INT nOffset = 0;
@@ -474,6 +430,36 @@ wstring ExpandEnvironmentStrings(wstring szPath)
 	}
 
 	free(szBuffer);
+
+	return szResult;
+}
+
+wstring GetCurrentDirectoryEx()
+{
+	DWORD dwLength = GetCurrentDirectory(0, NULL);
+
+	LPWSTR szPath = (LPWSTR)malloc(sizeof(WCHAR) * (dwLength + 1));
+
+	GetCurrentDirectory(dwLength + 1, szPath);
+
+	wstring szResult(szPath);
+
+	free(szPath);
+
+	return szResult;
+}
+
+wstring GetEnvironmentVariableEx(wstring szName)
+{
+	DWORD dwLength = GetEnvironmentVariable(szName.c_str(), NULL, 0);
+
+	LPWSTR szValue = (LPWSTR)malloc(sizeof(WCHAR) * (dwLength + 1));
+
+	GetEnvironmentVariable(szName.c_str(), szValue, dwLength + 1);
+
+	wstring szResult(szValue);
+
+	free(szValue);
 
 	return szResult;
 }
