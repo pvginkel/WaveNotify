@@ -112,6 +112,7 @@ private:
 	void ReportContactOnline(CWaveContact * lpContact, BOOL fOnline);
 	LRESULT ProcessCurlDataReceived(LPCURL_DATA_RECEIVED lpParam);
 	LRESULT ProcessCurlCompleted(CCurl * lpCurl);
+	void SignalContactUpdated(CWaveContact * lpContact);
 
 private:
 	friend class CWorkingTimer;

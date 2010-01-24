@@ -26,8 +26,8 @@
 
 #define PL_BORDER_WIDTH		2	// Outer border width
 #define PL_WIDTH		264	// Width of all popups
-#define PL_WAVE_HEIGHT		109	// Height of the Wave popup
 #define PL_MSG_HEIGHT		65	// Height of the message popup
+#define PL_WAVE_HEIGHT		109	// Height of the Wave popup
 #define PL_PADDING		6	// Inner padding for popups within the border
 #define PL_LINE_SPACING		3	// Spacing between different text blocks
 

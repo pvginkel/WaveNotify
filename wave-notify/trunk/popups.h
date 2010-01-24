@@ -101,6 +101,7 @@ public:
 	}
 	UINT GetCount() const { return m_uCount; }
 	UINT GetIndex() const { return m_uIndex; }
+	CWaveContact * GetContact() const { return m_lpWave->GetWaveContact(); }
 
 protected:
 	LRESULT WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam);
