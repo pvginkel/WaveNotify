@@ -24,6 +24,7 @@ extern "C" {
 
 typedef BOOL (WINAPI * WTSRegisterSessionNotification_t)(HWND, DWORD);
 typedef BOOL (WINAPI * WTSUnRegisterSessionNotification_t)(HWND);
+typedef HRESULT (WINAPI * SetWindowTheme_t)(HWND, LPCWSTR, LPCWSTR);
 
 BOOL WINAPI Compat_WTSRegisterSessionNotification(HWND hWnd, DWORD dwFlags)
 {
@@ -78,6 +79,34 @@ BOOL WINAPI Compat_WTSUnRegisterSessionNotification(HWND hWnd)
 	else
 	{
 		return lpProc(hWnd);
+	}
+}
+
+HRESULT WINAPI Compat_SetWindowTheme(HWND hWnd, LPCWSTR pszSubAppName, LPCWSTR pszSubIdList)
+{
+	static BOOL fLoaded = FALSE;
+	static SetWindowTheme_t lpProc = NULL;
+
+	if (!fLoaded)
+	{
+		fLoaded = TRUE;
+
+		HMODULE hModule = LoadLibrary(L"uxtheme.dll");
+
+		if (hModule != NULL)
+		{
+			lpProc = (SetWindowTheme_t)GetProcAddress(
+				hModule, "SetWindowTheme");
+		}
+	}
+
+	if (lpProc == NULL)
+	{
+		return FALSE;
+	}
+	else
+	{
+		return lpProc(hWnd, pszSubAppName, pszSubIdList);
 	}
 }
 
