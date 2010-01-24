@@ -256,7 +256,7 @@ BOOL CNotifierApp::DetectShortcut(const wstring & szModulePath, const wstring & 
 		reinterpret_cast<void**>(&lpShellLink)
 	);
 
-	if (!SUCCEEDED(hr))
+	if (FAILED(hr))
 	{
 		goto __end;
 	}
@@ -268,7 +268,7 @@ BOOL CNotifierApp::DetectShortcut(const wstring & szModulePath, const wstring & 
 		reinterpret_cast<void**>(&lpPersistFile)
 	);
 
-	if (!SUCCEEDED(hr))
+	if (FAILED(hr))
 	{
 		goto __end;
 	}
@@ -277,7 +277,7 @@ BOOL CNotifierApp::DetectShortcut(const wstring & szModulePath, const wstring & 
 
 	hr = lpPersistFile->Load(szFilename.c_str(), STGM_READ | STGM_SHARE_DENY_NONE);
 
-	if (!SUCCEEDED(hr))
+	if (FAILED(hr))
 	{
 		goto __end;
 	}
@@ -287,7 +287,7 @@ BOOL CNotifierApp::DetectShortcut(const wstring & szModulePath, const wstring & 
 
 	hr = lpShellLink->GetPath(szTargetPath, MAX_PATH, &wfd, 0);
 
-	if (!SUCCEEDED(hr))
+	if (FAILED(hr))
 	{
 		goto __end;
 	}
@@ -336,7 +336,7 @@ void CNotifierApp::CreateShortcut()
 		reinterpret_cast<void**>(&lpShellLink)
 	);
 
-	if (!SUCCEEDED(hr))
+	if (FAILED(hr))
 	{
 		goto __end;
 	}
@@ -352,7 +352,7 @@ void CNotifierApp::CreateShortcut()
 		reinterpret_cast<void**>(&lpPersistFile)
 	);
 
-	if (!SUCCEEDED(hr))
+	if (FAILED(hr))
 	{
 		goto __end;
 	}
