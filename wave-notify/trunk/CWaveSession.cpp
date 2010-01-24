@@ -17,23 +17,20 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "wave.h"
+#include "notifierapp.h"
 
-CWaveSession::CWaveSession(CWindowHandle * lpTargetWindow)
+CWaveSession::CWaveSession(CWindowHandle * lpTargetWindow) :
+	m_lpTargetWindow(lpTargetWindow),
+	m_lpCookies(NULL),
+	m_nLoginError(WLE_SUCCESS),
+	m_lpRequest(NULL),
+	m_lpChannelRequest(NULL),
+	m_lpPostRequest(NULL),
+	m_nRequesting(WSR_NONE),
+	m_nState(WSS_OFFLINE),
+	m_nFlushSuspended(0)
 {
-	m_lpTargetWindow = lpTargetWindow;
-	m_szUsername = L"";
-	m_szPassword = L"";
-	m_lpCookies = NULL;
-	m_szAuthKey = L"";
-	m_szEmailAddress = L"";
-	m_nLoginError = WLE_SUCCESS;
-	m_lpRequest = NULL;
-	m_lpChannelRequest = NULL;
-	m_lpPostRequest = NULL;
-	m_nRequesting = WSR_NONE;
-	m_nState = WSS_OFFLINE;
-	m_nFlushSuspended = 0;
-
 	m_lpReconnectTimer = new CTimer();
 
 	m_lpReconnectTimer->Tick += AddressOf<CWaveSession>(this, &CWaveSession::ReconnectTimer);
@@ -841,16 +838,7 @@ void CWaveSession::InitiateReconnect()
 
 wstring CWaveSession::BuildHash()
 {
-	wstring szResult;
-
-	szResult.reserve(12);
-
-	for (INT i = 0; i < 12; i++)
-	{
-		szResult += *(WAVE_HASH_POOL + Rand(0, _ARRAYSIZE(WAVE_HASH_POOL) - 1));
-	}
-
-	return szResult;
+	return CreateHash(12, WAVE_HASH_POOL);
 }
 
 CWaveResponse * CWaveSession::ParseWfeResponse(wstring szResponse, BOOL & fSuccess)
