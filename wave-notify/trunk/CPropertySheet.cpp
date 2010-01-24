@@ -18,6 +18,8 @@
 #include "stdafx.h"
 #include "include.h"
 
+CPropertySheet * CPropertySheet::m_lpCreatingPropertySheet = NULL;
+
 CPropertySheet::CPropertySheet()
 {
 	m_dwFlags = 0;
@@ -56,17 +58,17 @@ BOOL CPropertySheet::Create(INT nType, CWindowHandle * lpParentWindow)
 
 	m_lpSheet->dwFlags |= PSH_MODELESS;
 
+	m_lpCreatingPropertySheet = this;
+
 	INT_PTR nResult = PropertySheet(m_lpSheet);
+
+	m_lpCreatingPropertySheet = NULL;
 
 	if (nResult > 0)
 	{
 		SetHandle((HWND)nResult);
 
 		CModelessPropertySheets::RegisterSheet(nType, this);
-
-		OnCreated();
-
-		ShowWindow(GetHandle(), SW_SHOW);
 	}
 
 	return nResult > 0;
@@ -88,16 +90,31 @@ void CPropertySheet::BuildStructures(CWindowHandle * lpParentWindow)
 	memset(m_lpSheet, 0, sizeof(PROPSHEETHEADER));
 
 	m_lpSheet->dwSize = sizeof(PROPSHEETHEADER);
-	m_lpSheet->dwFlags = m_dwFlags | PSH_PROPSHEETPAGE | PSH_USEHICON | PSH_NOAPPLYNOW;
+	m_lpSheet->dwFlags = m_dwFlags | PSH_PROPSHEETPAGE | PSH_USEHICON | PSH_NOAPPLYNOW | PSH_USECALLBACK;
 	m_lpSheet->hwndParent = lpParentWindow == NULL ? NULL : lpParentWindow->GetHandle();
 	m_lpSheet->hInstance = CApp::Instance()->GetInstance();
 	m_lpSheet->hIcon = m_hIcon;
 	m_lpSheet->pszCaption = m_szCaption.c_str();
 	m_lpSheet->nPages = m_vPages.size();
 	m_lpSheet->ppsp = lpPages;
+	m_lpSheet->pfnCallback = CPropertySheet::SheetProcCallback;
 }
 
 void CPropertySheet::AddPage(CPropertySheetPage * lpPage)
 {
 	m_vPages.push_back(lpPage);
+}
+
+int CALLBACK CPropertySheet::SheetProcCallback(HWND hWnd, UINT uMsg, LPARAM lParam)
+{
+	if (uMsg == PSCB_INITIALIZED)
+	{
+		if (m_lpCreatingPropertySheet != NULL)
+		{
+			m_lpCreatingPropertySheet->SetHandle(hWnd);
+			m_lpCreatingPropertySheet->OnCreated();
+		}
+	}
+
+	return 0;
 }
