@@ -30,7 +30,7 @@ ATOM CFlyout::CreateClass(LPWNDCLASSEX lpWndClass)
 {
 	lpWndClass->style = CS_HREDRAW | CS_VREDRAW;
 	lpWndClass->hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-	lpWndClass->hCursor = CNotifierApp::Instance()->GetCursorArrow();
+	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
 
 	return CWindow::CreateClass(lpWndClass);
 }
@@ -53,8 +53,8 @@ HWND CFlyout::CreateHandle(DWORD dwExStyle, wstring szWindowName, DWORD dwStyle,
 	RECT rc;
 	RECT rcClient;
 
-	GetWindowRect(GetHandle(), &rc);
-	GetClientRect(GetHandle(), &rcClient);
+	GetWindowRect(&rc);
+	GetClientRect(&rcClient);
 	
 	SIZE sOffset = { 17, 8 };
 
@@ -69,7 +69,6 @@ HWND CFlyout::CreateHandle(DWORD dwExStyle, wstring szWindowName, DWORD dwStyle,
 	SnapTaskbarPopupLocation(&rcFlyout, m_ptSnap);
 
 	SetWindowPos(
-		GetHandle(),
 		NULL, 
 		rcFlyout.left,
 		rcFlyout.top,
@@ -77,8 +76,8 @@ HWND CFlyout::CreateHandle(DWORD dwExStyle, wstring szWindowName, DWORD dwStyle,
 		sFlyoutSize.cy,
 		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREPOSITION | SWP_NOZORDER | SWP_SHOWWINDOW);
 
-	UpdateWindow(GetHandle());
-	SetForegroundWindow(GetHandle());
+	UpdateWindow();
+	SetForegroundWindow();
 
 	return hWnd;
 }
