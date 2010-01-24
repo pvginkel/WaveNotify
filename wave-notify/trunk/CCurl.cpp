@@ -289,7 +289,10 @@ void CCurl::SignalCompleted(CURLcode nCode, LONG lStatus)
 		LOG4("cURL error: %s (%d) - %d - %s", m_szError, (int)m_nResult, (int)m_lStatus, m_szUrl);
 	}
 
-	m_lpTargetWindow->PostMessage(WM_CURL_RESPONSE, CR_COMPLETED, (LPARAM)this);
+	if (m_lpTargetWindow->IsWindow())
+	{
+		m_lpTargetWindow->PostMessage(WM_CURL_RESPONSE, CR_COMPLETED, (LPARAM)this);
+	}
 }
 
 void CCurl::SetAutoRedirect(BOOL fAutoRedirect)
