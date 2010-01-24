@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include "version.h"
+#include "wave.h"
+
 typedef map<wstring, CDateTime> TStringDateTimeMap;
 typedef TStringDateTimeMap::iterator TStringDateTimeMapIter;
 typedef TStringDateTimeMap::const_iterator TStringDateTimeMapConstIter;
@@ -132,6 +135,9 @@ private:
 	wstring m_szBrowser;
 	BOOL m_fNotificationWhenOnline;
 	BOOL m_fConnected;
+	CAvatar * m_lpGenericAvatar;
+	BOOL m_fEnableExperimental;
+	wstring m_szWebServerCookie;
 
 public:
 	CNotifierApp(HINSTANCE hInstance, wstring szCmdLine);
@@ -168,6 +174,12 @@ public:
 	void CancelRequest(CCurl * lpRequest);
 	BOOL GetConnected() const { return m_fConnected; }
 	void SetConnected(BOOL fValue) { m_fConnected = fValue; }
+	CAvatar * GetGenericAvatar() const { return m_lpGenericAvatar; }
+	BOOL GetEnableExperimental() const { return m_fEnableExperimental; }
+	BOOL GetEnableInlineChat() const { return GetEnableExperimental(); }
+	BOOL StartWebServer();
+	void StopWebServer();
+	void OpenWave(wstring szWaveID);
 
 	static CNotifierApp * Instance() { return (CNotifierApp *)CApp::Instance(); }
 	static void Restart();
@@ -175,6 +187,7 @@ public:
 private:
 	BOOL DetectShortcut(const wstring & szModulePath, const wstring & szFilename);
 	void CreateShortcut();
+	void IncludeXULRunner();
 };
 
 #endif // _INC_NOTIFIERAPP
