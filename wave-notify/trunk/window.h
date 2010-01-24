@@ -41,7 +41,10 @@ protected:
 	virtual void PreviewWndProc(UINT uMessage, WPARAM wParam, LPARAM lParam) { }
 
 public:
-	virtual BOOL Create();
+	virtual BOOL Create(wstring szTitle, int x, int y, int cx, int cy, CWindowHandle * lpParent = NULL);
+	BOOL Create(wstring szTitle = L"", CWindowHandle * lpParent = NULL) {
+		return Create(szTitle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, lpParent);
+	}
 	wstring GetClassName();
 	BOOL IsHandleCreated() const { return m_fHandleCreated; }
 	void SetCursor(HCURSOR hCursor) {

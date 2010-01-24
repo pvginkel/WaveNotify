@@ -295,7 +295,7 @@ void CThemeWindow::DrawFrame(CDC & dc, THEMING_CALCS & tc)
 
 	// Draw the text.
 
-	HGDIOBJ hOriginal = dc.SelectFont(CThemeScheme::GetFont());
+	HGDIOBJ hOriginal = dc.SelectFont(CThemeScheme::GetBoldFont());
 
 	wstring szText = GetWindowText();
 

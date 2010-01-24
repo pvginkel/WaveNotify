@@ -6,7 +6,9 @@ CChatWindow::CChatWindow(wstring szUrl, wstring szWaveID) :
 	CThemedWindow(L"GoogleNotifierChatWindow"),
 	m_szUrl(szUrl),
 	m_szWaveID(szWaveID),
-	m_lpMozillaFrame(NULL)
+	m_lpMozillaFrame(NULL),
+	m_lpLoadingWindow(NULL),
+	m_nUrlsSeen(0)
 {
 	ASSERT(!szUrl.empty() && !szWaveID.empty());
 }
@@ -25,6 +27,7 @@ ATOM CChatWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 
 	lpWndClass->hIcon = CNotifierApp::Instance()->GetMainIcon();
 	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
+	lpWndClass->hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 
 	return CThemedWindow::CreateClass(lpWndClass);
 }
@@ -51,8 +54,10 @@ LRESULT CChatWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 		SIZE szSize = { LOWORD(lParam), HIWORD(lParam) };
 		return OnSize(szSize);
 	}
+		      /*
 	case WM_ERASEBKGND:
 		return 1;
+		*/
 	}
 
 	return CThemedWindow::WndProc(uMessage, wParam, lParam);
@@ -64,6 +69,11 @@ LRESULT CChatWindow::OnCreate()
 
 	GetClientRect(&rc);
 
+	m_lpLoadingWindow = new CChatLoadingWindow();
+
+	m_lpLoadingWindow->Create(L"", this);
+	m_lpLoadingWindow->ShowWindow(SW_SHOW);
+
 	m_lpMozillaFrame = new CMozillaFrame(this, rc);
 
 	if (!m_lpMozillaFrame->IsCreated())
@@ -74,7 +84,8 @@ LRESULT CChatWindow::OnCreate()
 	}
 
 	m_lpMozillaFrame->BeforeNavigate += AddressOfT2<CChatWindow, wstring, LPBOOL>(this, &CChatWindow::OnBeforeNavigate);
-
+	m_lpMozillaFrame->NavigateComplete += AddressOfT<CChatWindow, wstring>(this, &CChatWindow::OnNavigateComplete);
+	
 	m_lpMozillaFrame->Navigate(m_szUrl);
 
 	return 0;
@@ -82,16 +93,35 @@ LRESULT CChatWindow::OnCreate()
 
 LRESULT CChatWindow::OnSize(SIZE szSize)
 {
+	ASSERT(m_lpMozillaFrame != NULL && m_lpLoadingWindow != NULL);
+
 	RECT rt;
 
 	GetClientRect(&rt);
 
 	m_lpMozillaFrame->MoveWindow(0, 0, rt.right, rt.bottom);
 
+	RECT rcLoading;
+
+	m_lpLoadingWindow->GetClientRect(&rcLoading);
+	m_lpLoadingWindow->MoveWindow(0, rt.bottom - rcLoading.bottom, rcLoading.right, rcLoading.bottom);
+
 	return 0;
 }
 
 void CChatWindow::OnBeforeNavigate(wstring szUrl, LPBOOL lpCancel)
 {
-	// TODO: Use OpenUrl for clicked links.
+}
+
+void CChatWindow::OnNavigateComplete(wstring szUrl)
+{
+	m_nUrlsSeen++;
+
+	if (m_nUrlsSeen == 2)
+	{
+		m_lpLoadingWindow->ShowWindow(SW_HIDE);
+	}
+	else if (m_nUrlsSeen > 2)
+	{
+	}
 }

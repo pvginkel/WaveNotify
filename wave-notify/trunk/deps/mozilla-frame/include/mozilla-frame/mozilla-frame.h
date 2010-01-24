@@ -31,6 +31,7 @@ extern "C" {
 typedef struct tagMOZILLAFRAME { int __unused; } * LPMOZILLAFRAME;
 
 typedef void (CALLBACK * MFBEFORENAVIGATE)(LPMOZILLAFRAME, LPCWSTR, LPBOOL);
+typedef void (CALLBACK * MFNAVIGATECOMPLETE)(LPMOZILLAFRAME, LPCWSTR);
 
 DLLFUNC LPMOZILLAFRAME mozillaframe_create(HWND parent, LPRECT rect);
 DLLFUNC BOOL mozillaframe_destroy(LPMOZILLAFRAME handle);
@@ -39,6 +40,7 @@ DLLFUNC HWND mozillaframe_get_handle(LPMOZILLAFRAME handle);
 DLLFUNC LPVOID mozillaframe_get_param(LPMOZILLAFRAME handle);
 DLLFUNC BOOL mozillaframe_set_param(LPMOZILLAFRAME handle, LPVOID param);
 DLLFUNC BOOL mozillaframe_set_before_navigate_callback(LPMOZILLAFRAME handle, MFBEFORENAVIGATE callback);
+DLLFUNC BOOL mozillaframe_set_navigate_complete_callback(LPMOZILLAFRAME handle, MFNAVIGATECOMPLETE callback);
 
 #ifdef __cplusplus
 };

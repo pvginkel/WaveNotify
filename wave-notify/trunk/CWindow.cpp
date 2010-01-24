@@ -106,13 +106,13 @@ LRESULT CWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(GetHandle(), uMessage, wParam, lParam);
 }
 
-BOOL CWindow::Create()
+BOOL CWindow::Create(wstring szTitle, int x, int y, int cx, int cy, CWindowHandle * lpParent)
 {
 	ASSERT(!m_fHandleCreated);
 
 	m_fHandleCreated = TRUE;
 
-	CreateHandle(0, L"", 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL);
+	CreateHandle(0, szTitle, 0, x, y, cx, cy, lpParent, NULL);
 
 	return GetHandle() != NULL && IsWindow();
 }

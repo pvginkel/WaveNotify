@@ -13,6 +13,7 @@ CThemeScheme * CThemeScheme::m_lpSchemeInactiveLight = NULL;
 CThemeScheme * CThemeScheme::m_lpSchemeRed = NULL;
 
 HFONT CThemeScheme::m_hFont = NULL;
+HFONT CThemeScheme::m_hBoldFont = NULL;
 
 HSBREF CThemeScheme::GetHsbColor(INT nIndex)
 {
@@ -114,6 +115,15 @@ HSBREF CThemeScheme::GetHsbColor(INT nIndex)
 	case ThemeColorOuterBorderTop:
 		return AdjustColor(m_crBaseColor, 0.47f, 0.97f);
 
+	case ThemeColorLoadingBorder:
+		return AdjustColor(m_crBaseColor, 0.40f, 0.78);
+		
+	case ThemeColorLoadingBackground:
+		return AdjustColor(m_crBaseColor, 0.15f, 0.96f);
+
+	case ThemeColorLoadingText:
+		return AdjustColor(m_crBaseColor, 0.00f, 0.41f);
+
 	default:
 		FAIL("Theme color type not specified");
 	}
@@ -199,13 +209,27 @@ void CThemeScheme::Cleanup()
 	{
 		DeleteObject(m_hFont);
 	}
+	if (m_hBoldFont != NULL)
+	{
+		DeleteObject(m_hBoldFont);
+	}
+}
+
+HFONT CThemeScheme::GetBoldFont()
+{
+	if (m_hBoldFont == NULL)
+	{
+		m_hBoldFont = CreateFontIndirectEx(GetMessageBoxFont(FALSE), FW_BOLD, FALSE, FALSE);
+	}
+
+	return m_hBoldFont;
 }
 
 HFONT CThemeScheme::GetFont()
 {
 	if (m_hFont == NULL)
 	{
-		m_hFont = CreateFontIndirectEx(GetMessageBoxFont(FALSE), FW_BOLD, FALSE, FALSE);
+		m_hFont = CreateFontIndirectEx(GetMessageBoxFont(FALSE), FW_NORMAL, FALSE, FALSE);
 	}
 
 	return m_hFont;
