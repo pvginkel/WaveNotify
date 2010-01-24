@@ -17,19 +17,30 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "notifierapp.h"
+#include "flyouts.h"
+#include "aboutdialog.h"
+#include "optionssheet.h"
+#include "settings.h"
+#include "wave.h"
+#include "popups.h"
+#include "logindialog.h"
+#include "layout.h"
 
-CAppWindow::CAppWindow() : CWindow(L"GoogleWaveNotifier")
+CAppWindow::CAppWindow() :
+	CWindow(L"GoogleWaveNotifier"),
+	m_hPopupMenus(NULL),
+	m_nWorkingCount(0),
+	m_lpView(NULL),
+	m_fQuitting(FALSE),
+	m_fWorking(FALSE),
+	m_fManualUpdateCheck(FALSE),
+	m_fReceivedFirstContactUpdates(FALSE),
+	m_lpAvatarRequest(NULL),
+	m_fClientSuspended(FALSE),
+	m_fClientLocked(FALSE)
 {
-	m_hPopupMenus = NULL;
-	m_nWorkingCount = 0;
-	m_lpView = NULL;
-	m_fQuitting = FALSE;
-	m_fWorking = FALSE;
-	m_fManualUpdateCheck = FALSE;
-	m_fReceivedFirstContactUpdates = FALSE;
-	m_lpAvatarRequest = NULL;
-	m_fClientSuspended = FALSE;
-	m_fClientLocked = FALSE;
 	
 	m_lpTimers = new CTimerCollection(this);
 
@@ -111,6 +122,9 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMessage)
 	{
+	case WM_ERASEBKGND:
+		return 1;
+
 	case WM_CREATE:
 		return OnCreate();
 
@@ -329,7 +343,7 @@ void CAppWindow::ShowContextMenu()
 
 	GetCursorPos(&p);
 
-	SetForegroundWindow(GetHandle());
+	SetForegroundWindow();
 
 	TrackPopupMenuEx(
 		hSubMenu,
@@ -438,7 +452,7 @@ BOOL CAppWindow::ActivateOpenDialog()
 	}
 	else
 	{
-		SetForegroundWindow(lpWindow->GetHandle());
+		lpWindow->SetForegroundWindow();
 
 		return TRUE;
 	}
@@ -577,11 +591,16 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 
 				for (TPopupVectorIter iter = vPopups.begin(); iter != vPopups.end(); iter++)
 				{
-					if (((CPopupBase *)*iter)->GetType() == PT_WAVE)
+					switch (((CPopupBase *)*iter)->GetType())
 					{
-						CUnreadWavePopup * lpPopup = (CUnreadWavePopup *)*iter;
+					case PT_WAVE:
+						((CUnreadWavePopup *)*iter)->ContactsUpdated(m_lpView->GetContacts());
+						break;
 
-						lpPopup->ContactsUpdated(m_lpView->GetContacts());
+					case PT_CONTACT_ONLINE:
+						// TODO: Fix
+						//((CContactOnlinePopup *)*iter)->ContactsUpdates(m_lpView->GetContacts());
+						break;
 					}
 				}
 			}

@@ -17,6 +17,10 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "migration.h"
+#include "version.h"
+#include "notifierapp.h"
+#include "theming.h"
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -97,6 +101,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	delete lpVersion;
 
 	CCurl::GlobalCleanup();
+
+	CThemeScheme::Cleanup();
 
 	if (lpMutex != NULL)
 	{

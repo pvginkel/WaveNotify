@@ -16,11 +16,12 @@
 #
 
 LINK_LIBS=deps\curl-7.15.1\libcurl_imp.lib deps\zlib-1.2.3\zlibwapi.lib		\
-	deps\gd-2.0.34\bgd.lib version.lib shlwapi.lib comctl32.lib crypt32.lib	\
-	ws2_32.lib winmm.lib
+	deps\gd-2.0.34\bgd.lib deps\chrome-frame\chrome-frame.lib		\
+	version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib	\
+	msimg32.lib
 
 CPP_FLAGS=/I.\deps\curl-7.15.1\include /I.\deps\zlib-1.2.3\include		\
-	/I.\deps\gd-2.0.34\include
+	/I.\deps\gd-2.0.34\include /I.\deps\chrome-frame\include
 
 OUTDIR=Deploy
 TARGET=$(OUTDIR)\wave-notify.exe
@@ -30,7 +31,7 @@ LINK_OBJS=Base64.obj CAboutDialog.obj CApp.obj CAppWindow.obj CAvatar.obj	\
 	CCurlAnsiStringReader.obj CCurlMonitor.obj CCurlMulti.obj		\
 	CDialog.obj CFlyout.obj CLoginDialog.obj CMessagePopup.obj		\
 	CMigration.obj CModelessDialogs.obj CModelessPropertySheets.obj		\
-	CNotifierApp.obj CNotifyIcon.obj Compat.obj ConvertString.obj		\
+	CNotifierApp.obj CNotifyIcon.obj Compat.obj ConvetString.obj		\
 	COptionsSheet.obj CPopup.obj CPopupBase.obj CPopupWindow.obj 		\
 	CPropertySheet.obj CPropertySheetPage.obj CRegKey.obj CSettings.obj	\
 	CThread.obj CTimer.obj CTimerCollection.obj CUnreadWave.obj 		\

@@ -17,6 +17,9 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "wave.h"
+#include "notifierapp.h"
+#include "layout.h"
 
 CUnreadWave::CUnreadWave(CWave * lpWave, CWaveMessage * lpMessage)
 {

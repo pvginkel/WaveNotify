@@ -17,6 +17,12 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "optionssheet.h"
+#include "notifierapp.h"
+#include "theming.h"
+#include "browser.h"
+#include "settings.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // COptionsGeneralPage /////////////////////////////////////////////////////////
@@ -87,6 +93,11 @@ void COptionsSheet::OnCreated()
 {
 	SendMessage(WM_SETICON, ICON_BIG, (LPARAM)CNotifierApp::Instance()->GetMainIcon());
 	SendMessage(WM_SETICON, ICON_SMALL, (LPARAM)CNotifierApp::Instance()->GetMainIconSmall());
+
+	if (CNotifierApp::Instance()->GetEnableInlineChat())
+	{
+		CThemeWindow::Subclass(GetHandle());
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

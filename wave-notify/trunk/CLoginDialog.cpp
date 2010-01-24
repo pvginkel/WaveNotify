@@ -17,8 +17,11 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "resource.h"
+#include "logindialog.h"
+#include "settings.h"
 
-CLoginDialog::CLoginDialog(CAppWindow * lpAppWindow) : CDialog(IDD_LOGIN)
+CLoginDialog::CLoginDialog(CAppWindow * lpAppWindow) : CThemedDialog(IDD_LOGIN)
 {
 	m_lpAppWindow = lpAppWindow;
 
