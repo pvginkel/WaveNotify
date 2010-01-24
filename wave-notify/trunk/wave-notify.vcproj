@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;;&quot;$(ProjectDir)\deps\mozilla-frame\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; &quot;$(ProjectDir)\deps\mozilla-frame\mozilla-frame.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib msimg32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -116,7 +116,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;;&quot;$(ProjectDir)\deps\mozilla-frame\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -135,7 +135,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; &quot;$(ProjectDir)\deps\mozilla-frame\mozilla-frame.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib msimg32.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -199,6 +199,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CChatWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CColorScheme.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CContactOnlinePopup.cpp"
 				>
 			</File>
@@ -259,7 +267,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ConvetString.cpp"
+				RelativePath=".\ConvertString.cpp"
 				>
 			</File>
 			<File
@@ -292,6 +300,14 @@
 			</File>
 			<File
 				RelativePath=".\CSettings.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CThemeScheme.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CThemeWindow.cpp"
 				>
 			</File>
 			<File
@@ -447,6 +463,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Rand.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\StdAfx.cpp"
 				>
 				<FileConfiguration
@@ -517,6 +537,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\chatwindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\colorscheme.h"
+				>
+			</File>
+			<File
 				RelativePath=".\compat.h"
 				>
 			</File>
@@ -577,14 +605,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\json\json_internalarray.inl"
-				>
-			</File>
-			<File
-				RelativePath=".\json\json_internalmap.inl"
-				>
-			</File>
-			<File
 				RelativePath=".\json\json_reader.h"
 				>
 			</File>
@@ -593,11 +613,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\json\json_valueiterator.inl"
+				RelativePath=".\json\json_writer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\json\json_writer.h"
+				RelativePath=".\layout.h"
 				>
 			</File>
 			<File
@@ -614,6 +634,10 @@
 			</File>
 			<File
 				RelativePath=".\migration.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mozillaframe.h"
 				>
 			</File>
 			<File
@@ -669,6 +693,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\theming.h"
+				>
+			</File>
+			<File
 				RelativePath=".\thread.h"
 				>
 			</File>
@@ -706,6 +734,14 @@
 			</File>
 			<File
 				RelativePath=".\waveresponse.h"
+				>
+			</File>
+			<File
+				RelativePath=".\wavewebrequesthandler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\webserver.h"
 				>
 			</File>
 			<File
@@ -783,7 +819,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\unknown.png"
+				>
+			</File>
+			<File
 				RelativePath=".\wave-notify.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\waveframe.html"
 				>
 			</File>
 		</Filter>

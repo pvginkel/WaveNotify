@@ -20,10 +20,12 @@
 
 #pragma once
 
-class CAboutDialog : public CDialog
+#include "theming.h"
+
+class CAboutDialog : public CThemedDialog
 {
 public:
-	CAboutDialog() : CDialog(IDD_ABOUT) { }
+	CAboutDialog() : CThemedDialog(IDD_ABOUT) { }
 
 protected:
 	INT_PTR DialogProc(UINT uMessage, WPARAM wParam, LPARAM lParam);

@@ -20,9 +20,11 @@
 
 #pragma once
 
+#include "theming.h"
+
 class CLoginThread;
 
-class CLoginDialog : public CDialog
+class CLoginDialog : public CThemedDialog
 {
 private:
 	THwndVector m_vDisabledWindows;

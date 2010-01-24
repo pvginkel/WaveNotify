@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "wave.h"
 
 void CWaveRequestGetAllContacts::CreateRequest(Json::Value & vRoot)
 {
