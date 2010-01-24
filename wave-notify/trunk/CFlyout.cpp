@@ -72,14 +72,9 @@ HWND CFlyout::CreateHandle(DWORD dwExStyle, wstring szWindowName, DWORD dwStyle,
 	GetTaskbarPopupLocation(sFlyoutSize, sOffset, &rcFlyout);
 	SnapTaskbarPopupLocation(&rcFlyout, m_ptSnap);
 
-	SetWindowPos(
-		NULL, 
-		rcFlyout.left,
-		rcFlyout.top,
-		sFlyoutSize.cx,
-		sFlyoutSize.cy,
-		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREPOSITION | SWP_NOZORDER | SWP_SHOWWINDOW);
+	MoveWindow(rcFlyout.left, rcFlyout.top, sFlyoutSize.cx, sFlyoutSize.cy);
 
+	ShowWindow(SW_SHOW);
 	UpdateWindow();
 	SetForegroundWindow();
 
