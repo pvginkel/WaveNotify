@@ -80,6 +80,18 @@ extern "C" BOOL mozillaframe_set_before_navigate_callback(LPMOZILLAFRAME handle,
 	return TRUE;
 }
 
+extern "C" BOOL mozillaframe_set_navigate_complete_callback(LPMOZILLAFRAME handle, MFNAVIGATECOMPLETE callback)
+{
+	if (handle == NULL)
+	{
+		return FALSE;
+	}
+
+	((CMozillaFrame *)handle)->SetNavigateCompleteCallback(callback);
+
+	return TRUE;
+}
+
 extern "C" BOOL mozillaframe_navigate(LPMOZILLAFRAME handle, LPCWSTR url)
 {
 	if (handle == NULL)

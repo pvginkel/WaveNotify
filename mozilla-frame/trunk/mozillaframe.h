@@ -1,6 +1,7 @@
 #include "exdispid.h"
 
 extern _ATL_FUNC_INFO AFI_DWebBrowserEvents2_BeforeNavigate2;
+extern _ATL_FUNC_INFO AFI_DWebBrowserEvents2_NavigateComplete2;
 
 // This interface is provided to allow disabling the context menu.
 //
@@ -105,6 +106,7 @@ private:
 	CAxWindow m_vHost;
 	LPVOID m_lpParam;
 	MFBEFORENAVIGATE m_lpBeforeNavigateCallback;
+	MFNAVIGATECOMPLETE m_lpNavigateCompleteCallback;
 	CComPtr<IWebBrowser2> m_lpWebBrowser;
 	CComPtr<IUnknown> m_lpControl;
 	DWORD m_dwAdviseSink;
@@ -124,6 +126,7 @@ public:
 
 	BEGIN_SINK_MAP(CMozillaFrame)
 		SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, DWebBrowserEvents2_BeforeNavigate2, &AFI_DWebBrowserEvents2_BeforeNavigate2)
+		SINK_ENTRY_INFO(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, DWebBrowserEvents2_NavigateComplete2, &AFI_DWebBrowserEvents2_NavigateComplete2)
 	END_SINK_MAP()
 
 	BOOL Create(HWND hParent, LPRECT lpRect);
@@ -133,6 +136,7 @@ public:
 	LPVOID GetParam() const { return m_lpParam; }
 	void SetParam(LPVOID lpParam) { m_lpParam = lpParam; }
 	void SetBeforeNavigateCallback(MFBEFORENAVIGATE lpCallback) { m_lpBeforeNavigateCallback = lpCallback; }
+	void SetNavigateCompleteCallback(MFNAVIGATECOMPLETE lpCallback) { m_lpNavigateCompleteCallback = lpCallback; }
 
 private:
 	STDMETHOD(DWebBrowserEvents2_BeforeNavigate2)(IDispatch * lpDispatch, VARIANT * lpUrl, VARIANT * lpFlags, VARIANT * lpTargetFrameName, VARIANT * lpPostData, VARIANT * lpHeaders, VARIANT_BOOL * lpCancel)
@@ -151,6 +155,20 @@ private:
 		else
 		{
 			*lpCancel = VARIANT_FALSE;
+		}
+
+		return S_OK;
+	}
+
+	STDMETHOD(DWebBrowserEvents2_NavigateComplete2)(IDispatch * lpDispatch, VARIANT * lpUrl)
+	{
+		if (m_lpBeforeNavigateCallback != NULL)
+		{
+			CComVariant vUrl(*lpUrl);
+
+			vUrl.ChangeType(VT_BSTR);
+
+			m_lpNavigateCompleteCallback((LPMOZILLAFRAME)this, vUrl.bstrVal);
 		}
 
 		return S_OK;

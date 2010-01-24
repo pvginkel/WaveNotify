@@ -4,6 +4,9 @@
 _ATL_FUNC_INFO AFI_DWebBrowserEvents2_BeforeNavigate2 = {
 	CC_STDCALL, VT_I4, 7, { VT_DISPATCH, VT_BSTR, VT_I4, VT_BSTR, VT_BYREF | VT_VARIANT, VT_BSTR, VT_BOOL | VT_BYREF }
 };
+_ATL_FUNC_INFO AFI_DWebBrowserEvents2_NavigateComplete2 = {
+	CC_STDCALL, VT_I4, 2, { VT_DISPATCH, VT_BSTR }
+};
 
 static const CLSID CLSID_MozillaBrowser = { 0x1339B54C, 0x3453, 0x11D2, { 0x93, 0xB9, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
 
