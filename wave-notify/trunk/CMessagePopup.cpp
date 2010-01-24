@@ -45,7 +45,7 @@ LRESULT CMessagePopup::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 		if (m_szUrl.empty())
 		{
-			POINT pt = { LOWORD(lParam), HIWORD(lParam) };
+			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
 			GetWindow()->SetCursor(
 				HitTestCloseButton(pt) ?
