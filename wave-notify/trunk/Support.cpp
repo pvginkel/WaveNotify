@@ -212,7 +212,7 @@ wstring towlower(wstring _String)
 	return _Result;
 }
 
-wstring towuppoer(wstring _String)
+wstring towupper(wstring _String)
 {
 	wstring _Result;
 	

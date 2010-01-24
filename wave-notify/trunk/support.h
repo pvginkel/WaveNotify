@@ -119,7 +119,7 @@ bool iswupper(wstring _String);
 bool iswword(wstring _String);
 bool iswxdigit(wstring _String);
 wstring towlower(wstring _String);
-wstring towuppoer(wstring _String);
+wstring towupper(wstring _String);
 
 #ifdef _DEBUG
 
