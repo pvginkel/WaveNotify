@@ -8,6 +8,7 @@ CChatWindow::CChatWindow(wstring szUrl, wstring szWaveID) :
 	m_szWaveID(szWaveID),
 	m_lpMozillaFrame(NULL)
 {
+	ASSERT(!szUrl.empty() && !szWaveID.empty());
 }
 
 CChatWindow::~CChatWindow()
@@ -20,6 +21,8 @@ CChatWindow::~CChatWindow()
 
 ATOM CChatWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 {
+	ASSERT(lpWndClass != NULL);
+
 	lpWndClass->hIcon = CNotifierApp::Instance()->GetMainIcon();
 	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
 
@@ -91,4 +94,5 @@ LRESULT CChatWindow::OnSize(SIZE szSize)
 
 void CChatWindow::OnBeforeNavigate(wstring szUrl, LPBOOL lpCancel)
 {
+	// TODO: Use OpenUrl for clicked links.
 }

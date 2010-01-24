@@ -203,6 +203,8 @@ namespace Internal {
 
 	public:
 		CTypedDelegateT(T * lpInstance, void (T::*lpMethod)(TP)) {
+			ASSERT(lpInstance != NULL);
+
 			m_lpInstance = lpInstance;
 			m_lpMethod = lpMethod;
 		}
@@ -212,6 +214,8 @@ namespace Internal {
 
 	protected:
 		BOOL Equals(CDelegateT<TP> * lpOther) {
+			ASSERT(lpOther != NULL);
+
 			return (
 				m_lpInstance == ((CTypedDelegateT<T, TP> *)lpOther)->m_lpInstance &&
 				m_lpMethod == ((CTypedDelegateT<T, TP> *)lpOther)->m_lpMethod
@@ -232,6 +236,8 @@ private:
 
 public:
 	DelegateT(Internal::CDelegateT<TP> * lpDelegate) {
+		ASSERT(lpDelegate != NULL);
+
 		m_lpDelegate = lpDelegate;
 	}
 	DelegateT(const DelegateT<TP> & vDelegate) {
@@ -281,6 +287,8 @@ public:
 			m_vDelegates.erase(pos);
 	}
 	bool operator==(LPVOID * lpOther) const {
+		ASSERT(lpOther == NULL);
+
 		// This may only be used for the == NULL and != NULL
 		// constructions.
 		ASSERT(lpOther == NULL);
@@ -311,6 +319,8 @@ private:
 
 template<typename T, typename TP>
 DelegateT<TP> AddressOfT(T * lpInstance, void (T::*lpMethod)(TP)) {
+	ASSERT(lpInstance != NULL);
+
 	return DelegateT<TP>(new Internal::CTypedDelegateT<T, TP>(lpInstance, lpMethod));
 }
 
@@ -347,6 +357,8 @@ namespace Internal {
 
 	public:
 		CTypedDelegateT2(T * lpInstance, void (T::*lpMethod)(TP1, TP2)) {
+			ASSERT(lpInstance != NULL);
+
 			m_lpInstance = lpInstance;
 			m_lpMethod = lpMethod;
 		}
@@ -356,6 +368,8 @@ namespace Internal {
 
 	protected:
 		BOOL Equals(CDelegateT2<TP1, TP2> * lpOther) {
+			ASSERT(lpOther != NULL);
+
 			return (
 				m_lpInstance == ((CTypedDelegateT2<T, TP1, TP2> *)lpOther)->m_lpInstance &&
 				m_lpMethod == ((CTypedDelegateT2<T, TP1, TP2> *)lpOther)->m_lpMethod
@@ -376,6 +390,8 @@ private:
 
 public:
 	DelegateT2(Internal::CDelegateT2<TP1, TP2> * lpDelegate) {
+		ASSERT(lpDelegate != NULL);
+
 		m_lpDelegate = lpDelegate;
 	}
 	DelegateT2(const DelegateT2<TP1, TP2> & vDelegate) {
@@ -425,6 +441,8 @@ public:
 			m_vDelegates.erase(pos);
 	}
 	bool operator==(LPVOID * lpOther) const {
+		ASSERT(lpOther == NULL);
+
 		// This may only be used for the == NULL and != NULL
 		// constructions.
 		ASSERT(lpOther == NULL);
@@ -455,6 +473,8 @@ private:
 
 template<typename T, typename TP1, typename TP2>
 DelegateT2<TP1, TP2> AddressOfT2(T * lpInstance, void (T::*lpMethod)(TP1, TP2)) {
+	ASSERT(lpInstance != NULL);
+
 	return DelegateT2<TP1, TP2>(new Internal::CTypedDelegateT2<T, TP1, TP2>(lpInstance, lpMethod));
 }
 

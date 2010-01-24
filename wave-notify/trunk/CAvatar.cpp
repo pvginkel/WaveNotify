@@ -35,6 +35,8 @@ CAvatar::~CAvatar()
 
 CAvatar * CAvatar::Load(LPCWSTR szResource, LPCWSTR szResourceType, HMODULE hModule, SIZE szSize, wstring szContentType)
 {
+	ASSERT(szResource != NULL && szResourceType != NULL);
+
 	HGLOBAL hLoadedResource = NULL;
 	HRSRC hResource = NULL;
 	LPVOID lpData = NULL;
@@ -79,6 +81,8 @@ CAvatar * CAvatar::Create(const TByteVector & vData, SIZE szSize, wstring szCont
 
 CAvatar * CAvatar::Create(const LPVOID lpData, DWORD cbData, SIZE szSize, wstring szContentType)
 {
+	ASSERT(lpData != NULL && cbData > 0);
+
 	BOOL fSuccess = FALSE;
 	CAvatar * lpResult = new CAvatar(szSize);
 
@@ -92,11 +96,12 @@ CAvatar * CAvatar::Create(const LPVOID lpData, DWORD cbData, SIZE szSize, wstrin
 
 		return NULL;
 	}
-
 }
 
 BOOL CAvatar::LoadImage(const LPVOID lpData, DWORD cbData, wstring szContentType)
 {
+	ASSERT(lpData != NULL && cbData > 0);
+
 	gdImagePtr lpTarget = NULL;
 	gdImagePtr lpSource = NULL;
 	HDC hDC = NULL;

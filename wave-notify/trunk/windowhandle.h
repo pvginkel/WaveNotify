@@ -131,92 +131,153 @@ public:
 		::SetWindowLongPtr(GetHandle(), DWL_MSGRESULT, lResult);
 	}
 	BOOL ShowWindow(INT nCmdShow) const {
+		CHECK(IsWindow());
+
 		return ::ShowWindow(GetHandle(), nCmdShow);
 	}
 	LONG_PTR GetWindowLong(INT nIndex) const {
+		CHECK(IsWindow());
+
 		return ::GetWindowLongPtr(GetHandle(), nIndex);
 	}
 	LONG_PTR SetWindowLong(INT nIndex, LONG_PTR nValue) const {
+		CHECK(IsWindow());
+
 		return ::SetWindowLongPtr(GetHandle(), nIndex, nValue);
 	}
 	BOOL SetProp(LPCWSTR szString, HANDLE hData) const {
+		ASSERT(szString != NULL);
+		CHECK(IsWindow());
+
 		return ::SetProp(GetHandle(), szString, hData);
 	}
 	HANDLE GetProp(LPCWSTR szString) const {
+		ASSERT(szString != NULL);
+		CHECK(IsWindow());
+
 		return ::GetProp(GetHandle(), szString);
 	}
 	HANDLE RemoveProp(LPCWSTR szString) const {
+		ASSERT(szString != NULL);
+		CHECK(IsWindow());
+
 		return ::RemoveProp(GetHandle(), szString);
 	}
 	BOOL SetWindowPos(HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags) const {
+		CHECK(IsWindow());
+
 		return ::SetWindowPos(GetHandle(), hWndInsertAfter, X, Y, cx, cy, uFlags);
 	}
 	INT SetWindowRgn(HRGN hRgn, BOOL bRedraw) const {
+		CHECK(IsWindow());
+
 		return ::SetWindowRgn(GetHandle(), hRgn, bRedraw);
 	}
 	BOOL InvalidateRect(CONST RECT *lpRect, BOOL bErase = FALSE) const {
+		CHECK(IsWindow());
+
 		return ::InvalidateRect(GetHandle(), lpRect, bErase);
 	}
 	BOOL UpdateWindow() const {
+		CHECK(IsWindow());
+
 		return ::UpdateWindow(GetHandle());
 	}
 	BOOL GetWindowRect(LPRECT lpRect) const {
+		CHECK(IsWindow());
+
 		return ::GetWindowRect(GetHandle(), lpRect);
 	}
 	BOOL ScreenToClient(LPPOINT lpPoint) const {
+		CHECK(IsWindow());
+
 		return ::ScreenToClient(GetHandle(), lpPoint);
 	}
 	BOOL GetClientRect(LPRECT lpRect) const {
+		CHECK(IsWindow());
+
 		return ::GetClientRect(GetHandle(), lpRect);
 	}
 	ULONG_PTR GetClassLong(int nIndex) const {
+		CHECK(IsWindow());
+
 		return ::GetClassLongPtr(GetHandle(), nIndex);
 	}
 	BOOL IsZoomed() const {
+		CHECK(IsWindow());
+
 		return !!::IsZoomed(GetHandle());
 	}
 	BOOL IsForegroundWindow() const {
+		CHECK(IsWindow());
+
 		return GetHandle() == GetForegroundWindow();
 	}
 	BOOL IsActiveWindow() const {
+		CHECK(IsWindow());
+
 		return GetHandle() == GetActiveWindow();
 	}
 	BOOL IsFocusedWindow() const {
+		CHECK(IsWindow());
+
 		return GetHandle() == GetFocus();
 	}
 	BOOL HasMinimizeButton() const {
+		CHECK(IsWindow());
+
 		return !!(GetWindowLong(GWL_STYLE) & WS_MINIMIZEBOX);
 	}
 	BOOL HasMaximizeButton() const {
+		CHECK(IsWindow());
+
 		return !!(GetWindowLong(GWL_STYLE) & WS_MAXIMIZEBOX);
 	}
 	BOOL HasCloseButton() const {
+		CHECK(IsWindow());
+
 		return !!(GetWindowLong(GWL_STYLE) & WS_SYSMENU);
 	}
 	wstring GetWindowText() const;
 	BOOL ClientToScreen(LPPOINT lpPoint) const {
+		CHECK(IsWindow());
+
 		return ::ClientToScreen(GetHandle(), lpPoint);
 	}
 	void ExecuteSystemMenuCommand(INT nCommand) const {
+		CHECK(IsWindow());
+
 		SendMessage(WM_SYSCOMMAND, (WPARAM)nCommand);
 	}
 	void LockUpdates() {
+		CHECK(IsWindow());
+		CHECK(!m_fUpdatesLocked);
+
 		m_fUpdatesLocked = TRUE;
 		m_nStoredStyle = GetWindowLong(GWL_STYLE);
 		SetWindowLong(GWL_STYLE, m_nStoredStyle & ~WS_VISIBLE);
 	}
 	void UnlockUpdates() {
+		CHECK(IsWindow());
+		CHECK(m_fUpdatesLocked);
+
 		m_fUpdatesLocked = FALSE;
 		SetWindowLong(GWL_STYLE, m_nStoredStyle);
 	}
 	BOOL IsIconic() const {
+		CHECK(IsWindow());
+
 		return ::IsIconic(GetHandle());
 	}
 	BOOL GetUpdatesLocked() const { return m_fUpdatesLocked; }
 	BOOL SetForegroundWindow() const {
+		CHECK(IsWindow());
+
 		return ::SetForegroundWindow(GetHandle());
 	}
 	BOOL RedrawWindow(CONST RECT * lprcUpdate, HRGN hrgnUpdate, UINT uFlags) const {
+		CHECK(IsWindow());
+
 		return ::RedrawWindow(GetHandle(), lprcUpdate, hrgnUpdate, uFlags);
 	}
 
@@ -235,6 +296,7 @@ private:
 
 public:
 	CScopedRedrawLock(CWindowHandle * lpWindow) : m_lpWindow(lpWindow) {
+		ASSERT(lpWindow != NULL);
 		m_lpWindow->LockUpdates();
 	}
 	virtual ~CScopedRedrawLock() {

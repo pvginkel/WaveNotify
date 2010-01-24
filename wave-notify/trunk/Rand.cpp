@@ -5,6 +5,8 @@
 
 INT Rand(INT nMin, INT nMax)
 {
+	ASSERT(nMin <= nMax);
+
 	static BOOL fInitialised = FALSE;
 
 	if (!fInitialised)
@@ -49,6 +51,8 @@ INT Rand(INT nMin, INT nMax)
 
 wstring CreateHash(DWORD dwLength, LPCWSTR szPool)
 {
+	ASSERT(dwLength > 0);
+
 	if (szPool == NULL)
 	{
 		szPool = HASH_POOL;
