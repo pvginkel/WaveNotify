@@ -28,7 +28,29 @@ wstring CWindowHandle::GetDlgItemText(INT nDlgItem) const
 	{
 		LPWSTR szBuffer = (LPWSTR)malloc((nLength + 1) * sizeof(WCHAR));
 
-		GetWindowText(hWnd, szBuffer, nLength + 1);
+		::GetWindowText(hWnd, szBuffer, nLength + 1);
+
+		wstring szResult(szBuffer);
+
+		free(szBuffer);
+
+		return szResult;
+	}
+	else
+	{
+		return L"";
+	}
+}
+
+wstring CWindowHandle::GetWindowText() const
+{
+	INT nLength = GetWindowTextLength(GetHandle());
+
+	if (nLength > 0)
+	{
+		LPWSTR szBuffer = (LPWSTR)malloc((nLength + 1) * sizeof(WCHAR));
+
+		::GetWindowText(GetHandle(), szBuffer, nLength + 1);
 
 		wstring szResult(szBuffer);
 
