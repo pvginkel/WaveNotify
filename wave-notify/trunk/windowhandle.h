@@ -168,6 +168,11 @@ public:
 
 		return ::SetWindowPos(GetHandle(), hWndInsertAfter, X, Y, cx, cy, uFlags);
 	}
+	BOOL MoveWindow(int X, int Y, int cx, int cy, BOOL bRepaint = TRUE) {
+		CHECK(IsWindow());
+		
+		return ::MoveWindow(GetHandle(), X, Y, cx, cy, bRepaint);
+	}
 	INT SetWindowRgn(HRGN hRgn, BOOL bRedraw) const {
 		CHECK(IsWindow());
 

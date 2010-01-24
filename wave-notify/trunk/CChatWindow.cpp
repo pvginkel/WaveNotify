@@ -86,8 +86,7 @@ LRESULT CChatWindow::OnSize(SIZE szSize)
 
 	GetClientRect(&rt);
 
-	m_lpMozillaFrame->SetWindowPos(NULL, 0, 0, rt.right, rt.bottom,
-		SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+	m_lpMozillaFrame->MoveWindow(0, 0, rt.right, rt.bottom);
 
 	return 0;
 }
