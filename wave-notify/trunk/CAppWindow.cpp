@@ -605,16 +605,9 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 					case PT_WAVE:
 						((CUnreadWavePopup *)*iter)->ContactsUpdated(m_lpView->GetContacts());
 						break;
-
-					case PT_CONTACT_ONLINE:
-						// TODO: Fix
-						//((CContactOnlinePopup *)*iter)->ContactsUpdates(m_lpView->GetContacts());
-						break;
 					}
 				}
 			}
-
-			// TODO: Signal the flyout
 		}
 
 		SeedAvatars();
@@ -1348,6 +1341,8 @@ void CAppWindow::ProcessAvatarResponse()
 				lpContact->SetAvatar(
 					CAvatar::Create(lpReader->GetData(), szSize, szContentType)
 				);
+
+				SignalContactUpdated(lpContact);
 			}
 		}
 		else
@@ -1365,6 +1360,31 @@ void CAppWindow::ProcessAvatarResponse()
 	m_szRequestingAvatar = L"";
 
 	SeedAvatars();
+}
+
+void CAppWindow::SignalContactUpdated(CWaveContact * lpContact)
+{
+	if (CPopupWindow::Instance() != NULL)
+	{
+		CPopupBase * lpPopup = (CPopupBase *)CPopupWindow::Instance()->GetCurrent();
+		BOOL fRefresh = FALSE;
+
+		switch (lpPopup->GetType())
+		{
+		case PT_WAVE:
+			fRefresh = ((CUnreadWavePopup *)lpPopup)->GetContact() == lpContact;
+			break;
+
+		case PT_CONTACT_ONLINE:
+			fRefresh = ((CContactOnlinePopup *)lpPopup)->GetContact() == lpContact;
+			break;
+		}
+
+		if (fRefresh)
+		{
+			lpPopup->GetWindow()->InvalidateRect();
+		}
+	}
 }
 
 void CAppWindow::ClientDisconnected(CONNECT_REASON nReason)

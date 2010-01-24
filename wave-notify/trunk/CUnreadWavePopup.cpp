@@ -32,6 +32,7 @@ CUnreadWavePopup::CUnreadWavePopup(CUnreadWave * lpWave, UINT uIndex, UINT uCoun
 	SetWidth(PL_WIDTH);
 	SetHeight(PL_WAVE_HEIGHT);
 	SetDuration(3600);
+	SetPaintIcon(FALSE);
 }
 
 CUnreadWavePopup::~CUnreadWavePopup()
@@ -64,17 +65,43 @@ LRESULT CUnreadWavePopup::OnPaint()
 {
 	CPaintDC dc(GetWindow());
 
+
+	CAvatar * lpAvatar = NULL;
+	CWaveContact * lpContact = GetContact();
+	
+	if (lpContact != NULL)
+	{
+		lpAvatar = lpContact->GetAvatar();
+	}
+
+	if (lpAvatar == NULL)
+	{
+		lpAvatar = CNotifierApp::Instance()->GetGenericAvatar();
+
+		ASSERT(lpAvatar != NULL);
+	}
+
 	PaintBackground(dc);
+
+	POINT ptLocation = {
+		PL_BORDER_WIDTH + PL_CO_ICON_DX,
+		PL_BORDER_WIDTH + PL_CO_ICON_DY
+	};
+
+	lpAvatar->Paint(&dc, ptLocation);
 
 	RECT rcClient;
 
 	GetWindow()->GetClientRect(&rcClient);
-	InflateRect(&rcClient, -(PL_BORDER_WIDTH + PL_PADDING), -(PL_BORDER_WIDTH + PL_PADDING));
+	InflateRect(&rcClient, -PL_BORDER_WIDTH, -PL_BORDER_WIDTH);
+
+	rcClient.left += PL_CO_ICON_DX;
+	rcClient.top += PL_CO_ICON_DY + PL_CO_LABEL_DY;
+	rcClient.right -= 16 + PL_PADDING;
 
 	RECT rc = rcClient;
-	rc.left += PL_TEXT_OFFSET;
 
-	POINT pt = { -1, -1 };
+	rc.left += PL_CO_ICON_SIZE + PL_CO_LABEL_DX;
 
 	m_lpWave->Paint(dc, rc, FALSE, TRUE);
 
@@ -87,8 +114,8 @@ LRESULT CUnreadWavePopup::OnPaint()
 		HGDIOBJ hOriginal = dc.SelectObject(GetMessageBoxFont());
 
 		rc = rcClient;
-		rc.right = rc.left + PL_ICON_SIZE + PL_ICON_DX;
-		rc.top += PL_ICON_SIZE + PL_ICON_DY + PL_LINE_SPACING;
+		rc.right = rc.left + PL_CO_ICON_SIZE;
+		rc.top += PL_CO_ICON_SIZE + PL_LINE_SPACING;
 
 		wstring szBuffer = Format(L"%d / %d", m_uIndex, m_uCount);
 

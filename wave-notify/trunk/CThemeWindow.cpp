@@ -78,9 +78,12 @@ CThemeWindow::CThemeWindow(HWND hWnd) :
 
 CThemeWindow::~CThemeWindow()
 {
-	SetWindowLongPtr(GWL_WNDPROC, (LONG_PTR)m_lpOldProc);
+	if (IsWindow())
+	{
+		SetWindowLongPtr(GWL_WNDPROC, (LONG_PTR)m_lpOldProc);
 
-	RemoveProp(PROPERTY_INSTANCE);
+		RemoveProp(PROPERTY_INSTANCE);
+	}
 }
 
 void CThemeWindow::Subclass(HWND hWnd)
