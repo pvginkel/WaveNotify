@@ -17,6 +17,9 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "popups.h"
+#include "notifierapp.h"
+#include "layout.h"
 
 CUnreadWavePopup::CUnreadWavePopup(CUnreadWave * lpWave, UINT uIndex, UINT uCount) : CPopupBase(PT_WAVE)
 {
@@ -109,8 +112,7 @@ LRESULT CUnreadWavePopup::OnLeftButtonUp(LPARAM lParam)
 	}
 	else
 	{
-		CNotifierApp::Instance()->OpenUrl(
-			CNotifierApp::Instance()->GetSession()->GetWaveUrl(m_lpWave->GetID()));
+		CNotifierApp::Instance()->OpenWave(m_lpWave->GetID());
 	}
 
 	return 0;

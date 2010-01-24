@@ -17,6 +17,10 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "flyouts.h"
+#include "wave.h"
+#include "notifierapp.h"
+#include "layout.h"
 
 CUnreadWavesFlyout::CUnreadWavesFlyout(CUnreadWaveCollection * lpWaves)
 {
@@ -68,7 +72,7 @@ LRESULT CUnreadWavesFlyout::OnPaint()
 
 	RECT rcClient;
 
-	GetClientRect(GetHandle(), &rcClient);
+	GetClientRect(&rcClient);
 
 	RECT rc = rcClient;
 	rc.top = rc.bottom - FL_BOTTOM_HEIGHT;
@@ -179,7 +183,7 @@ void CUnreadWavesFlyout::PaintWaves(CDC & dc, RECT & rcBounds)
 	POINT pt;
 
 	GetCursorPos(&pt);
-	ScreenToClient(GetHandle(), &pt);
+	ScreenToClient(&pt);
 
 	CHitTest vHitTest = HitTest(pt);
 
@@ -323,8 +327,7 @@ LRESULT CUnreadWavesFlyout::OnLeftButtonUp(WORD x, WORD y)
 		break;
 
 	case UnreadWave:
-		CNotifierApp::Instance()->OpenUrl(
-			CNotifierApp::Instance()->GetSession()->GetWaveUrl(vHitTest.GetWave()->GetID()));
+		CNotifierApp::Instance()->OpenWave(vHitTest.GetWave()->GetID());
 		break;
 	}
 
