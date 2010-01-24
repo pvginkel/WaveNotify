@@ -18,18 +18,22 @@
 #include "stdafx.h"
 #include "include.h"
 
-CWindow::CWindow(wstring szClassName)
+#define PROPERTY_INSTANCE	L"WAVENOTIFY_WINDOW_INSTANCE"
+
+CWindow::CWindow(wstring szClassName) :
+	m_nRef(1),
+	m_szClassName(szClassName),
+	m_fClassRegistered(FALSE),
+	m_hCursor(NULL),
+	m_fHandleCreated(FALSE)
 {
-	m_szClassName = szClassName;
-	m_fClassRegistered = FALSE;
-	m_hCursor = NULL;
-	m_fDisposing = FALSE;
-	m_fHandleCreated = FALSE;
 }
 
 CWindow::~CWindow()
 {
-	ASSERT(m_fDisposing);
+	::RemoveProp(GetHandle(), PROPERTY_INSTANCE);
+
+	SetHandle(NULL);
 }
 
 ATOM CWindow::CreateClass(LPWNDCLASSEX lpWndClass)
@@ -106,7 +110,7 @@ BOOL CWindow::Create()
 
 	CreateHandle(0, L"", 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL);
 
-	return GetHandle() != NULL && IsWindow(GetHandle());
+	return GetHandle() != NULL && IsWindow();
 }
 
 LRESULT CALLBACK CWindow::WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam)
@@ -117,7 +121,7 @@ LRESULT CALLBACK CWindow::WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wPara
 	{
 		LPCREATESTRUCT lpCreateStruct = (LPCREATESTRUCT)lParam;
 
-		SetWindowLongPtr(hWnd, GWLP_USERDATA, (INT_PTR)lpCreateStruct->lpCreateParams);
+		::SetProp(hWnd, PROPERTY_INSTANCE, (HANDLE)lpCreateStruct->lpCreateParams);
 
 		lpWindow = (CWindow *)lpCreateStruct->lpCreateParams;
 
@@ -125,27 +129,23 @@ LRESULT CALLBACK CWindow::WndProcCallback(HWND hWnd, UINT uMessage, WPARAM wPara
 	}
 	else
 	{
-		lpWindow = (CWindow *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		lpWindow = (CWindow *)::GetProp(hWnd, PROPERTY_INSTANCE);
 	}
 
 	if (lpWindow != NULL)
 	{
+		lpWindow->AddRef();
+
 		lpWindow->PreviewWndProc(uMessage, wParam, lParam);
 
 		LRESULT lResult = lpWindow->WndProc(uMessage, wParam, lParam);
 
 		if (uMessage == WM_DESTROY)
 		{
-			ASSERT(!lpWindow->m_fDisposing);
-
-			SetWindowLongPtr(hWnd, GWLP_USERDATA, 0);
-
-			lpWindow->SetHandle(NULL);
-
-			lpWindow->m_fDisposing = TRUE;
-
-			delete lpWindow;
+			lpWindow->Release();
 		}
+
+		lpWindow->Release();
 
 		return lResult;
 	}
