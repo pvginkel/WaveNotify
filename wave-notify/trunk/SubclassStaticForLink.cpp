@@ -19,6 +19,8 @@
 #include "include.h"
 #include "notifierapp.h"
 
+#define PROPERTY_INSTANCE	L"WAVENOTIFY_LINK_INSTANCE"
+
 static LRESULT CALLBACK SubclassStaticForLink_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void SubclassStaticForLink_Paint(HWND hWnd);
 
@@ -62,7 +64,7 @@ void SubclassStaticForLink(HWND hWnd, wstring szUrl)
 
 	CUrlControlData * lpData = new CUrlControlData(szUrl, lpOldProc);
 
-	SetWindowLongPtr(hWnd, GWLP_USERDATA, (INT_PTR)lpData);
+	SetProp(hWnd, PROPERTY_INSTANCE, (HANDLE)lpData);
 }
 
 static LRESULT CALLBACK SubclassStaticForLink_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -71,7 +73,7 @@ static LRESULT CALLBACK SubclassStaticForLink_WndProc(HWND hWnd, UINT message, W
 
 	CHECK_HANDLE(hCursor);
 	
-	CUrlControlData * lpData = (CUrlControlData *)GetWindowLong(hWnd, GWLP_USERDATA);
+	CUrlControlData * lpData = (CUrlControlData *)GetProp(hWnd, PROPERTY_INSTANCE);
 
 	ASSERT(lpData != NULL);
 

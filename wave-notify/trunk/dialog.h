@@ -44,11 +44,12 @@ public:
 	}
 };
 
-class CDialog : public CWindowHandle
+class CDialog :
+	public CWindowHandle,
+	public CRefCounted
 {
 private:
 	INT m_nResource;
-	BOOL m_fDisposing;
 
 protected:
 	CDialog(INT nResource);

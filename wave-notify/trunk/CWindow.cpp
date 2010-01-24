@@ -21,7 +21,6 @@
 #define PROPERTY_INSTANCE	L"WAVENOTIFY_WINDOW_INSTANCE"
 
 CWindow::CWindow(wstring szClassName) :
-	m_nRef(1),
 	m_szClassName(szClassName),
 	m_fClassRegistered(FALSE),
 	m_hCursor(NULL),
@@ -31,7 +30,10 @@ CWindow::CWindow(wstring szClassName) :
 
 CWindow::~CWindow()
 {
-	::RemoveProp(GetHandle(), PROPERTY_INSTANCE);
+	if (IsWindow())
+	{
+		RemoveProp(PROPERTY_INSTANCE);
+	}
 
 	SetHandle(NULL);
 }
