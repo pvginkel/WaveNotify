@@ -45,7 +45,10 @@ typedef enum
 	ThemeColorOuterBorderBottom,
 	ThemeColorOuterBorderLeft,
 	ThemeColorOuterBorderRight,
-	ThemeColorOuterBorderTop
+	ThemeColorOuterBorderTop,
+	ThemeColorLoadingBorder,
+	ThemeColorLoadingBackground,
+	ThemeColorLoadingText
 } ThemeColor;
 
 typedef struct tagTHEMING_CALCS_BUTTON
@@ -81,6 +84,7 @@ private:
 	static CThemeScheme * m_lpSchemeInactiveLight;
 	static CThemeScheme * m_lpSchemeRed;
 	static HFONT m_hFont;
+	static HFONT m_hBoldFont;
 
 	HSBREF m_crBaseColor;
 
@@ -90,6 +94,7 @@ public:
 	static void Cleanup();
 	static CThemeScheme * GetScheme(ThemeScheme nScheme);
 	static HFONT GetFont();
+	static HFONT GetBoldFont();
 
 	HSBREF GetHsbColor(INT nIndex);
 };
