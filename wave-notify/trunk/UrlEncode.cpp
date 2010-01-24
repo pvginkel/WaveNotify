@@ -39,7 +39,7 @@ wstring UrlEncodePath(wstring szSource)
 
 static wstring UrlEncode(wstring szSource, URL_ENCODE_MODE nMode)
 {
-	CHECK_ENUM(nMode, UME_MAX);
+	CHECK_ENUM(nMode, UEM_MAX);
 
 	string szSourceA = ConvertToMultiByte(szSource, CP_UTF8);
 	size_t nLength = 0;
