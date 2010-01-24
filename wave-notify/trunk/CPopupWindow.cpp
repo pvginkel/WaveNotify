@@ -119,7 +119,7 @@ void CPopupWindow::Show(CPopup * lpPopup)
 ATOM CPopupWindow::CreateClass(LPWNDCLASSEX lpWndClass)
 {
 	lpWndClass->style = CS_HREDRAW | CS_VREDRAW;
-	lpWndClass->hCursor = CNotifierApp::Instance()->GetCursorArrow();
+	lpWndClass->hCursor = LoadCursor(NULL, IDC_ARROW);
 
 	return CWindow::CreateClass(lpWndClass);
 }
@@ -209,7 +209,7 @@ void CPopupWindow::ProcessMouseOverTimer()
 	RECT rc;
 
 	GetCursorPos(&pt);
-	GetWindowRect(GetHandle(), &rc);
+	GetWindowRect(&rc);
 
 	if (!PtInRect(&rc, pt))
 	{
@@ -308,7 +308,7 @@ void CPopupWindow::AnimateWaiting()
 		m_lpPopupTimer->SetInterval(m_lpCurrent->GetDuration());
 		m_lpPopupTimer->SetRunning(TRUE);
 
-		InvalidateRect(GetHandle(), NULL, TRUE);
+		InvalidateRect(NULL, TRUE);
 	}
 	else if (DegradeVisualPerformance())
 	{
@@ -413,7 +413,6 @@ void CPopupWindow::UpdateFromAnimationStep()
 	SetLayeredWindowAttributes(GetHandle(), 0, nOpacity, LWA_ALPHA);
 
 	SetWindowPos(
-		GetHandle(),
 		NULL,
 		rc.left,
 		rc.top,
@@ -448,7 +447,7 @@ BOOL CPopupWindow::ShouldShowPopup()
 
 	RECT rcForeground;
 
-	GetClientRect(GetForegroundWindow(), &rcForeground);
+	::GetClientRect(GetForegroundWindow(), &rcForeground);
 
 	POINT pt = { rcForeground.left, rcForeground.top };
 
@@ -491,7 +490,7 @@ void CPopupWindow::ShowPopup()
 		SetLayeredWindowAttributes(GetHandle(), 0, 0, LWA_ALPHA);
 	}
 
-	ShowWindow(GetHandle(), SW_SHOWNOACTIVATE);
+	ShowWindow(SW_SHOWNOACTIVATE);
 }
 
 void CPopupWindow::CancelAll()
