@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "avatar.h"
+
 #define RECONNECT_DELAY	5000
 
 #define WAVE_URL_CLIENTLOGIN 		L"https://www.google.com/accounts/ClientLogin"
@@ -183,6 +185,7 @@ public:
 	void SuspendRequestFlush();
 	void ResponseRequestFlush();
 	void ForceReconnect();
+	wstring GetAuthKey() const { return m_szAuthKey; }
 
 private:
 	void ReportReceived(CWaveResponse * lpResponse) {
@@ -470,5 +473,9 @@ private:
 	BOOL PumpResponseBuffer();
 	BOOL PumpMessage(BOOL & fSuccess);
 };
+
+#include "waverequest.h"
+#include "waveresponse.h"
+#include "unreadwave.h"
 
 #endif // _INC_WAVE
