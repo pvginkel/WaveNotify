@@ -57,55 +57,55 @@ CWave * CWave::CreateFromJson(Json::Value & vRoot)
 {
 	CWave * lpResult = new CWave();
 
-	// (( scope ))
+// (( scope ))
+{
+	if (!vRoot.isObject())
 	{
-		if (!vRoot.isObject())
-		{
-			goto __failure;
-		}
-
-		Json::Value & vID = vRoot[L"1"];
-		Json::Value & vEmailAddress = vRoot[L"4"];
-		Json::Value & vMessages = vRoot[L"6"];
-		Json::Value & vUnreadMessages = vRoot[L"7"];
-		Json::Value & vItem9 = vRoot[L"9"];
-
-		if (
-			!vID.isString() ||
-			!vEmailAddress.isString() ||
-			!vMessages.isIntegral() ||
-			!vItem9.isObject()
-		) {
-			goto __failure;
-		}
-
-		Json::Value & vSubject = vItem9[L"1"];
-
-		if (!vSubject.isString())
-		{
-			goto __failure;
-		}
-
-		lpResult->m_szID = vID.asString();
-		lpResult->m_szEmailAddress = vEmailAddress.asString();
-		lpResult->m_uMessages = vMessages.asUInt();
-		lpResult->m_uUnreadMessages = vUnreadMessages.asUInt();
-		lpResult->m_szSubject = vSubject.asString();
-		
-		if (!CWave::CreateDateTime(vRoot[L"8"], lpResult->m_dtTime))
-		{
-			goto __failure;
-		}
-
-		if (
-			!lpResult->AddContacts(vRoot[L"5"]) ||
-			!lpResult->AddMessages(vRoot[L"10"])
-		) {
-			goto __failure;
-		}
-
-		return lpResult;
+		goto __failure;
 	}
+
+	Json::Value & vID = vRoot[L"1"];
+	Json::Value & vEmailAddress = vRoot[L"4"];
+	Json::Value & vMessages = vRoot[L"6"];
+	Json::Value & vUnreadMessages = vRoot[L"7"];
+	Json::Value & vItem9 = vRoot[L"9"];
+
+	if (
+		!vID.isString() ||
+		!vEmailAddress.isString() ||
+		!vMessages.isIntegral() ||
+		!vItem9.isObject()
+	) {
+		goto __failure;
+	}
+
+	Json::Value & vSubject = vItem9[L"1"];
+
+	if (!vSubject.isString())
+	{
+		goto __failure;
+	}
+
+	lpResult->m_szID = vID.asString();
+	lpResult->m_szEmailAddress = vEmailAddress.asString();
+	lpResult->m_uMessages = vMessages.asUInt();
+	lpResult->m_uUnreadMessages = vUnreadMessages.asUInt();
+	lpResult->m_szSubject = vSubject.asString();
+	
+	if (!CWave::CreateDateTime(vRoot[L"8"], lpResult->m_dtTime))
+	{
+		goto __failure;
+	}
+
+	if (
+		!lpResult->AddContacts(vRoot[L"5"]) ||
+		!lpResult->AddMessages(vRoot[L"10"])
+	) {
+		goto __failure;
+	}
+
+	return lpResult;
+}
 
 __failure:
 	LOG("Could not parse json");

@@ -47,27 +47,27 @@ CWaveContactStatusCollection * CWaveContactStatusCollection::CreateFromJson(Json
 		}
 	}
 
-	// (( scope ))
+// (( scope ))
+{
+	if (!vRoot.isArray())
 	{
-		if (!vRoot.isArray())
+		goto __failure;
+	}
+
+	for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
+	{
+		CWaveContactStatus * lpStatus = CWaveContactStatus::CreateFromJson(*iter);
+
+		if (lpStatus == NULL)
 		{
 			goto __failure;
 		}
 
-		for (Json::Value::iterator iter = vRoot.begin(); iter != vRoot.end(); iter++)
-		{
-			CWaveContactStatus * lpStatus = CWaveContactStatus::CreateFromJson(*iter);
-
-			if (lpStatus == NULL)
-			{
-				goto __failure;
-			}
-
-			lpResult->m_vStatuses[lpStatus->GetEmailAddress()] = lpStatus;
-		}
-
-		return lpResult;
+		lpResult->m_vStatuses[lpStatus->GetEmailAddress()] = lpStatus;
 	}
+
+	return lpResult;
+}
 
 __failure:
 	LOG("Could not parse json");

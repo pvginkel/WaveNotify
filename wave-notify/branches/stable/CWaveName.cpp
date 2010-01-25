@@ -28,35 +28,35 @@ CWaveName * CWaveName::CreateFromJson(Json::Value & vRoot)
 {
 	CWaveName * lpResult = new CWaveName();
 
-	// (( scope ))
+// (( scope ))
+{
+	if (!vRoot.isObject())
 	{
-		if (!vRoot.isObject())
-		{
-			goto __failure;
-		}
-
-		Json::Value & vName = vRoot[L"1"];
-		Json::Value & vItem2 = vRoot[L"2"];
-
-		if (
-			!vName.isString() ||
-			!vItem2.isObject()
-		) {
-			goto __failure;
-		}
-
-		Json::Value & vType = vItem2[L"1"];
-
-		if (!vType.isIntegral())
-		{
-			goto __failure;
-		}
-
-		lpResult->m_szName = vName.asString();
-		lpResult->m_nType = (WAVE_NAME_TYPE)vType.asUInt();
-
-		return lpResult;
+		goto __failure;
 	}
+
+	Json::Value & vName = vRoot[L"1"];
+	Json::Value & vItem2 = vRoot[L"2"];
+
+	if (
+		!vName.isString() ||
+		!vItem2.isObject()
+	) {
+		goto __failure;
+	}
+
+	Json::Value & vType = vItem2[L"1"];
+
+	if (!vType.isIntegral())
+	{
+		goto __failure;
+	}
+
+	lpResult->m_szName = vName.asString();
+	lpResult->m_nType = (WAVE_NAME_TYPE)vType.asUInt();
+
+	return lpResult;
+}
 
 __failure:
 	LOG("Could not parse json");

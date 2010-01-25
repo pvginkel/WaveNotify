@@ -37,29 +37,29 @@ CWaveMessage * CWaveMessage::CreateFromJson(Json::Value & vRoot, UINT uOrder)
 {
 	CWaveMessage * lpResult = new CWaveMessage();
 
-	// (( scope ))
+// (( scope ))
+{
+	if (!vRoot.isObject())
 	{
-		if (!vRoot.isObject())
-		{
-			goto __failure;
-		}
-
-		Json::Value & vText = vRoot[L"1"];
-		Json::Value & vContactId = vRoot[L"6"];
-
-		if (
-			!vText.isString() ||
-			!vContactId.isIntegral()
-		) {
-			goto __failure;
-		}
-
-		lpResult->m_szText = vText.asString();
-		lpResult->m_uContactId = vContactId.asUInt();
-		lpResult->m_uOrder = uOrder;
-
-		return lpResult;
+		goto __failure;
 	}
+
+	Json::Value & vText = vRoot[L"1"];
+	Json::Value & vContactId = vRoot[L"6"];
+
+	if (
+		!vText.isString() ||
+		!vContactId.isIntegral()
+	) {
+		goto __failure;
+	}
+
+	lpResult->m_szText = vText.asString();
+	lpResult->m_uContactId = vContactId.asUInt();
+	lpResult->m_uOrder = uOrder;
+
+	return lpResult;
+}
 
 __failure:
 	LOG("Could not parse json");
