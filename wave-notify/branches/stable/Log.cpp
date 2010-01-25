@@ -47,6 +47,13 @@ void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)
 
 	va_end(argptr);
 
+	/* Skip the ./ */
+
+	if (strncmp(szFile, ".\\", 2) == 0)
+	{
+		szFile += 2;
+	}
+
 	/* Write the file line */
 
 	CHAR szBuffer2[512];
