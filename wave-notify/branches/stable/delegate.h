@@ -37,6 +37,13 @@ namespace Internal {
 		void AddRef() { m_nRef++; }
 		void RemoveRef() { if (--m_nRef == 0) delete this; }
 
+		template<typename T>
+		static CDelegate * Create(T * lpInstance, void (T::*lpMethod)()) {
+			ASSERT(lpInstance != NULL);
+
+			return new CTypedDelegate<T>(lpInstance, lpMethod);
+		}
+
 		virtual void Invoke() = 0;
 		virtual BOOL Equals(CDelegate * lpOther) = 0;
 	};
@@ -48,7 +55,7 @@ namespace Internal {
 		T * m_lpInstance;
 		void (T::*m_lpMethod)();
 
-	public:
+	private:
 		CTypedDelegate(T * lpInstance, void (T::*lpMethod)()) {
 			ASSERT(lpInstance != NULL);
 
@@ -163,7 +170,7 @@ template<typename T>
 Delegate AddressOf(T * lpInstance, void (T::*lpMethod)()) {
 	ASSERT(lpInstance != NULL);
 
-	return Delegate(new Internal::CTypedDelegate<T>(lpInstance, lpMethod));
+	return Delegate(Internal::CDelegate::Create<T>(lpInstance, lpMethod));
 }
 
 #endif // _INC_DELEGATE
