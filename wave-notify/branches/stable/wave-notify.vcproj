@@ -55,6 +55,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_UNICODE;UNICODE;_DEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -63,6 +64,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
 				LinkIncremental="2"
+				AdditionalManifestDependencies=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -72,6 +74,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AssemblyIdentity=""
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -118,7 +121,7 @@
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
@@ -129,6 +132,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_UNICODE;UNICODE;NDEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -137,6 +141,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
 				LinkIncremental="1"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -743,7 +748,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Manifest.vs6"
+				RelativePath=".\Manifest.xml"
 				>
 			</File>
 			<File
