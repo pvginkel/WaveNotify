@@ -1,0 +1,84 @@
+Google Wave Notifier - CHANGELOG
+================================
+
+http://wave-notify.sourceforge.net/
+
+The Google Wave Notifier is under active development. Please report any and all
+bugs on SourceForge at https://sourceforge.net/projects/wave-notify/support.
+
+If you enjoy using the Google Wave Notifier application, please leave a review
+on the SourceForge website.
+
+Version 10.1.25.38
+
+  * Switched to Visual Studio 2008 compiler.
+
+Version 10.1.23.37
+
+  * Solved random crashes because of unexpected Google Wave responses.
+
+Version 10.1.7.36
+
+  * Fixed problem with the rebuild internet communication;
+  * Fixed a problem with non-English Windows installations;
+  * Fixed the link to the website.
+
+Version 10.1.3.33
+
+  * Implemented online and offline notification of users in the contact list;
+  * Moved the manual online;
+  * Improved detection of installed browsers;
+  * Rebuild internet communication so that all web requests are done in the
+    background;
+  * Increased timeouts for internet communication allowing clients with
+    slow internet connections to correctly download the latest version.
+
+Version 9.12.27.29
+
+  * Fixed a problem with the automatic update process.
+
+Version 9.12.26.28
+
+  * Implemented browser selection;
+  * Implemented an option to play a sound when a new wave comes in;
+  * Fixed a problem where the notification tray icon did not reappear
+    after explorer crashed and restarted.
+
+Version 9.12.20.27
+
+  * Implemented real-time Google Wave protocol allowing for immediate
+    notifications of new and changed Waves;
+  * Implemented automatic updates;
+  * Added a manual on all features of the Google Wave Notifier.
+
+Version 9.11.13.24
+
+  * Solved a problem where no notifications appear when a wave contains a
+    backslash.
+
+Version 9.11.8.23
+
+  * Improved performance for remote desktop connections;
+  * Improved compatibility with for Linux through Wine. See
+    http://wave-notify.sourceforge.net/beta.php for details on compatibility
+    with Wine.
+
+Version 9.11.8.22
+
+  * Released a native Windows version of the Google Wave Notifier which does
+    *NOT* require the .Net dependency. The new version runs on any Windows 2000,
+    Windows XP, Windows Vista and Windows 7 system;
+  * Updated and modernized the user interface. See the screenshots on the
+    Google Wave Notifier website at http://wave-notify.sourceforge.net/;
+  * Added a flyout panel for easy access to your last five unread waves;
+  * Updated the notification icons. The gray icon now means "offline"; the
+    colored icon means "no unread waves" and a new icon with an inbox overlay
+    means there are unread waves.
+
+Version 9.10.30.14
+
+  * Minor bug fixes.
+
+Version 9.10.30.13
+
+  * Initial feature complete release.
