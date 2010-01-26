@@ -1396,9 +1396,26 @@ LRESULT CAppWindow::OnEndSession(BOOL fClose, LPARAM lParameter)
 {
 	if (fClose)
 	{
-		// This is not a crash, but we did not cleanly shut down either.
+		// Set the application to successfully closed because Windows
+		// will terminate the application now.
+
 		CSettings(TRUE).SetApplicationRunning(FALSE);
+
+		// Close the application; this can trigger a sign-out.
+
+		SendMessage(WM_SYSCOMMAND, SC_CLOSE);
+
+		// Process messages until the WM_QUIT from the destructor of
+		// CAppWindow.
+
+		INT nResult = CNotifierApp::Instance()->MessageLoop();
+
+		// This is not necessary for WM_ENDSESSION (see documentation),
+		// but if this isn't done, the application crashes when testing
+		// this code.
+
+		PostQuitMessage(nResult);
 	}
 
-	return 0;
+	return TRUE;
 }
