@@ -82,6 +82,7 @@ private:
 	LRESULT OnClose();
 	LRESULT OnWTSSessionChange(WPARAM wParam);
 	LRESULT OnPowerBroadcast(WPARAM wParam);
+	LRESULT OnEndSession(BOOL fClose, LPARAM lParameter);
 
 	void ShowFlyout();
 	void ShowContextMenu();

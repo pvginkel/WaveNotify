@@ -164,6 +164,9 @@ LRESULT CAppWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
 	case WM_POWERBROADCAST:
 		return OnPowerBroadcast(wParam);
 
+	case WM_ENDSESSION:
+		return OnEndSession((BOOL)wParam, lParam);
+
 	default:
 		if (uMessage == CNotifierApp::Instance()->GetWmTaskbarCreated())
 		{
@@ -361,7 +364,7 @@ LRESULT CAppWindow::OnCommand(WORD wID)
 	switch (wID)
 	{
 	case ID_TRAYICON_EXIT:
-		SendMessage(WM_CLOSE);
+		SendMessage(WM_SYSCOMMAND, SC_CLOSE);
 		break;
 
 	case ID_TRAYICON_CHECKFORUPDATESNOW:
@@ -1178,7 +1181,7 @@ LRESULT CAppWindow::OnVersionState(VERSION_STATE nState)
 		break;
 
 	case VS_AVAILABLE:
-		SendMessage(WM_CLOSE);
+		SendMessage(WM_SYSCOMMAND, SC_CLOSE);
 		break;
 	}
 
@@ -1387,4 +1390,15 @@ void CAppWindow::ClientConnected(CONNECT_REASON nReason)
 			CNotifierApp::Instance()->SetConnected(TRUE);
 		}
 	}
+}
+
+LRESULT CAppWindow::OnEndSession(BOOL fClose, LPARAM lParameter)
+{
+	if (fClose)
+	{
+		// This is not a crash, but we did not cleanly shut down either.
+		CSettings(TRUE).SetApplicationRunning(FALSE);
+	}
+
+	return 0;
 }
