@@ -9,6 +9,10 @@ bugs on SourceForge at https://sourceforge.net/projects/wave-notify/support.
 If you enjoy using the Google Wave Notifier application, please leave a review
 on the SourceForge website.
 
+Version 10.1.26.40
+
+  * Attemt to gracefully sign out of Google Wave when the user logs off.
+
 Version 10.1.26.39
 
   * Fixed a small issue with the crash detection.
