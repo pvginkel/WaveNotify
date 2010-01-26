@@ -33,6 +33,8 @@ public:
 
 	virtual BOOL Initialise();
 	virtual INT Execute();
+	INT MessageLoop();
+	INT DoEvents();
 
 	HINSTANCE GetInstance() const { return m_hInstance; }
 	wstring GetCmdLine() const { return m_szCmdLine; }

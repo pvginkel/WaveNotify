@@ -39,11 +39,36 @@ BOOL CApp::Initialise()
 	return TRUE;
 }
 
-int CApp::Execute()
+INT CApp::Execute()
+{
+	return MessageLoop();
+}
+
+INT CApp::MessageLoop()
 {
 	MSG msg;
 
 	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		if (
+			!CModelessDialogs::IsDialogMessage(&msg) &&
+			!CModelessPropertySheets::IsDialogMessage(&msg)
+		) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+	return msg.wParam;
+}
+
+INT CApp::DoEvents()
+{
+	// TODO: This is not fully tested; there may be problems with this code.
+
+	MSG msg;
+
+	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
 		if (
 			!CModelessDialogs::IsDialogMessage(&msg) &&
