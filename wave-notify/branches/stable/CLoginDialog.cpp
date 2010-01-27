@@ -236,6 +236,7 @@ INT_PTR CLoginDialog::OnLoginStateChanged(WAVE_CONNECTION_STATE nState, WAVE_LOG
 		break;
 
 	case WCS_GOT_COOKIE:
+	case WCS_GOT_SESSION_DETAILS:
 		SetStateIcon(m_hStateUnknown);
 		SetDlgItemText(IDC_LOGIN_STATE, L"Authenticating");
 		break;

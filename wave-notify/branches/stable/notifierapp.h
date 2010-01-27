@@ -91,7 +91,6 @@ private:
 	BOOL ActivateOpenDialog();
 	void ProcessResponse(CWaveResponse * lpResponse);
 	void ProcessReconnecting();
-	void ProcessConnected();
 	void SynchronisePopups(CUnreadWaveCollection * lpUnreads, BOOL fManual);
 	void TruncateLastReported();
 	void DisplayWavePopups(BOOL fManual);
