@@ -550,9 +550,19 @@ void CWaveSession::ProcessSessionDetailsResponse()
 			m_szSessionID = GetKeyFromSessionResponse(L"sessionid", szSessionData);
 			m_szProfileID = GetKeyFromSessionResponse(L"id", szSessionData);
 
+			// The sticky session ID must survive log off and log on requests. If
+			// we fail to retrieve the SID, the sticky session ID is cleared and
+			// we retrieve it here on the next retry.
+
+			if (m_szStickySessionID.empty())
+			{
+				m_szStickySessionID = GetKeyFromSessionResponse(L"sticky_session", szSessionData);
+			}
+
 			if (
 				!m_szEmailAddress.empty() &&
 				!m_szSessionID.empty() &&
+				!m_szStickySessionID.empty() &&
 				!m_szProfileID.empty()
 			) {
 				m_nLoginError = WLE_SUCCESS;
@@ -572,9 +582,7 @@ void CWaveSession::ProcessSessionDetailsResponse()
 
 	if (m_nLoginError == WLE_SUCCESS)
 	{
-		m_nState = WSS_ONLINE;
-
-		SignalProgress(WCS_LOGGED_ON);
+		SignalProgress(WCS_GOT_SESSION_DETAILS);
 
 		ResetChannelParameters();
 
@@ -600,17 +608,25 @@ void CWaveSession::ProcessSIDResponse()
 
 	ASSERT(lpReader != NULL);
 	
-	BOOL fSuccess = FALSE;
-
-	if (m_lpRequest->GetResult() == CURLE_OK)
+	if (m_lpRequest->GetResult() != CURLE_OK)
+	{
+		m_nLoginError = WLE_NETWORK;
+	}
+	else
 	{
 		SetCookies(m_lpRequest->GetCookies());
 
 		wstring szChannelResponse(ExtractChannelResponse(lpReader->GetString()));
 
-		if (!szChannelResponse.empty())
+		if (
+			!szChannelResponse.empty() &&
+			ParseChannelResponse(szChannelResponse)
+		) {
+			m_nLoginError = WLE_SUCCESS;
+		}
+		else
 		{
-			fSuccess = ParseChannelResponse(szChannelResponse);
+			m_nLoginError = WLE_AUTHENTICATE;
 		}
 	}
 	
@@ -620,9 +636,11 @@ void CWaveSession::ProcessSIDResponse()
 	m_lpRequest = NULL;
 	m_nRequesting = WSR_NONE;
 
-	if (fSuccess)
+	if (m_nLoginError == WLE_SUCCESS)
 	{
-		SignalProgress(WCS_CONNECTED);
+		m_nState = WSS_ONLINE;
+
+		SignalProgress(WCS_LOGGED_ON);
 
 		PostChannelRequest();
 
@@ -630,7 +648,21 @@ void CWaveSession::ProcessSIDResponse()
 	}
 	else
 	{
-		InitiateReconnect();
+		// When we were not able to log retireve the SID session, it could be
+		// that the sticky session ID is not valid anymore. Invalidate.
+
+		m_szStickySessionID = L"";
+
+		if (m_nState == WSS_RECONNECTING)
+		{
+			NextReconnect();
+		}
+		else
+		{
+			m_nState = WSS_OFFLINE;
+
+			SignalProgress(WCS_FAILED);
+		}
 	}
 }
 
@@ -666,6 +698,8 @@ void CWaveSession::ProcessSignOutResponse()
 	}
 
 	m_lpCookies = NULL;
+
+	m_szStickySessionID = L"";
 
 	ASSERT(m_lpRequest != NULL);
 
@@ -789,7 +823,7 @@ void CWaveSession::PostSIDRequest()
 	}
 
 	m_lpRequest = new CCurl(
-		Format(WAVE_URL_SESSIONID, m_nRID++, BuildHash().c_str()),
+		Format(WAVE_URL_SESSIONID, m_szStickySessionID.c_str(), m_nRID++, BuildHash().c_str()),
 		m_lpTargetWindow
 	);
 
@@ -814,7 +848,7 @@ void CWaveSession::PostChannelRequest()
 	}
 
 	m_lpChannelRequest = new CCurl(
-		Format(WAVE_URL_CHANNEL, m_szSID.c_str(), m_nAID, BuildHash().c_str()),
+		Format(WAVE_URL_CHANNEL, m_szStickySessionID.c_str(), m_szSID.c_str(), m_nAID, BuildHash().c_str()),
 		m_lpTargetWindow
 	);
 
@@ -1014,7 +1048,7 @@ void CWaveSession::PostRequests()
 
 	// Post the JSON to the channel.
 
-	wstring szUrl = Format(WAVE_URL_CHANNEL_POST, m_szSID.c_str(), m_nRID++, BuildHash().c_str());
+	wstring szUrl = Format(WAVE_URL_CHANNEL_POST, m_szStickySessionID.c_str(), m_szSID.c_str(), m_nRID++, BuildHash().c_str());
 
 	if (m_lpPostRequest != NULL)
 	{

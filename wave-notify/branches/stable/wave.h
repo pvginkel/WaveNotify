@@ -30,9 +30,9 @@
 #define WAVE_URL_WAVES 			L"https://wave.google.com/wave/?nouacheck"
 #define WAVE_URL_INBOX 			L"https://wave.google.com/wave/?auth=%s"
 #define WAVE_URL_WAVE			L"https://wave.google.com/wave/?auth=%s#restored:wave:%s.1"
-#define WAVE_URL_SESSIONID		L"https://wave.google.com/wave/wfe/channel?VER=6&RID=%d&CVER=3&zx=%s&t=1"
-#define WAVE_URL_CHANNEL		L"https://wave.google.com/wave/wfe/channel?VER=6&RID=rpc&SID=%s&CI=0&AID=%d&TYPE=xmlhttp&zx=%s&t=1"
-#define WAVE_URL_CHANNEL_POST		L"https://wave.google.com/wave/wfe/channel?VER=6&SID=%s&RID=%d&zx=%s&t=1"
+#define WAVE_URL_SESSIONID		L"https://wave.google.com/wave/wfe/channel?gsessionid=%s&VER=6&RID=%d&CVER=4&zx=%s&t=1"
+#define WAVE_URL_CHANNEL		L"https://wave.google.com/wave/wfe/channel?gsessionid=%s&VER=6&RID=rpc&SID=%s&CI=0&AID=%d&TYPE=xmlhttp&zx=%s&t=1"
+#define WAVE_URL_CHANNEL_POST		L"https://wave.google.com/wave/wfe/channel?gsessionid=%s&VER=6&SID=%s&RID=%d&zx=%s&t=1"
 #define WAVE_URL_AVATAR_PRIVATE_PREFIX	L"https://wave.google.com/wave/c"
 #define WAVE_URL_AVATAR_PUBLIC_PREFIX	L"https://www.google.com/s2"
 
@@ -82,8 +82,8 @@ typedef enum
 	WCS_BEGIN_LOGON,
 	WCS_GOT_KEY,
 	WCS_GOT_COOKIE,
+	WCS_GOT_SESSION_DETAILS,
 	WCS_LOGGED_ON,
-	WCS_CONNECTED,
 	WCS_RECONNECTING,
 	WCS_FAILED,
 	WCS_RECEIVED,
@@ -141,6 +141,7 @@ private:
 	wstring m_szAuthKey;
 	wstring m_szEmailAddress;
 	wstring m_szSessionID;
+	wstring m_szStickySessionID;
 	wstring m_szProfileID;
 	WAVE_LOGIN_ERROR m_nLoginError;
 	CWindowHandle * m_lpTargetWindow;

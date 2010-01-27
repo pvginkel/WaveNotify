@@ -503,11 +503,6 @@ LRESULT CAppWindow::OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGI
 		ProcessReconnecting();
 		break;
 
-	case WCS_CONNECTED:
-		StopWorking();
-		ProcessConnected();
-		break;
-
 	case WCS_FAILED:
 		StopWorking();
 		break;
@@ -519,11 +514,6 @@ LRESULT CAppWindow::OnLoginStateChanged(WAVE_CONNECTION_STATE nStatus, WAVE_LOGI
 	}
 
 	return 0;
-}
-
-void CAppWindow::ProcessLoggedOn()
-{
-	m_lpNotifyIcon->SetIcon(CNotifierApp::Instance()->GetNotifyIcon());
 }
 
 void CAppWindow::ProcessSignedOut()
@@ -887,8 +877,10 @@ void CAppWindow::UpdateWorkingIcon()
 	m_nWorkingCount++;
 }
 
-void CAppWindow::ProcessConnected()
+void CAppWindow::ProcessLoggedOn()
 {
+	m_lpNotifyIcon->SetIcon(CNotifierApp::Instance()->GetNotifyIcon());
+
 	if (m_lpView != NULL)
 	{
 		delete m_lpView;
@@ -1396,26 +1388,24 @@ LRESULT CAppWindow::OnEndSession(BOOL fClose, LPARAM lParameter)
 {
 	if (fClose)
 	{
+		// Close the application; this can trigger a sign-out.
+
+		SendMessage(WM_SYSCOMMAND, SC_CLOSE);
+
 		// Set the application to successfully closed because Windows
 		// will terminate the application now.
 
 		CSettings(TRUE).SetApplicationRunning(FALSE);
-
-		// Close the application; this can trigger a sign-out.
-
-		SendMessage(WM_SYSCOMMAND, SC_CLOSE);
 
 		// Process messages until the WM_QUIT from the destructor of
 		// CAppWindow.
 
 		INT nResult = CNotifierApp::Instance()->MessageLoop();
 
-		// This is not necessary for WM_ENDSESSION (see documentation),
-		// but if this isn't done, the application crashes when testing
-		// this code.
+		// Re-post the WM_QUIT.
 
 		PostQuitMessage(nResult);
 	}
 
-	return TRUE;
+	return 0;
 }
