@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.19.7\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.19.7\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
 				LinkIncremental="2"
 				AdditionalManifestDependencies=""
 				GenerateDebugInformation="true"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.15.1\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.19.7\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.15.1\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.19.7\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
