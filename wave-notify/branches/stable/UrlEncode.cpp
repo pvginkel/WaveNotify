@@ -39,7 +39,7 @@ wstring UrlEncode(wstring szSource)
 			break;
 
 		default:
-			if (isalnum(*iter))
+			if (iswalnum(*iter))
 			{
 				szResultA << *iter;
 			}
