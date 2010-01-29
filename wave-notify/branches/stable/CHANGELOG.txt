@@ -9,6 +9,11 @@ bugs on SourceForge at https://sourceforge.net/projects/wave-notify/support.
 If you enjoy using the Google Wave Notifier application, please leave a review
 on the SourceForge website.
 
+Version 10.1.29.42
+
+  * Upgraded cURL;
+  * Expanded Chrome detection.
+
 Version 10.1.27.41
 
   * Integrated changes to the Google Wave client-server protocol;
