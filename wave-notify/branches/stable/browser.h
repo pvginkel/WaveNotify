@@ -50,6 +50,8 @@ private:
 	static wstring GetExecutableFromStartMenu(wstring szExecutable);
 	static wstring GetExecutableFromStartMenu(CRegKey * lpKey, wstring szExecutable);
 	static wstring GetExecutableFromStartMenuKey(CRegKey * lpKey, wstring szExecutable);
+	static wstring GetExecutableFromClassesRoot(wstring szKey);
+	static wstring GetPathFromShellKey(CRegKey * lpKey);
 };
 
 #endif // _INC_BROWSER
