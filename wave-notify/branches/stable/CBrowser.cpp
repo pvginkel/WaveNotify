@@ -220,16 +220,19 @@ wstring CBrowser::GetBrowserDescription(wstring szBrowser)
 
 wstring CBrowser::GetChromeExecutable()
 {
-	wstring szResult(GetExecutableFromStartMenu(L"chrome.exe"));
+	wstring szResult(GetExecutableFromClassesRoot(L"ChromeHTML"));
 
 	if (szResult.empty())
 	{
-		return szResult;
+		szResult = GetExecutableFromStartMenu(L"chrome.exe");
 	}
-	else
+
+	if (szResult.empty())
 	{
-		return GetExecutableFromLocalSettings(L"\\Google\\Chrome\\Application\\chrome.exe");
+		szResult = GetExecutableFromLocalSettings(L"\\Google\\Chrome\\Application\\chrome.exe");
 	}
+
+	return szResult;
 }
 
 wstring CBrowser::GetOperaExecutable()
@@ -238,54 +241,46 @@ wstring CBrowser::GetOperaExecutable()
 
 	if (szResult.empty())
 	{
-		return szResult;
+		szResult = GetExecutableFromProgramFiles(L"\\Opera\\opera.exe");
 	}
-	else
-	{
-		return GetExecutableFromProgramFiles(L"\\Opera\\opera.exe");
-	}
+
+	return szResult;
 }
 
 wstring CBrowser::GetSafariExecutable()
 {
 	wstring szResult(GetExecutableFromStartMenu(L"Safari.exe"));
 
-	if (szResult.empty())
+	if (!szResult.empty())
 	{
-		return szResult;
+		szResult = GetExecutableFromProgramFiles(L"\\Safari\\Safari.exe");
 	}
-	else
-	{
-		return GetExecutableFromProgramFiles(L"\\Safari\\Safari.exe");
-	}
+
+	return szResult;
 }
 
 wstring CBrowser::GetInternetExplorerExecutable()
 {
 	wstring szResult(GetExecutableFromStartMenu(L"iexplore.exe"));
 
-	if (szResult.empty())
+	if (!szResult.empty())
 	{
-		return szResult;
+		szResult = GetExecutableFromProgramFiles(L"\\Internet Explorer\\iexplore.exe");
 	}
-	else
-	{
-		return GetExecutableFromProgramFiles(L"\\Internet Explorer\\iexplore.exe");
-	}
+
+	return szResult;
 }
 
 wstring CBrowser::GetFirefoxExecutable()
 {
 	wstring szResult(GetExecutableFromStartMenu(L"firefox.exe"));
 
-	if (szResult.empty())
+	if (!szResult.empty())
 	{
-		return szResult;
+		szResult = GetExecutableFromProgramFiles(L"\\Mozilla Firefox\\firefox.exe");
 	}
-	else
-	{
-		return GetExecutableFromProgramFiles(L"\\Mozilla Firefox\\firefox.exe");
-	}
+
+	return szResult;
 }
 
 wstring CBrowser::GetExecutableFromProgramFiles(wstring szRelativePath)
@@ -412,6 +407,39 @@ wstring CBrowser::GetExecutableFromStartMenuKey(CRegKey * lpKey, wstring szExecu
 {
 	ASSERT(lpKey != NULL && !szExecutable.empty());
 
+	wstring szPath(GetPathFromShellKey(lpKey));
+
+	if (!szPath.empty() && _wcsicmp(GetBasename(szPath).c_str(), szExecutable.c_str()) == 0)
+	{
+		return szPath;
+	}
+	else
+	{
+		return L"";
+	}
+}
+
+wstring CBrowser::GetExecutableFromClassesRoot(wstring szKey)
+{
+	ASSERT(!szKey.empty());
+
+	CRegKey * lpKey = CRegKey::OpenKey(HKEY_CLASSES_ROOT, szKey);
+
+	wstring szResult;
+
+	if (lpKey != NULL)
+	{
+		szResult = GetPathFromShellKey(lpKey);
+
+		delete lpKey;
+	}
+
+	return szResult;
+}
+
+wstring CBrowser::GetPathFromShellKey(CRegKey * lpKey)
+{
+
 	CRegKey * lpSubKey = CRegKey::OpenKey(lpKey, L"shell\\open\\command");
 	wstring szPath;
 
@@ -428,17 +456,21 @@ wstring CBrowser::GetExecutableFromStartMenuKey(CRegKey * lpKey, wstring szExecu
 					szPath = szPath.substr(1, nPos - 1);
 				}
 			}
+			else
+			{
+				UINT nPos = szPath.find(L' ');
+
+				if (nPos != wstring::npos)
+				{
+					szPath = szPath.substr(0, nPos);
+				}
+			}
+
+			szPath = ExpandEnvironmentStrings(szPath);
 		}
 
 		delete lpSubKey;
 	}
 
-	if (!szPath.empty() && _wcsicmp(GetBasename(szPath).c_str(), szExecutable.c_str()) == 0)
-	{
-		return szPath;
-	}
-	else
-	{
-		return L"";
-	}
+	return szPath;
 }
