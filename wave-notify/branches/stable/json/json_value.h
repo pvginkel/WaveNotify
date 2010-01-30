@@ -241,6 +241,8 @@ namespace Json {
       bool isDouble() const;
       bool isNumeric() const;
       bool isString() const;
+      bool isArrayOrNull() const;
+      bool isObjectOrNull() const;
       bool isArray() const;
       bool isObject() const;
 

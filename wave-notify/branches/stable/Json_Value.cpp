@@ -889,7 +889,7 @@ Value::size() const
 bool 
 Value::empty() const
 {
-   if ( isNull() || isArray() || isObject() )
+   if ( isNull() || isArrayOrNull() || isObjectOrNull() )
       return size() == 0u;
    else
       return false;
@@ -1291,18 +1291,30 @@ Value::isString() const
 
 
 bool 
-Value::isArray() const
+Value::isArrayOrNull() const
 {
    return type_ == nullValue  ||  type_ == arrayValue;
 }
 
 
 bool 
-Value::isObject() const
+Value::isObjectOrNull() const
 {
    return type_ == nullValue  ||  type_ == objectValue;
 }
 
+
+bool
+Value::isArray() const
+{
+   return type_ == arrayValue;
+}
+
+bool
+Value::isObject() const
+{
+   return type_ == objectValue;
+}
 
 void 
 Value::setComment( const wchar_t *comment,
@@ -1618,7 +1630,7 @@ Path::resolve( const Value &root ) const
       const PathArgument &arg = *it;
       if ( arg.kind_ == PathArgument::kindIndex )
       {
-         if ( !node->isArray()  ||  node->isValidIndex( arg.index_ ) )
+         if ( !node->isArrayOrNull()  ||  node->isValidIndex( arg.index_ ) )
          {
             // Error: unable to resolve path (array value expected at position...
          }
@@ -1626,7 +1638,7 @@ Path::resolve( const Value &root ) const
       }
       else if ( arg.kind_ == PathArgument::kindKey )
       {
-         if ( !node->isObject() )
+         if ( !node->isObjectOrNull() )
          {
             // Error: unable to resolve path (object value expected at position...)
          }
@@ -1651,13 +1663,13 @@ Path::resolve( const Value &root,
       const PathArgument &arg = *it;
       if ( arg.kind_ == PathArgument::kindIndex )
       {
-         if ( !node->isArray()  ||  node->isValidIndex( arg.index_ ) )
+         if ( !node->isArrayOrNull()  ||  node->isValidIndex( arg.index_ ) )
             return defaultValue;
          node = &((*node)[arg.index_]);
       }
       else if ( arg.kind_ == PathArgument::kindKey )
       {
-         if ( !node->isObject() )
+         if ( !node->isObjectOrNull() )
             return defaultValue;
          node = &((*node)[arg.key_]);
          if ( node == &Value::null )
@@ -1677,7 +1689,7 @@ Path::make( Value &root ) const
       const PathArgument &arg = *it;
       if ( arg.kind_ == PathArgument::kindIndex )
       {
-         if ( !node->isArray() )
+         if ( !node->isArrayOrNull() )
          {
             // Error: node is not an array at position ...
          }
@@ -1685,7 +1697,7 @@ Path::make( Value &root ) const
       }
       else if ( arg.kind_ == PathArgument::kindKey )
       {
-         if ( !node->isObject() )
+         if ( !node->isObjectOrNull() )
          {
             // Error: node is not an object at position...
          }
