@@ -55,6 +55,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_UNICODE;UNICODE;_DEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -116,7 +117,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;MOZILLAFRAME_EXPORTS"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
@@ -127,6 +128,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_UNICODE;UNICODE;NDEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -134,6 +136,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="1"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
