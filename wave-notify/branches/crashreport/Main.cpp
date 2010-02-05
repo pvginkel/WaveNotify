@@ -21,9 +21,11 @@
 #include "version.h"
 #include "notifierapp.h"
 #include "settings.h"
+#include "exceptionhandler.h"
 
 static void CheckCleanShutdown();
 static void SetCleanShutdown();
+static wstring GetCrashReportData();
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -37,11 +39,18 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	_CrtMemCheckpoint(&vMemState);
 
 #endif
-	
 	// Set the application version for logging purposes.
 
 	Log_SetAppVersion(ConvertToMultiByte(CVersion::GetAppVersion()).c_str());
 
+#ifdef NDEBUG
+
+	// Register the exception handler.
+
+	CExceptionHandler::Register();
+
+#endif
+	
 	//
 	// Check for unclean shutdown.
 	//
@@ -119,6 +128,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	delete lpVersion;
 
+	// Cleanup.
+
 	CCurl::GlobalCleanup();
 
 	if (lpMutex != NULL)
@@ -129,6 +140,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	CoUninitialize();
 
 	SetCleanShutdown();
+
+#ifdef NDEBUG
+
+	CExceptionHandler::Unregister();
+
+#endif
 
 #ifdef _DEBUG
 
@@ -177,4 +194,11 @@ static void CheckCleanShutdown()
 static void SetCleanShutdown()
 {
 	CSettings(TRUE).SetApplicationRunning(FALSE);
+}
+
+static wstring GetCrashReportData()
+{
+	wstringstream szExtraData;
+
+	Log_SetAppVersion(ConvertToMultiByte(CVersion::GetAppVersion()).c_str());
 }
