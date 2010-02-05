@@ -1245,7 +1245,10 @@ void CAppWindow::ReportContactOnline(CWaveContact * lpContact, BOOL fOnline)
 	}
 	else
 	{
-		(new CContactOnlinePopup(lpContact, fOnline))->Show();
+		if (fOnline)
+		{
+			(new CContactOnlinePopup(lpContact, fOnline))->Show();
+		}
 	}
 }
 
