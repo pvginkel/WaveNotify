@@ -163,7 +163,7 @@ void CNotifierApp::Restart()
 
 	wcscpy(szMutableCommandLine, szPath.c_str());
 
-	CreateProcess(
+	BOOL fSuccess = CreateProcess(
 		szPath.c_str(),
 		szMutableCommandLine,
 		NULL,
@@ -174,6 +174,12 @@ void CNotifierApp::Restart()
 		NULL,
 		&si,
 		&pi);
+
+	if (fSuccess)
+	{
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
 
 	free(szMutableCommandLine);
 }

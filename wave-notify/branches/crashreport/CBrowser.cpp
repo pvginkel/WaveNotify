@@ -79,7 +79,7 @@ void CBrowser::OpenUrlWithExecutable(wstring szExecutable, wstring szUrl)
 
 	wcscpy(szMutableCommandLine, szCommandLine.c_str());
 
-	CreateProcess(
+	BOOL fResult = CreateProcess(
 		szExecutable.c_str(),
 		szMutableCommandLine,
 		NULL,
@@ -90,6 +90,12 @@ void CBrowser::OpenUrlWithExecutable(wstring szExecutable, wstring szUrl)
 		NULL,
 		&si,
 		&pi);
+
+	if (fResult)
+	{
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
 
 	free(szMutableCommandLine);
 }
