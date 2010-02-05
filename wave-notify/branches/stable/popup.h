@@ -24,8 +24,7 @@ typedef enum
 {
 	PS_PENDING,
 	PS_OPENING,
-	PS_WAITING,
-	PS_CLOSING
+	PS_WAITING
 } POPUP_STATE;
 
 class CPopup;
@@ -81,7 +80,6 @@ private:
 	void AnimatePending();
 	void AnimateOpening();
 	void AnimateWaiting();
-	void AnimateClosing();
 	void OpeningComplete();
 	void CompleteClosing();
 	void UpdateFromAnimationStep();
