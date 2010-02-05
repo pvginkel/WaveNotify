@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.19.7\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\breakpad&quot;;&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.19.7\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.19.7\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\breakpad&quot;;&quot;$(ProjectDir)\deps\zlib-1.2.3\include&quot;;&quot;$(ProjectDir)\deps\curl-7.19.7\include&quot;;&quot;$(ProjectDir)\deps\gd-2.0.34\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -228,6 +228,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CExceptionHandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CFlyout.cpp"
 				>
 			</File>
@@ -290,6 +294,26 @@
 			<File
 				RelativePath=".\CPropertySheetPage.cpp"
 				>
+			</File>
+			<File
+				RelativePath=".\breakpad\client\windows\crash_generation\crash_generation_client.cc"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\CRegKey.cpp"
@@ -416,6 +440,26 @@
 				>
 			</File>
 			<File
+				RelativePath=".\breakpad\client\windows\handler\exception_handler.cc"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\Format.cpp"
 				>
 			</File>
@@ -430,6 +474,26 @@
 			<File
 				RelativePath=".\GetWindowsVersion.cpp"
 				>
+			</File>
+			<File
+				RelativePath=".\breakpad\common\windows\guid_string.cc"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Json_Reader.cpp"
@@ -543,6 +607,10 @@
 			</File>
 			<File
 				RelativePath=".\event.h"
+				>
+			</File>
+			<File
+				RelativePath=".\exceptionhandler.h"
 				>
 			</File>
 			<File
