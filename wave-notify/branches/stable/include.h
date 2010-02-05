@@ -39,9 +39,6 @@
 #define FILECOPY_BUFFER_SIZE	4096
 #define MAX_LOG_DUMP		(128 * 1024)
 
-#define USERAGENT 		L"net.sf.wave-notify/10.2.5.44"
-#define FF_USERAGENT		L"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 (.NET CLR 3.5.30729)"
-
 #if _DEBUG
 #define GLOBAL_MUTEX		L"Local\\{67992639-4CA3-4f3c-B0D0-5DE370D71C80}"
 #else
