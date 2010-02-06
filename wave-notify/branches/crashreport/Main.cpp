@@ -47,7 +47,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 	// Register the exception handler.
 
-	CExceptionHandler::Register();
+	if (!RunningWine())
+	{
+		CExceptionHandler::Register();
+	}
 
 #endif
 	
@@ -143,7 +146,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 #ifdef NDEBUG
 
-	CExceptionHandler::Unregister();
+	if (!RunningWine())
+	{
+		CExceptionHandler::Unregister();
+	}
 
 #endif
 
