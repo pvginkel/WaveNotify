@@ -94,7 +94,7 @@ install:
 
   SetOutPath "$INSTDIR"
   
-  File /r /x .svn "dist\*.*"
+  File /r /x .svn "distrib\*.*"
   
   ;Store installation folder
   WriteRegStr HKCU "Software\WaveNotify" "InstallDir" $INSTDIR
