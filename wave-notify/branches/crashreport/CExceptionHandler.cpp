@@ -156,17 +156,14 @@ LPSTR CExceptionHandler::GetVersionInformation()
 
 	// Build the server URL.
 
-	wstring szServerUrl(CRASH_SERVER_URL);
+	szDetails << "ServerURL=" << ConvertToMultiByte(CRASH_SERVER_URL) << "\n";
 
 	wstring szCookie;
 
 	if (CSettings(FALSE).GetStatisticsCookie(szCookie))
 	{
-		szServerUrl += L"?cookie=";
-		szServerUrl += szCookie;
+		szDetails << "Cookie=" << ConvertToMultiByte(szCookie) << "\n";
 	}
-
-	szDetails << "ServerURL=" << ConvertToMultiByte(szServerUrl) << "\n";
 
 	szResult = _strdup(szDetails.str().c_str());
 }
