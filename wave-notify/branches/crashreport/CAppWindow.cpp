@@ -1245,7 +1245,10 @@ void CAppWindow::ReportContactOnline(CWaveContact * lpContact, BOOL fOnline)
 	}
 	else
 	{
-		(new CContactOnlinePopup(lpContact, fOnline))->Show();
+		if (fOnline)
+		{
+			(new CContactOnlinePopup(lpContact, fOnline))->Show();
+		}
 	}
 }
 
@@ -1284,7 +1287,7 @@ void CAppWindow::SeedAvatars()
 
 	m_lpAvatarRequest = new CCurl(szAvatarUrl, this);
 
-	m_lpAvatarRequest->SetUserAgent(USERAGENT);
+	m_lpAvatarRequest->SetUserAgent(GetUserAgent());
 	m_lpAvatarRequest->SetTimeout(WEB_TIMEOUT_LONG);
 	m_lpAvatarRequest->SetIgnoreSSLErrors(TRUE);
 	m_lpAvatarRequest->SetReader(new CCurlBinaryReader());

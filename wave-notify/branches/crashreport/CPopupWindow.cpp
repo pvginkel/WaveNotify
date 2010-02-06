@@ -205,7 +205,6 @@ void CPopupWindow::ProcessPopupTimer()
 	case PS_PENDING: AnimatePending(); break;
 	case PS_OPENING: AnimateOpening(); break;
 	case PS_WAITING: AnimateWaiting(); break;
-	case PS_CLOSING: AnimateClosing(); break;
 	}
 }
 
@@ -316,21 +315,9 @@ void CPopupWindow::AnimateWaiting()
 
 		InvalidateRect(GetHandle(), NULL, TRUE);
 	}
-	else if (DegradeVisualPerformance())
-	{
-		CompleteClosing();
-	}
 	else
 	{
-		m_nState = PS_CLOSING;
-		m_nAnimationStep = ANIMATION_STEPS;
-
-		m_lpPopupTimer->SetInterval(m_lpCurrent->GetAnimationDuration() / ANIMATION_STEPS);
-		m_lpPopupTimer->SetRunning(TRUE);
-
-		UpdateFromAnimationStep();
-
-		m_nAnimationStep--;
+		CompleteClosing();
 	}
 }
 
@@ -339,20 +326,6 @@ void CPopupWindow::CompleteClosing()
 	m_nAnimationStep = 0;
 
 	DestroyWindow(GetHandle());
-}
-
-void CPopupWindow::AnimateClosing()
-{
-	if (m_nAnimationStep == 0)
-	{
-		CompleteClosing();
-	}
-	else
-	{
-		UpdateFromAnimationStep();
-
-		m_nAnimationStep--;
-	}
 }
 
 LRESULT CPopupWindow::OnMouseLeave()

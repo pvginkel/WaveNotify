@@ -56,7 +56,7 @@ CWaveContactStatus * CWaveContactStatus::CreateFromJson(Json::Value & vRoot)
 	if (
 		!vEmailAddress.isString() ||
 		!vOnline.isBool() ||
-		!vStatusMessage.isString()
+		!(vStatusMessage.isString() || vStatusMessage.isNull())
 	) {
 		goto __failure;
 	}
@@ -64,7 +64,7 @@ CWaveContactStatus * CWaveContactStatus::CreateFromJson(Json::Value & vRoot)
 	lpResult->m_szEmailAddress = vEmailAddress.asString();
 	
 	lpResult->m_fOnline = vOnline.asBool();
-	lpResult->m_szStatusMessage = vStatusMessage.asString();
+	lpResult->m_szStatusMessage = vStatusMessage.isNull() ? L"" : vStatusMessage.asString();
 
 	return lpResult;
 }
