@@ -65,9 +65,9 @@
 #define CRASH_DUMP_PATH		L"Crash Dumps"
 
 #ifdef TEST_CRASH_REPORT
-#define CRASH_SERVER_URL	L"http://ethan/wave-notify/htdocs/crashreport.php"
+#define CRASH_SERVER_URL	L"http://ethan/wave-notify/htdocs/crashy/submit.php"
 #else
-#define CRASH_SERVER_URL	L"http://wave-notify.sourceforge.net/crashreport.php"
+#define CRASH_SERVER_URL	L"http://wave-notify.sourceforge.net/crashy/submit.php"
 #endif
 
 // All web request timeouts are registered here (in seconds).
