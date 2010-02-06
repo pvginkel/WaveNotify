@@ -100,7 +100,7 @@ BOOL CWaveSession::Reconnect()
 
 	m_lpRequest = new CCurl(WAVE_URL_CLIENTLOGIN, m_lpTargetWindow);
 
-	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetUserAgent(GetUserAgent());
 	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
 	m_lpRequest->SetIgnoreSSLErrors(TRUE);
 	m_lpRequest->SetReader(new CCurlUTF8StringReader());
@@ -191,7 +191,7 @@ void CWaveSession::PostSignOutRequest()
 
 	m_lpRequest = new CCurl(WAVE_URL_LOGOUT, m_lpTargetWindow);
 
-	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetUserAgent(GetUserAgent());
 	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
 	m_lpRequest->SetIgnoreSSLErrors(TRUE);
 	m_lpRequest->SetCookies(m_lpCookies);
@@ -786,7 +786,7 @@ void CWaveSession::PostAuthCookieRequest()
 		m_lpTargetWindow
 	);
 
-	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetUserAgent(GetUserAgent());
 	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
 	m_lpRequest->SetIgnoreSSLErrors(TRUE);
 
@@ -804,7 +804,7 @@ void CWaveSession::PostSessionDetailsRequest()
 
 	m_lpRequest = new CCurl(WAVE_URL_WAVES, m_lpTargetWindow);
 
-	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetUserAgent(GetUserAgent());
 	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
 	m_lpRequest->SetIgnoreSSLErrors(TRUE);
 	m_lpRequest->SetCookies(m_lpCookies);
@@ -827,7 +827,7 @@ void CWaveSession::PostSIDRequest()
 		m_lpTargetWindow
 	);
 
-	m_lpRequest->SetUserAgent(USERAGENT);
+	m_lpRequest->SetUserAgent(GetUserAgent());
 	m_lpRequest->SetTimeout(WEB_TIMEOUT_SHORT);
 	m_lpRequest->SetIgnoreSSLErrors(TRUE);
 	m_lpRequest->SetCookies(GetCookies());
@@ -852,7 +852,7 @@ void CWaveSession::PostChannelRequest()
 		m_lpTargetWindow
 	);
 
-	m_lpChannelRequest->SetUserAgent(USERAGENT);
+	m_lpChannelRequest->SetUserAgent(GetUserAgent());
 	m_lpChannelRequest->SetTimeout(WEB_TIMEOUT_CHANNEL);
 	m_lpChannelRequest->SetIgnoreSSLErrors(TRUE);
 	m_lpChannelRequest->SetCookies(GetCookies());
@@ -1057,7 +1057,7 @@ void CWaveSession::PostRequests()
 
 	m_lpPostRequest = new CCurl(szUrl, m_lpTargetWindow);
 
-	m_lpPostRequest->SetUserAgent(USERAGENT);
+	m_lpPostRequest->SetUserAgent(GetUserAgent());
 	m_lpPostRequest->SetTimeout(WEB_TIMEOUT_SHORT);
 	m_lpPostRequest->SetIgnoreSSLErrors(TRUE);
 	m_lpPostRequest->SetCookies(GetCookies());

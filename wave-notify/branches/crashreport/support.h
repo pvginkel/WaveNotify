@@ -97,6 +97,8 @@ void Base64Decode(wstring szData, TByteVector & vResult);
 BOOL EncryptString(wstring szValue, wstring & szEncrypted);
 BOOL DecryptString(wstring szValue, wstring & szDecrypted);
 
+LPCWSTR GetUserAgent();
+
 INT Rand(INT nMin, INT nMax);
 
 bool isword(char _Ch);

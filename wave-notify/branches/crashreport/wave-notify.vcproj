@@ -472,6 +472,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\GetUserAgent.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\GetWindowsVersion.cpp"
 				>
 			</File>
