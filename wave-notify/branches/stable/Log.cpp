@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "include.h"
+#include "exceptionhandler.h"
 
 static CHAR g_szAppVersion[64];
 
@@ -26,7 +27,17 @@ void __declspec(noreturn) Log_AssertFailA(LPCSTR szFile, DWORD dwLine, LPCSTR sz
 {
 	Log_WriteA(szFile, dwLine, "ASSERTION FAILED: %s", szCond);
 
-	ExitProcess(-1);
+	CHAR szLocation[512];
+
+	_snprintf(szLocation, _ARRAYSIZE(szLocation), "%s(%d)", szFile, dwLine);
+
+	szLocation[_ARRAYSIZE(szLocation) - 1] = '\0';
+
+	CExceptionHandler::SetFailureReason(szCond, szLocation);
+
+	throw std::exception(szCond);
+
+	TerminateProcess(GetCurrentProcess(), 1);
 }
 
 void Log_WriteA(LPCSTR szFile, DWORD dwLine, LPCSTR szFormat, ...)

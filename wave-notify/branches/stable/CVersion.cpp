@@ -550,6 +550,12 @@ BOOL CVersion::PerformUpdate()
 		&si,
 		&pi);
 
+	if (fSuccess)
+	{
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+
 	free(szMutableCommandLine);
 
 	return fSuccess;

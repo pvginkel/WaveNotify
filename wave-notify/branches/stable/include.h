@@ -36,6 +36,9 @@
 // Turn this on to test the mechanism to send the log.txt to the server.
 #define TEST_LOG_DUMP		1
 
+// Turn this on to send crash reports to the local server.
+//#define TEST_CRASH_REPORT	1
+
 #define FILECOPY_BUFFER_SIZE	4096
 #define MAX_LOG_DUMP		(128 * 1024)
 
@@ -54,6 +57,15 @@
 #define VERSION_LINK		L"http://ethan/wave-notify/htdocs/check_version.php"
 #else
 #define VERSION_LINK		L"http://wave-notify.sourceforge.net/check_version.php"
+#endif
+
+#define CRASH_REPORTER_PATH	L"crashreporter.exe"
+#define CRASH_DUMP_PATH		L"Crash Dumps"
+
+#ifdef TEST_CRASH_REPORT
+#define CRASH_SERVER_URL	L"http://ethan/wave-notify/htdocs/crashy/submit.php"
+#else
+#define CRASH_SERVER_URL	L"http://wave-notify.sourceforge.net/crashy/submit.php"
 #endif
 
 // All web request timeouts are registered here (in seconds).
