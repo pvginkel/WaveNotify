@@ -64,7 +64,6 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="&quot;$(ProjectDir)\deps\curl-7.19.7\libcurl_imp.lib&quot; &quot;$(ProjectDir)\deps\zlib-1.2.3\zlibwapi.lib&quot; &quot;$(ProjectDir)\deps\gd-2.0.34\bgd.lib&quot; version.lib shlwapi.lib comctl32.lib crypt32.lib ws2_32.lib winmm.lib"
 				LinkIncremental="2"
-				AdditionalManifestDependencies=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -74,7 +73,6 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AssemblyIdentity=""
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
