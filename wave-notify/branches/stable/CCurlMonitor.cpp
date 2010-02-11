@@ -212,9 +212,9 @@ void CCurlMonitor::ProcessMessages()
 
 		long lStatus;
 
-		nCode = curl_easy_getinfo(lpCurlHandle, CURLINFO_RESPONSE_CODE, &lStatus);
+		CURLcode nResult = curl_easy_getinfo(lpCurlHandle, CURLINFO_RESPONSE_CODE, &lStatus);
 
-		CHECK(nCode == CURLE_OK);
+		CHECK(nResult == CURLE_OK);
 
 		// Process the result from the message.
 
