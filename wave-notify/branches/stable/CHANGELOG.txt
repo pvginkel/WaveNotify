@@ -9,11 +9,14 @@ bugs on SourceForge at https://sourceforge.net/projects/wave-notify/support.
 If you enjoy using the Google Wave Notifier application, please leave a review
 on the SourceForge website.
 
-Version 10.2.6.45
+Version 10.2.11.46
 
   * Integrated Google Breakpad (http://google-breakpad.googlecode.com/);
   * Integrated Mozilla Crash Reporter
-    (http://support.mozilla.com/en-US/kb/Mozilla+Crash+Reporter).
+    (http://support.mozilla.com/en-US/kb/Mozilla+Crash+Reporter);
+  * Improved support for multi-monitor systems;
+  * Fixed a problem concerning instability when the Google Wave Notifier has
+    been running for a long period.
 
 Version 10.2.5.44
 
