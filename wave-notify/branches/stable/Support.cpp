@@ -481,3 +481,24 @@ wstring ExpandEnvironmentStrings(wstring szPath)
 
 	return szResult;
 }
+
+void ScreenToClient(HWND hWnd, LPRECT lprc)
+{
+	POINT pt;
+
+	pt.x = lprc->left;
+	pt.y = lprc->top;
+
+	ScreenToClient(hWnd, &pt);
+
+	lprc->left = pt.x;
+	lprc->top = pt.y;
+
+	pt.x = lprc->right;
+	pt.y = lprc->bottom;
+
+	ScreenToClient(hWnd, &pt);
+
+	lprc->right = pt.x;
+	lprc->bottom = pt.y;
+}

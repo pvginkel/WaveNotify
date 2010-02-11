@@ -31,6 +31,7 @@ CPopupWindow::CPopupWindow() : CWindow(L"Popup")
 	m_lpCurrent = NULL;
 	m_fMouseOver = FALSE;
 	m_nAnimationStep = 0;
+	m_hPopupMonitor = NULL;
 
 	Create();
 
@@ -162,6 +163,13 @@ void CPopupWindow::CalculatePopupRect()
 	GetTaskbarLocation(&tl);
 
 	m_uTaskbarEdge = tl.uEdge;
+
+	POINT pt = {
+		rc.left + (rc.right - rc.left) / 2,
+		rc.top + (rc.bottom - rc.top) / 2
+	};
+
+	m_hPopupMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
 }
 
 LRESULT CPopupWindow::WndProc(UINT uMessage, WPARAM wParam, LPARAM lParam)
@@ -427,15 +435,25 @@ BOOL CPopupWindow::ShouldShowPopup()
 		return FALSE;
 	}
 
-	// Is the foreground application maximized?
+	// Only consider the foreground window when it is on the same monitor
+	// as the popup is going to be displayed on.
+
+	HWND hForeground = GetForegroundWindow();
+
+	HMONITOR hMonitor = MonitorFromWindow(hForeground, MONITOR_DEFAULTTONEAREST);
+
+	if (hMonitor != m_hPopupMonitor)
+	{
+		return TRUE;
+	}
+
+	// Is the foreground application running in full-screen mode?
 
 	RECT rcForeground;
 
-	GetClientRect(GetForegroundWindow(), &rcForeground);
+	GetClientRect(hForeground, &rcForeground);
 
-	POINT pt = { rcForeground.left, rcForeground.top };
-
-	HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+	ScreenToClient(hForeground, &rcForeground);
 
 	MONITORINFOEX miex;
 
@@ -447,13 +465,14 @@ BOOL CPopupWindow::ShouldShowPopup()
 
 	CHECK(fResult);
 
-	// If not maximized, we can show a popup.
+	// If the client rect is covering the entire screen, the application is a
+	// full-screen application.
 
 	return !(
-		miex.rcMonitor.left == rcForeground.left &&
-		miex.rcMonitor.top == rcForeground.top &&
-		miex.rcMonitor.right == rcForeground.right &&
-		miex.rcMonitor.bottom == rcForeground.bottom
+		miex.rcMonitor.left >= rcForeground.left &&
+		miex.rcMonitor.top >= rcForeground.top &&
+		miex.rcMonitor.right <= rcForeground.right &&
+		miex.rcMonitor.bottom <= rcForeground.bottom
 	);
 }
 
