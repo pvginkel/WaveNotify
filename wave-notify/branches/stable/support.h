@@ -78,6 +78,7 @@ wstring Format(wstring szFormat, ...);
 HFONT GetMessageBoxFont(BOOL fReload = FALSE);
 HFONT CreateFontIndirectEx(HFONT hFont, LONG lWeight, BOOL fItalic, BOOL fUnderline);
 BOOL FontExists(wstring szFontName);
+void ScreenToClient(HWND hWnd, LPRECT lprc);
 
 WINDOWS_VERSION GetWindowsVersion();
 LPCWSTR GetLanguageCode();

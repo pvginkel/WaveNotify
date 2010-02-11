@@ -39,6 +39,7 @@ private:
 	static CPopupWindow * m_lpInstance;
 	TPopupVector m_vQueue;
 	TASKBAR_LOCATION_EDGE m_uTaskbarEdge;
+	HMONITOR m_hPopupMonitor;
 	POPUP_STATE m_nState;
 	BOOL m_fMouseOver;
 	INT m_nAnimationStep;
