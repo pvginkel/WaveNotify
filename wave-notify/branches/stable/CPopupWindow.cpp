@@ -453,7 +453,7 @@ BOOL CPopupWindow::ShouldShowPopup()
 
 	GetClientRect(hForeground, &rcForeground);
 
-	ScreenToClient(hForeground, &rcForeground);
+	ClientToScreen(hForeground, &rcForeground);
 
 	MONITORINFOEX miex;
 
