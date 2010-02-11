@@ -502,3 +502,24 @@ void ScreenToClient(HWND hWnd, LPRECT lprc)
 	lprc->right = pt.x;
 	lprc->bottom = pt.y;
 }
+
+void ClientToScreen(HWND hWnd, LPRECT lprc)
+{
+	POINT pt;
+
+	pt.x = lprc->left;
+	pt.y = lprc->top;
+
+	ClientToScreen(hWnd, &pt);
+
+	lprc->left = pt.x;
+	lprc->top = pt.y;
+
+	pt.x = lprc->right;
+	pt.y = lprc->bottom;
+
+	ClientToScreen(hWnd, &pt);
+
+	lprc->right = pt.x;
+	lprc->bottom = pt.y;
+}
