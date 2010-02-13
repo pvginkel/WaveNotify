@@ -132,7 +132,7 @@ void CNotifierApp::SyncProxySettings()
 		vSettings.GetProxyUsername(szUsername) &&
 		vSettings.GetProxyPassword(szPassword);
 
-	if (fSuccess && fHaveSettings)
+	if (fSuccess && fHaveSettings && dwPort > 0)
 	{
 		if (fAuthenticated)
 		{
@@ -380,4 +380,14 @@ void CNotifierApp::QueueRequest(CCurl * lpRequest)
 void CNotifierApp::CancelRequest(CCurl * lpRequest)
 {
 	GetAppWindow()->CancelRequest(lpRequest);
+}
+
+int CNotifierApp::PerformMessageBox(HWND hWnd, wstring szText, wstring szCaption, UINT uType)
+{
+	return CApp::PerformMessageBox(
+		hWnd,
+		szText,
+		szCaption.empty() ? L"Google Wave Notifier" : szCaption,
+		uType
+	);
 }

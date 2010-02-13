@@ -39,10 +39,31 @@ public:
 	HINSTANCE GetInstance() const { return m_hInstance; }
 	wstring GetCmdLine() const { return m_szCmdLine; }
 
+	static int MessageBox(CWindowHandle * lpWindow, wstring szText, UINT uType) {
+		return MessageBox(lpWindow == NULL ? NULL : lpWindow->GetHandle(), szText, uType);
+	}
+	static int MessageBox(CWindowHandle * lpWindow, wstring szText, wstring szCaption, UINT uType) {
+		return MessageBox(lpWindow == NULL ? NULL : lpWindow->GetHandle(), szText, szCaption, uType);
+	}
+	static int MessageBox(HWND hWnd, wstring szText, UINT uType) {
+		return MessageBox(hWnd, szText, L"", uType);
+	}
+	static int MessageBox(HWND hWnd, wstring szText, wstring szCaption, UINT uType) {
+		if (m_lpInstance == NULL)
+			return ::MessageBox(hWnd, szText.c_str(), szCaption.c_str(), uType);
+		else
+			return m_lpInstance->PerformMessageBox(hWnd, szText, szCaption, uType);
+	}
+
 	static CApp * Instance() {
 		ASSERT(m_lpInstance != NULL);
 
 		return m_lpInstance;
+	}
+
+protected:
+	virtual int PerformMessageBox(HWND hWnd, wstring szText, wstring szCaption, UINT uType) {
+		return ::MessageBox(hWnd, szText.c_str(), szCaption.c_str(), uType);
 	}
 };
 
