@@ -23,12 +23,12 @@
 
 CUnreadWave::CUnreadWave(CWave * lpWave, CWaveMessage * lpMessage)
 {
-	ASSERT(lpWave != NULL && lpMessage != NULL);
+	ASSERT(lpWave != NULL);
 
 	m_szId = lpWave->GetID();
-	m_szContact = lpMessage->GetEmailAddress();
+	m_szContact = lpMessage == NULL ? lpWave->GetEmailAddress() : lpMessage->GetEmailAddress();
 	m_szSubject = lpWave->GetSubject();
-	m_szBody = lpMessage->GetText();
+	m_szBody = lpMessage == NULL ? L"" : lpMessage->GetText();
 	m_uUnread = lpWave->GetUnreadMessages();
 	m_dtTime = lpWave->GetTime();
 	m_lpContact = CNotifierApp::Instance()->GetWaveContact(m_szContact);
