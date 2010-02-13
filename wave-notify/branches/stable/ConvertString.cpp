@@ -23,22 +23,30 @@ const wstring ConvertToWideChar(const string szString, int nCodePage)
 	return ConvertToWideChar(szString.c_str(), szString.length(), nCodePage);
 }
 
-const wstring ConvertToWideChar(const TByteVector * szData, int nCodePage)
+const wstring ConvertToWideChar(const TByteVector & szData, int nCodePage)
 {
-	ASSERT(szData != NULL);
-
-	return ConvertToWideChar((LPCSTR)_VECTOR_DATA(*szData), szData->size(), nCodePage);
+	if (szData.size() == 0)
+	{
+		return L"";
+	}
+	else
+	{
+		return ConvertToWideChar((LPCSTR)_VECTOR_DATA(szData), szData.size(), nCodePage);
+	}
 }
 
-const wstring ConvertToWideChar(LPCSTR szString, size_t nLength, int nCodePage)
+const wstring ConvertToWideChar(LPCSTR szString, DWORD dwLength, int nCodePage)
 {
-	ASSERT(szString != NULL);
+	if (szString == NULL || dwLength == 0)
+	{
+		return L"";
+	}
 
 	size_t nNewLength = MultiByteToWideChar(
 		nCodePage < 0 ? 0 : nCodePage,
 		0,
 		szString,
-		nLength,
+		dwLength,
 		NULL,
 		0);
 	
@@ -50,7 +58,7 @@ const wstring ConvertToWideChar(LPCSTR szString, size_t nLength, int nCodePage)
 		nCodePage < 0 ? 0 : nCodePage,
 		0,
 		szString,
-		nLength,
+		dwLength,
 		szBuffer,
 		nNewLength + 1);
 
@@ -70,13 +78,18 @@ const string ConvertToMultiByte(const wstring szString, int nCodePage)
 	return ConvertToMultiByte(szString.c_str(), szString.length(), nCodePage);
 }
 
-const string ConvertToMultiByte(LPCWSTR szString, size_t nLength, int nCodePage)
+const string ConvertToMultiByte(LPCWSTR szString, DWORD dwLength, int nCodePage)
 {
+	if (szString == NULL || dwLength == 0)
+	{
+		return "";
+	}
+
 	size_t nNewLength = WideCharToMultiByte(
 		nCodePage < 0 ? 0 : nCodePage,
 		0,
 		szString,
-		nLength,
+		dwLength,
 		NULL,
 		0,
 		NULL,
@@ -90,7 +103,7 @@ const string ConvertToMultiByte(LPCWSTR szString, size_t nLength, int nCodePage)
 		nCodePage < 0 ? 0 : nCodePage,
 		0,
 		szString,
-		nLength,
+		dwLength,
 		szBuffer,
 		nNewLength + 1,
 		NULL,
