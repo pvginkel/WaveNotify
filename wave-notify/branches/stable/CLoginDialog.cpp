@@ -291,11 +291,7 @@ void CLoginDialog::ProcessLoginFailure(WAVE_LOGIN_ERROR nLoginError)
 		break;
 	}
 
-	MessageBox(
-		GetHandle(),
-		szMessage,
-		L"Google Wave Notifier",
-		MB_ICONERROR | MB_OK);
+	CApp::MessageBox(this, szMessage, MB_ICONERROR | MB_OK);
 }
 
 INT_PTR CLoginDialog::UpdateEnabled()

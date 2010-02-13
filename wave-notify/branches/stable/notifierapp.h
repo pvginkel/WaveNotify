@@ -184,6 +184,9 @@ public:
 	static CNotifierApp * Instance() { return (CNotifierApp *)CApp::Instance(); }
 	static void Restart();
 
+protected:
+	int PerformMessageBox(HWND hWnd, wstring szText, wstring szCaption, UINT uType);
+
 private:
 	BOOL DetectShortcut(const wstring & szModulePath, const wstring & szFilename);
 	void CreateShortcut();
