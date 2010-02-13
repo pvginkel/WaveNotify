@@ -601,7 +601,10 @@ void CAppWindow::ProcessResponse(CWaveResponse * lpResponse)
 			// TODO: Signal the flyout
 		}
 
-		SeedAvatars();
+		if (m_lpView != NULL)
+		{
+			SeedAvatars();
+		}
 
 		delete lpResponse;
 	}
@@ -1335,7 +1338,10 @@ void CAppWindow::ProcessAvatarResponse()
 	m_lpAvatarRequest = NULL;
 	m_szRequestingAvatar = L"";
 
-	SeedAvatars();
+	if (m_lpView != NULL)
+	{
+		SeedAvatars();
+	}
 }
 
 void CAppWindow::ClientDisconnected(CONNECT_REASON nReason)
