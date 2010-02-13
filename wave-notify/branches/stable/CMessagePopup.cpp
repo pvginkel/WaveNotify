@@ -128,7 +128,14 @@ LRESULT CMessagePopup::OnLeftButtonUp(LPARAM lParam)
 	else if (!m_szUrl.empty())
 	{
 		CNotifierApp::Instance()->OpenUrl(m_szUrl);
-		GetWindow()->ShowNext();
+
+		// TODO: Remove the instance check when windows are being
+		// refcounted.
+
+		if (CPopupWindow::Instance() != NULL)
+		{
+			GetWindow()->ShowNext();
+		}
 	}
 
 	return 0;
