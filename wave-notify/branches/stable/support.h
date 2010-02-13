@@ -57,10 +57,10 @@ typedef enum
 #endif
 
 const wstring ConvertToWideChar(const string szString, int nCodePage = -1);
-const wstring ConvertToWideChar(const TByteVector * szData, int nCodePage = -1);
-const wstring ConvertToWideChar(LPCSTR szString, size_t nLength, int nCodePage = -1);
+const wstring ConvertToWideChar(const TByteVector & szData, int nCodePage = -1);
+const wstring ConvertToWideChar(LPCSTR szString, DWORD dwLength, int nCodePage = -1);
 const string ConvertToMultiByte(const wstring szString, int nCodePage = -1);
-const string ConvertToMultiByte(LPCWSTR szString, size_t nLength, int nCodePage = -1);
+const string ConvertToMultiByte(LPCWSTR szString, DWORD dwLength, int nCodePage = -1);
 
 BOOL RemoveDirectory(wstring szPath, BOOL fRecurse = FALSE);
 

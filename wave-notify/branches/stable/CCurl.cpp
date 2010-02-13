@@ -271,7 +271,7 @@ size_t CCurl::WriteHeader(void * lpData, size_t dwSize, size_t dwBlocks)
 
 wstring CCurl::GetString(INT nCodePage) const
 {
-	return ConvertToWideChar(&m_vData, nCodePage < 0 ? CP_UTF8 : nCodePage);
+	return ConvertToWideChar(m_vData, nCodePage < 0 ? CP_UTF8 : nCodePage);
 }
 
 string CCurl::GetAnsiString() const
