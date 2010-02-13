@@ -269,18 +269,29 @@ BOOL COptionsProxyPage::OnFocus()
 
 BOOL COptionsProxyPage::OnApply()
 {
-	CSettings vSettings(TRUE);
+	if (
+		GetDlgItemChecked(IDC_OPTIONS_USEPROXY) &&
+		GetDlgItemInt(IDC_OPTIONS_PROXYPORT, FALSE) <= 0
+	) {
+		CApp::MessageBox(this, L"Proxy port must be a number greater than zero.", MB_OK | MB_ICONERROR);
 
-	vSettings.SetProxyHaveSettings(GetDlgItemChecked(IDC_OPTIONS_USEPROXY));
-	vSettings.SetProxyHost(GetDlgItemText(IDC_OPTIONS_PROXYHOST));
-	vSettings.SetProxyPort(GetDlgItemInt(IDC_OPTIONS_PROXYPORT, FALSE));
-	vSettings.SetProxyAuthenticated(GetDlgItemChecked(IDC_OPTIONS_PROXYAUTHENTICATE));
-	vSettings.SetProxyUsername(GetDlgItemText(IDC_OPTIONS_PROXYUSERNAME));
-	vSettings.SetProxyPassword(GetDlgItemText(IDC_OPTIONS_PROXYPASSWORD));
+		SetStateInvalid();
+	}
+	else
+	{
+		CSettings vSettings(TRUE);
 
-	CNotifierApp::Instance()->SyncProxySettings();
+		vSettings.SetProxyHaveSettings(GetDlgItemChecked(IDC_OPTIONS_USEPROXY));
+		vSettings.SetProxyHost(GetDlgItemText(IDC_OPTIONS_PROXYHOST));
+		vSettings.SetProxyPort(GetDlgItemInt(IDC_OPTIONS_PROXYPORT, FALSE));
+		vSettings.SetProxyAuthenticated(GetDlgItemChecked(IDC_OPTIONS_PROXYAUTHENTICATE));
+		vSettings.SetProxyUsername(GetDlgItemText(IDC_OPTIONS_PROXYUSERNAME));
+		vSettings.SetProxyPassword(GetDlgItemText(IDC_OPTIONS_PROXYPASSWORD));
 
-	SetStateValid();
+		CNotifierApp::Instance()->SyncProxySettings();
+
+		SetStateValid();
+	}
 
 	return TRUE;
 }
