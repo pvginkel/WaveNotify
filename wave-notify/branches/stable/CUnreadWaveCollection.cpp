@@ -177,7 +177,7 @@ CUnreadWave * CUnreadWaveCollection::GetDifference(CWave * lpReportedWave, CWave
 	// in the reported Wave. Well, lets just pick the first message of the new Wave
 	// to report then.
 
-	if (lpToReport == NULL)
+	if (lpToReport == NULL && vNewMessages.size() > 0)
 	{
 		lpToReport = vNewMessages[0];
 	}
