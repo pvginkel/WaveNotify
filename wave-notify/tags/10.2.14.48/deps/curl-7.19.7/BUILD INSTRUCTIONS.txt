@@ -1,0 +1,77 @@
+Building CURL
+=============
+
+Requirements
+------------
+
+OpenSSL:
+
+Get an OpenSSL version that has been compiled with the VC6 compiler or has
+been statically compiled. A read-made has been included in the deps folder.
+If a new one is required, the headers can be retrieved from
+http://www.openssl.org/source/.
+
+The expected layout of the folders is as follows:
+
+  .\inc32: Include files;
+  .\out32dll: Lib and DLL files.
+
+Set the correct environment variable with:
+
+  set OPENSSL_PATH=c:\<build path>\openssl-<version>
+
+zlib:
+
+The compiled version for zlib can be retrieved from http://www.zlib.net/. This
+file contains all headers and binaries.
+
+The expected layout of the folders is as follows:
+
+  .: All files including the headers, lib and DLL.
+
+Set the correct environment variable with:
+
+  set ZLIB_PATH=C:\<build path>\zlib-<version>
+
+cURL:
+
+Get the latest version of the sources for cURL from http://curl.haxx.se/ and
+extract this into the build path.
+
+Set the correct target with:
+
+  set CFG=release-dll-ssl-dll-zlib-dll
+
+Modifications to the makefile
+-----------------------------
+
+To get the PDB file, the following modifications to the makefile have to be
+made to c:\<build path>\curl-<version>\lib\Makefile.vc6.
+
+Add these lines around the following section (or at least below the definitions
+of the modified variables):
+
+  ##############################################################
+  # Runtime library configuration
+
+The following lines must be added:
+
+  CLFAGS = $(CFLAGS) /Zi
+  LNKDLL = $(LNKDLL) /DEBUG
+  LNKLIB = $(LNKLIB) /DEBUG
+
+Building
+--------
+
+The library must be build with the VC6 compiler and should be build with
+the Windows 2000 build environment from the Windows 2003 R2 Platform SDK.
+
+Start the build environment with the provided shortcut to the
+Windows 2000 Retail x86 environment.
+
+Build the library using the following command from the folder
+C:\<build path>\curl-<version>\lib:
+
+  nmake -f Makefile.vc6 all
+
+The folder release-dll-ssl-dll-zlib-dll should now contain a workling DLL.
