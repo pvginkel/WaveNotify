@@ -414,21 +414,27 @@ void CAppWindow::CheckForUpdates()
 
 void CAppWindow::OpenInbox()
 {
-	CNotifierApp::Instance()->OpenUrl(m_lpSession->GetInboxUrl());
+	if (m_lpSession->GetState() == WSS_ONLINE || m_lpSession->GetState() == WSS_RECONNECTING)
+	{
+		CNotifierApp::Instance()->OpenUrl(m_lpSession->GetInboxUrl());
+	}
 }
 
 void CAppWindow::SignOut(BOOL fManual)
 {
-	if (CPopupWindow::Instance() != NULL)
+	if (m_lpSession->GetState() == WSS_ONLINE || m_lpSession->GetState() == WSS_RECONNECTING)
 	{
-		CPopupWindow::Instance()->CancelAll();
-	}
+		if (CPopupWindow::Instance() != NULL)
+		{
+			CPopupWindow::Instance()->CancelAll();
+		}
 
-	m_lpSession->SignOut();
+		m_lpSession->SignOut();
 
-	if (fManual)
-	{
-		CSettings(TRUE).DeleteGooglePassword();
+		if (fManual)
+		{
+			CSettings(TRUE).DeleteGooglePassword();
+		}
 	}
 }
 
@@ -961,18 +967,24 @@ CWaveContact * CAppWindow::GetWaveContact(wstring szEmailAddress)
 
 void CAppWindow::CheckWavesNow()
 {
-	if (CPopupWindow::Instance() != NULL)
+	if (m_lpView != NULL)
 	{
-		CPopupWindow::Instance()->CancelAll();
+		if (CPopupWindow::Instance() != NULL)
+		{
+			CPopupWindow::Instance()->CancelAll();
+		}
+
+		if (m_lpReportedView != NULL)
+		{
+			delete m_lpReportedView;
+		}
+
+		m_lpReportedView = new CWaveCollection();
+
+		m_vReportedTimes.clear();
+
+		DisplayWavePopups(TRUE);
 	}
-
-	delete m_lpReportedView;
-
-	m_lpReportedView = new CWaveCollection();
-
-	m_vReportedTimes.clear();
-
-	DisplayWavePopups(TRUE);
 }
 
 void CAppWindow::CheckApplicationUpdated()
@@ -1047,7 +1059,10 @@ BOOL CAppWindow::LoginFromRegistry()
 
 void CAppWindow::PromptForCredentials()
 {
-	(new CLoginDialog(this))->Create(DT_LOGIN, CNotifierApp::Instance()->GetAppWindow());
+	if (m_lpSession->GetState() == WSS_OFFLINE)
+	{
+		(new CLoginDialog(this))->Create(DT_LOGIN, CNotifierApp::Instance()->GetAppWindow());
+	}
 }
 
 void CAppWindow::ProcessUnreadWavesNotifyIcon(INT nUnreadWaves)
