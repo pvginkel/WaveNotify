@@ -9,6 +9,11 @@ bugs on SourceForge at https://sourceforge.net/projects/wave-notify/support.
 If you enjoy using the Google Wave Notifier application, please leave a review
 on the SourceForge website.
 
+Version 10.2.14.48
+
+  * Fixed several unexpected crashes as reported through the Crash Reporter.
+    Special thanks to everybody who reported such a crash.
+
 Version 10.2.11.47
 
   * Integrated Google Breakpad (http://google-breakpad.googlecode.com/);
